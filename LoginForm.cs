@@ -306,6 +306,14 @@ namespace SalaryCalculator
                     return;
                 }
 
+                // Validate phone number: must be exactly 10 digits
+                string phoneDigits = new string(phone.Where(char.IsDigit).ToArray());
+                if (phoneDigits.Length != 10)
+                {
+                    MessageBox.Show("Vui lòng điền đúng số điện thoại đang sử dụng (10 số)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) || 
                     !decimal.TryParse(meal, out decimal mealAllowance) || 
                     !decimal.TryParse(attendance, out decimal attendanceIncentive))
