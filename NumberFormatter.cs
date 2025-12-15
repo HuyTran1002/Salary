@@ -18,7 +18,9 @@ namespace SalaryCalculator
             textBox.TextChanged += (s, e) =>
             {
                 string text = textBox.Text;
-                
+                int oldSelStart = textBox.SelectionStart;
+                int oldLength = textBox.Text.Length;
+
                 // Remove all non-digit characters
                 string cleaned = "";
                 foreach (char c in text)
@@ -27,21 +29,27 @@ namespace SalaryCalculator
                         cleaned += c;
                 }
 
+                // Allow empty (user can clear all)
                 if (string.IsNullOrEmpty(cleaned))
                 {
-                    textBox.Text = "0";
+                    textBox.TextChanged -= null; // prevent recursion
+                    textBox.Text = "";
+                    textBox.SelectionStart = 0;
                     return;
                 }
 
-                // Format with thousand separator
+                // Remove leading zeros (but allow single zero)
+                cleaned = cleaned.TrimStart('0');
+                if (cleaned == "") cleaned = "0";
+
                 if (decimal.TryParse(cleaned, out decimal value))
                 {
-                    int cursorPos = textBox.SelectionStart;
-                    textBox.Text = value.ToString("N0", new CultureInfo("en-US"));
-                    
-                    // Keep cursor position reasonable
-                    if (cursorPos <= textBox.Text.Length)
-                        textBox.SelectionStart = cursorPos;
+                    string formatted = value.ToString("N0", new CultureInfo("en-US"));
+                    // Calculate new caret position
+                    int diff = formatted.Length - oldLength;
+                    textBox.TextChanged -= null; // prevent recursion
+                    textBox.Text = formatted;
+                    textBox.SelectionStart = Math.Max(0, Math.Min(formatted.Length, oldSelStart + diff));
                 }
             };
         }

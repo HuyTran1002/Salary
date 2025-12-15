@@ -341,13 +341,13 @@ namespace SalaryCalculator
             else
             {
                 // Login mode
-                // Check for admin account
-                if (username.ToLower() == "admin")
+                // Cho phép admin đăng nhập như user thường để xem bảng xếp hạng
+                if (username == "admin")
                 {
-                    MessageBox.Show("Tính năng admin chưa được triển khai.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Đăng nhập thành công! Chào mừng Admin", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    OpenCalculatorForm("admin");
                     return;
                 }
-
                 var user = userDataManager.Login(username);
                 if (user != null)
                 {

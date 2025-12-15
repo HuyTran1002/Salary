@@ -16,6 +16,9 @@ namespace SalaryCalculator
         public decimal MealAllowance { get; set; }
         public decimal AttendanceIncentive { get; set; }
         public int RecognizeCount { get; set; }
+        // Lưu lịch sử lương theo tháng/năm
+        public Dictionary<string, decimal> SalaryHistory { get; set; } = new Dictionary<string, decimal>();
+        // Dùng cho bảng xếp hạng tháng hiện tại
         public int LastCalculatedMonth { get; set; } = 0;
         public int LastCalculatedYear { get; set; } = 0;
         public decimal LastNetSalary { get; set; } = 0;
@@ -108,7 +111,27 @@ namespace SalaryCalculator
                     catch { }
                 }
 
-                // Sort by LastNetSalary descending (only users with calculated salary in current month)
+                // Lấy tháng/năm hiện tại
+                int nowMonth = DateTime.Now.Month;
+                int nowYear = DateTime.Now.Year;
+                // Lấy lương tháng hiện tại nếu có
+                foreach (var u in users)
+                {
+                    string key = $"{nowMonth:D2}-{nowYear}";
+                    if (u.SalaryHistory != null && u.SalaryHistory.ContainsKey(key))
+                    {
+                        u.LastNetSalary = u.SalaryHistory[key];
+                        u.LastCalculatedMonth = nowMonth;
+                        u.LastCalculatedYear = nowYear;
+                    }
+                    else
+                    {
+                        u.LastNetSalary = 0;
+                        u.LastCalculatedMonth = 0;
+                        u.LastCalculatedYear = 0;
+                    }
+                }
+                // Xếp hạng theo lương tháng hiện tại
                 return users.OrderByDescending(u => u.LastNetSalary).ToList();
             }
             catch
@@ -125,13 +148,22 @@ namespace SalaryCalculator
                 if (user == null)
                     return false;
 
-                user.LastCalculatedMonth = month;
-                user.LastCalculatedYear = year;
-                user.LastNetSalary = netSalary;
+                // Chỉ lưu lịch sử và ghi file nếu là tháng/năm hiện tại
+                if (month == DateTime.Now.Month && year == DateTime.Now.Year)
+                {
+                    string key = $"{month:D2}-{year}";
+                    if (user.SalaryHistory == null)
+                        user.SalaryHistory = new Dictionary<string, decimal>();
+                    user.SalaryHistory[key] = netSalary;
+                    user.LastCalculatedMonth = month;
+                    user.LastCalculatedYear = year;
+                    user.LastNetSalary = netSalary;
 
-                string json = JsonSerializer.Serialize(user);
-                string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
+                    string json = JsonSerializer.Serialize(user);
+                    string userFile = Path.Combine(DataFolder, $"{username}.json");
+                    File.WriteAllText(userFile, json);
+                }
+                // Nếu là tháng khác thì không lưu
                 return true;
             }
             catch

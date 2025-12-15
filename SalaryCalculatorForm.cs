@@ -18,6 +18,123 @@ namespace SalaryCalculator
 
         private void InitializeComponent()
         {
+            if (currentUsername == "admin")
+            {
+                int month = DateTime.Now.Month;
+                int year = DateTime.Now.Year;
+                this.Text = $"BẢNG XẾP HẠNG LƯƠNG THÁNG {month:D2}/{year}";
+                this.Width = 900;
+                this.Height = 600;
+                this.StartPosition = FormStartPosition.CenterScreen;
+                this.Font = new System.Drawing.Font("Arial", 9);
+                this.AutoScroll = false;
+
+                // Title Label
+                Label titleLabel = new Label();
+                titleLabel.Text = $"🏆 BẢNG XẾP HẠNG LƯƠNG THÁNG {month:D2}/{year} 🏆";
+                titleLabel.Font = new System.Drawing.Font("Arial", 16, System.Drawing.FontStyle.Bold);
+                titleLabel.ForeColor = System.Drawing.Color.DarkBlue;
+                titleLabel.Dock = DockStyle.Top;
+                titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                titleLabel.Height = 50;
+                titleLabel.Padding = new Padding(0, 10, 0, 0);
+                this.Controls.Add(titleLabel);
+
+                // Tạo DataGridView bảng xếp hạng
+                DataGridView rankingGrid = new DataGridView();
+                rankingGrid.Name = "rankingGrid";
+                rankingGrid.Location = new System.Drawing.Point(40, 70);
+                rankingGrid.Width = 800;
+                // Tính chiều cao tối thiểu cho 20 dòng (mỗi dòng ~22px + header)
+                int minRows = 20;
+                int rowHeight = 22;
+                int headerHeight = 36;
+                rankingGrid.Height = headerHeight + minRows * rowHeight;
+                rankingGrid.ReadOnly = true;
+                rankingGrid.AllowUserToAddRows = false;
+                rankingGrid.AllowUserToDeleteRows = false;
+                rankingGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                rankingGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+                rankingGrid.RowHeadersVisible = false;
+                rankingGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                rankingGrid.MultiSelect = false;
+                rankingGrid.Font = new System.Drawing.Font("Segoe UI", 10);
+                rankingGrid.EnableHeadersVisualStyles = false;
+                rankingGrid.ColumnCount = 4;
+                rankingGrid.Columns[0].Name = "Hạng";
+                rankingGrid.Columns[1].Name = "Tên nhân viên";
+                rankingGrid.Columns[2].Name = "Lương Net (VND)";
+                rankingGrid.Columns[3].Name = "Vinh danh";
+                rankingGrid.Columns[3].Width = 220;
+                rankingGrid.Columns[3].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                rankingGrid.Columns[0].Width = 70;
+                rankingGrid.Columns[2].DefaultCellStyle.ForeColor = System.Drawing.Color.DarkGreen;
+                rankingGrid.Columns[2].DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold);
+                rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.LightSkyBlue;
+                rankingGrid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold);
+
+                // 50 câu khen/cảm thán về mức lương (top 10)
+                string[] compliments = new string[] {
+                    "Quá xuất sắc!", "Đỉnh của chóp!", "Lương mơ ước!", "Tuyệt vời ông mặt trời!", "Đáng ngưỡng mộ!", "Làm việc như siêu nhân!", "Thu nhập cực khủng!", "Cố gắng phát huy!", "Làm việc hết mình!", "Chuyên gia tiết kiệm!",
+                    "Lương cao ngất ngưởng!", "Đồng nghiệp ngưỡng mộ!", "Sếp cũng phải nể!", "Làm việc chăm chỉ!", "Tấm gương sáng!", "Công thần của công ty!", "Bậc thầy tài chính!", "Làm việc hiệu quả!", "Thành tích tuyệt vời!", "Lương tăng vèo vèo!",
+                    "Được thưởng nóng!", "Làm việc không biết mệt!", "Cỗ máy kiếm tiền!", "Người truyền cảm hứng!", "Làm việc siêu tốc!", "Đỉnh cao nghề nghiệp!", "Lương vượt chỉ tiêu!", "Chuyên gia tăng ca!", "Làm việc chuẩn chỉnh!", "Được lòng sếp lớn!",
+                    "Làm việc như robot!", "Không ai sánh bằng!", "Lương tháng này quá đã!", "Được vinh danh toàn công ty!", "Làm việc xuất thần!", "Công nhận tài năng!", "Làm việc không ngừng nghỉ!", "Lương như mơ!", "Được đồng nghiệp yêu quý!", "Làm việc cực kỳ hiệu quả!",
+                    "Làm việc siêu năng suất!", "Lương tăng đều đều!", "Được thưởng lớn!", "Làm việc tận tâm!", "Làm việc sáng tạo!", "Làm việc chuyên nghiệp!", "Làm việc gương mẫu!", "Làm việc xuất sắc!", "Làm việc nhiệt huyết!", "Làm việc tận tụy!"
+                };
+                // 20 câu động viên/chê cho hạng ngoài top 10
+                string[] encouragements = new string[] {
+                    "Cố gắng hơn nữa nhé!", "Đừng nản lòng!", "Sắp vào top rồi!", "Nỗ lực sẽ được đền đáp!", "Chỉ cần cố thêm chút nữa!", "Đừng bỏ cuộc!", "Cơ hội vẫn còn phía trước!", "Hãy kiên trì!", "Cần bứt phá mạnh mẽ hơn!", "Đừng để lương tháng sau thấp hơn nhé!",
+                    "Cần chăm chỉ hơn!", "Hãy hỏi bí quyết từ top trên!", "Đừng để bị bỏ lại phía sau!", "Cố lên, bạn làm được!", "Hãy xem lại mục tiêu!", "Đừng để sếp nhắc nhở!", "Cần cải thiện hiệu suất!", "Đừng để đồng nghiệp vượt mặt!", "Hãy tự tin hơn!", "Lương thấp không phải mãi mãi!"
+                };
+                var rand = new Random();
+
+                // Lấy dữ liệu xếp hạng từ UserDataManager, chỉ lấy lương tháng hiện tại
+                var users = userDataManager.GetAllUsers();
+                var sorted = users.OrderByDescending(u => u.LastNetSalary).ToList();
+                int rank = 1;
+                foreach (var u in sorted)
+                {
+                    string rankDisplay = rank.ToString();
+                    if (rank == 1) rankDisplay = "1 👑";
+                    else if (rank == 2) rankDisplay = "2 🥈";
+                    else if (rank == 3) rankDisplay = "3 🏅";
+                    string message = rank <= 10 ? compliments[rand.Next(compliments.Length)] : encouragements[rand.Next(encouragements.Length)];
+                    rankingGrid.Rows.Add(rankDisplay, u.FullName, u.LastNetSalary.ToString("N0"), message);
+                    rank++;
+                }
+                // Thêm dòng trống nếu ít hơn 20 hạng
+                for (int i = sorted.Count + 1; i <= minRows; i++)
+                {
+                    rankingGrid.Rows.Add(i.ToString(), "", "", "");
+                }
+                rankingGrid.RowsDefaultCellStyle.BackColor = System.Drawing.Color.White;
+                rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.AliceBlue;
+                rankingGrid.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.LightGoldenrodYellow;
+                rankingGrid.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
+                // Thêm sự kiện click vào tên nhân viên để hiện chi tiết
+                rankingGrid.CellClick += (s, e) =>
+                {
+                    // Chỉ xử lý khi click vào cột tên nhân viên (cột 1)
+                    if (e.RowIndex >= 0 && e.ColumnIndex == 1)
+                    {
+                        string fullName = rankingGrid.Rows[e.RowIndex].Cells[1].Value?.ToString();
+                        if (!string.IsNullOrWhiteSpace(fullName))
+                        {
+                            // Tìm user theo tên đầy đủ (FullName)
+                            var user = users.FirstOrDefault(u => u.FullName == fullName);
+                            if (user != null)
+                            {
+                                var detailForm = new UserDetailForm(user);
+                                detailForm.ShowDialog(this);
+                            }
+                        }
+                    }
+                };
+                this.Controls.Add(rankingGrid);
+                return;
+            }
+
+            // Giao diện tính lương cho user thường
             this.Text = "Tính Lương - Salary Calculator";
             this.Width = 900;
             this.Height = 740;
@@ -26,15 +143,15 @@ namespace SalaryCalculator
             this.AutoScroll = false;
 
             // Title Label
-            Label titleLabel = new Label();
-            titleLabel.Text = "TÍNH LƯƠNG NHÂN VIÊN";
-            titleLabel.Font = new System.Drawing.Font("Arial", 14, System.Drawing.FontStyle.Bold);
-            titleLabel.ForeColor = System.Drawing.Color.DarkBlue;
-            titleLabel.Dock = DockStyle.Top;
-            titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            titleLabel.Height = 32;
-            titleLabel.Padding = new Padding(0, 5, 0, 0);
-            this.Controls.Add(titleLabel);
+            Label titleLabelUser = new Label();
+            titleLabelUser.Text = "TÍNH LƯƠNG NHÂN VIÊN";
+            titleLabelUser.Font = new System.Drawing.Font("Arial", 14, System.Drawing.FontStyle.Bold);
+            titleLabelUser.ForeColor = System.Drawing.Color.DarkBlue;
+            titleLabelUser.Dock = DockStyle.Top;
+            titleLabelUser.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            titleLabelUser.Height = 32;
+            titleLabelUser.Padding = new Padding(0, 5, 0, 0);
+            this.Controls.Add(titleLabelUser);
 
             // Main Panel with Auto Scroll
             Panel mainPanel = new Panel();
