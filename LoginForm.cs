@@ -30,8 +30,27 @@ namespace SalaryCalculator
             int contentWidth = 420;
             int contentStartX = (formWidth - contentWidth) / 2 - 8;
 
-            // Title
+            // Declare all controls first
             Label titleLabel = new Label();
+            Label subtitleLabel = new Label();
+            Label usernameLabel = new Label();
+            TextBox usernameTextBox = new TextBox();
+            Label fullNameLabel = new Label();
+            TextBox fullNameTextBox = new TextBox();
+            Label salaryLabel = new Label();
+            TextBox salaryTextBox = new TextBox();
+            Label mealLabel = new Label();
+            TextBox mealTextBox = new TextBox();
+            Label attendanceLabel = new Label();
+            TextBox attendanceTextBox = new TextBox();
+            Label phoneLabel = new Label();
+            TextBox phoneTextBox = new TextBox();
+            Label ageLabel = new Label();
+            TextBox ageTextBox = new TextBox();
+            Button loginBtn = new Button();
+            Button toggleBtn = new Button();
+
+            // Title
             titleLabel.Text = "💼 TÍNH LƯƠNG NHÂN VIÊN";
             titleLabel.Font = new Font("Arial", 16, FontStyle.Bold);
             titleLabel.ForeColor = Color.DarkBlue;
@@ -44,7 +63,6 @@ namespace SalaryCalculator
             formInputsY += 40;
 
             // Subtitle
-            Label subtitleLabel = new Label();
             subtitleLabel.Text = "Vui lòng đăng nhập hoặc đăng ký";
             subtitleLabel.Font = new Font("Arial", 9);
             subtitleLabel.Location = new Point(contentStartX, formInputsY);
@@ -56,7 +74,6 @@ namespace SalaryCalculator
             formInputsY += 25;
 
             // Username
-            Label usernameLabel = new Label();
             usernameLabel.Text = "Tên đăng nhập:";
             usernameLabel.Location = new Point(contentStartX, formInputsY);
             usernameLabel.Width = 150;
@@ -65,17 +82,16 @@ namespace SalaryCalculator
 
             formInputsY += 22;
 
-            TextBox usernameTextBox = new TextBox();
             usernameTextBox.Location = new Point(contentStartX, formInputsY);
             usernameTextBox.Width = contentWidth;
             usernameTextBox.Height = 24;
             usernameTextBox.Name = "usernameTextBox";
+            usernameTextBox.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, attendanceTextBox.Text); };
             this.Controls.Add(usernameTextBox);
 
             formInputsY += 30;
 
             // Full Name (hidden by default)
-            Label fullNameLabel = new Label();
             fullNameLabel.Text = "Tên đầy đủ:";
             fullNameLabel.Location = new Point(contentStartX, formInputsY);
             fullNameLabel.Width = 150;
@@ -84,7 +100,6 @@ namespace SalaryCalculator
             fullNameLabel.Visible = false;
             this.Controls.Add(fullNameLabel);
 
-            TextBox fullNameTextBox = new TextBox();
             fullNameTextBox.Location = new Point(contentStartX, formInputsY + 22);
             fullNameTextBox.Width = contentWidth;
             fullNameTextBox.Height = 24;
@@ -93,7 +108,6 @@ namespace SalaryCalculator
             this.Controls.Add(fullNameTextBox);
 
             // Basic Salary (hidden by default)
-            Label salaryLabel = new Label();
             salaryLabel.Text = "Lương cơ bản:";
             salaryLabel.Location = new Point(contentStartX, formInputsY + 52);
             salaryLabel.Width = 150;
@@ -102,7 +116,6 @@ namespace SalaryCalculator
             salaryLabel.Visible = false;
             this.Controls.Add(salaryLabel);
 
-            TextBox salaryTextBox = new TextBox();
             salaryTextBox.Location = new Point(contentStartX, formInputsY + 74);
             salaryTextBox.Width = contentWidth;
             salaryTextBox.Height = 24;
@@ -112,7 +125,6 @@ namespace SalaryCalculator
             this.Controls.Add(salaryTextBox);
 
             // Meal Allowance (hidden by default)
-            Label mealLabel = new Label();
             mealLabel.Text = "Tiền ăn/ngày:";
             mealLabel.Location = new Point(contentStartX, formInputsY + 104);
             mealLabel.Width = 150;
@@ -121,7 +133,6 @@ namespace SalaryCalculator
             mealLabel.Visible = false;
             this.Controls.Add(mealLabel);
 
-            TextBox mealTextBox = new TextBox();
             mealTextBox.Location = new Point(contentStartX, formInputsY + 126);
             mealTextBox.Width = contentWidth;
             mealTextBox.Height = 24;
@@ -131,7 +142,6 @@ namespace SalaryCalculator
             this.Controls.Add(mealTextBox);
 
             // Attendance Incentive (hidden by default)
-            Label attendanceLabel = new Label();
             attendanceLabel.Text = "Tiền chuyên cần:";
             attendanceLabel.Location = new Point(contentStartX, formInputsY + 156);
             attendanceLabel.Width = 150;
@@ -140,7 +150,6 @@ namespace SalaryCalculator
             attendanceLabel.Visible = false;
             this.Controls.Add(attendanceLabel);
 
-            TextBox attendanceTextBox = new TextBox();
             attendanceTextBox.Location = new Point(contentStartX, formInputsY + 178);
             attendanceTextBox.Width = contentWidth;
             attendanceTextBox.Height = 24;
@@ -151,7 +160,6 @@ namespace SalaryCalculator
             this.Controls.Add(attendanceTextBox);
 
             // Phone/Zalo (hidden by default)
-            Label phoneLabel = new Label();
             phoneLabel.Text = "Số điện thoại/Zalo:";
             phoneLabel.Location = new Point(contentStartX, formInputsY + 208);
             phoneLabel.Width = 150;
@@ -160,7 +168,6 @@ namespace SalaryCalculator
             phoneLabel.Visible = false;
             this.Controls.Add(phoneLabel);
 
-            TextBox phoneTextBox = new TextBox();
             phoneTextBox.Location = new Point(contentStartX, formInputsY + 230);
             phoneTextBox.Width = contentWidth;
             phoneTextBox.Height = 24;
@@ -169,7 +176,6 @@ namespace SalaryCalculator
             this.Controls.Add(phoneTextBox);
 
             // Age (hidden by default)
-            Label ageLabel = new Label();
             ageLabel.Text = "Tuổi:";
             ageLabel.Location = new Point(contentStartX, formInputsY + 260);
             ageLabel.Width = 150;
@@ -178,7 +184,6 @@ namespace SalaryCalculator
             ageLabel.Visible = false;
             this.Controls.Add(ageLabel);
 
-            TextBox ageTextBox = new TextBox();
             ageTextBox.Location = new Point(contentStartX, formInputsY + 282);
             ageTextBox.Width = contentWidth;
             ageTextBox.Height = 24;
@@ -196,7 +201,6 @@ namespace SalaryCalculator
             int totalActionWidth = calcWidth + actionGap + toggleWidth;
             int actionStartXLogin = (formWidth - totalActionWidth) / 2 - 8;
 
-            Button loginBtn = new Button();
             loginBtn.Text = "🔐 Đăng Nhập";
             loginBtn.Location = new Point(actionStartXLogin, actionYLogin);
             loginBtn.Width = calcWidth;
@@ -209,7 +213,6 @@ namespace SalaryCalculator
             this.Controls.Add(loginBtn);
 
             // Register Toggle Button - positioned at bottom of form (fixed position)
-            Button toggleBtn = new Button();
             toggleBtn.Text = "📝 Chuyển sang Đăng Ký";
             toggleBtn.Location = new Point(actionStartXLogin + calcWidth + actionGap, actionYLogin);
             toggleBtn.Width = toggleWidth;
@@ -333,8 +336,7 @@ namespace SalaryCalculator
                 // Check for admin account
                 if (username.ToLower() == "admin")
                 {
-                    MessageBox.Show("Đăng nhập Admin thành công! Xem danh sách tất cả nhân viên.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    OpenAllUsersForm();
+                    MessageBox.Show("Tính năng admin chưa được triển khai.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
@@ -346,15 +348,9 @@ namespace SalaryCalculator
                 }
                 else
                 {
-                    MessageBox.Show("Tên đăng nhập hoặc mật khẩu không đúng!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tên đăng nhập không tồn tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-        }
-
-        private void OpenAllUsersForm()
-        {
-            AllUsersForm allUsersForm = new AllUsersForm();
-            allUsersForm.ShowDialog();
         }
 
         private void OpenCalculatorForm(string username)
