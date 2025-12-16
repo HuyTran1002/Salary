@@ -12,6 +12,15 @@ obj/
 # Releases
 release-single/
 
+# Ignore build artifacts and large files
+*.exe
+*.dll
+*.pdb
+*.zip
+*.msi
+publish/
+release/
+
 # OS
 Thumbs.db
 Desktop.ini
