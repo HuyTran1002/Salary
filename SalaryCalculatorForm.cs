@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace SalaryCalculator
 {
@@ -87,6 +88,31 @@ namespace SalaryCalculator
                     "Cần chăm chỉ hơn!", "Hãy hỏi bí quyết từ top trên!", "Đừng để bị bỏ lại phía sau!", "Cố lên, bạn làm được!", "Hãy xem lại mục tiêu!", "Đừng để sếp nhắc nhở!", "Cần cải thiện hiệu suất!", "Đừng để đồng nghiệp vượt mặt!", "Hãy tự tin hơn!", "Lương thấp không phải mãi mãi!"
                 };
                 var rand = new Random();
+                // Tối ưu random không lặp lại cho đến khi hết danh sách
+                List<string> complimentPool = compliments.ToList();
+                List<string> encouragementPool = encouragements.ToList();
+                int complimentIndex = 0, encouragementIndex = 0;
+                complimentPool = complimentPool.OrderBy(x => rand.Next()).ToList();
+                encouragementPool = encouragementPool.OrderBy(x => rand.Next()).ToList();
+
+                string GetNextCompliment()
+                {
+                    if (complimentIndex >= complimentPool.Count)
+                    {
+                        complimentPool = compliments.OrderBy(x => rand.Next()).ToList();
+                        complimentIndex = 0;
+                    }
+                    return complimentPool[complimentIndex++];
+                }
+                string GetNextEncouragement()
+                {
+                    if (encouragementIndex >= encouragementPool.Count)
+                    {
+                        encouragementPool = encouragements.OrderBy(x => rand.Next()).ToList();
+                        encouragementIndex = 0;
+                    }
+                    return encouragementPool[encouragementIndex++];
+                }
 
                 // Lấy dữ liệu xếp hạng từ UserDataManager, chỉ lấy lương tháng hiện tại
                 var users = userDataManager.GetAllUsers();
@@ -98,7 +124,16 @@ namespace SalaryCalculator
                     if (rank == 1) rankDisplay = "1 👑";
                     else if (rank == 2) rankDisplay = "2 🥈";
                     else if (rank == 3) rankDisplay = "3 🏅";
-                    string message = rank <= 10 ? compliments[rand.Next(compliments.Length)] : encouragements[rand.Next(encouragements.Length)];
+                    // Chỉ khen nếu có lương tháng hiện tại, còn lại động viên/chê
+                    string message;
+                    if (u.LastCalculatedMonth == month && u.LastCalculatedYear == year && u.LastNetSalary > 0)
+                    {
+                        message = rank <= 10 ? GetNextCompliment() : GetNextEncouragement();
+                    }
+                    else
+                    {
+                        message = GetNextEncouragement();
+                    }
                     rankingGrid.Rows.Add(rankDisplay, u.FullName, u.LastNetSalary.ToString("N0"), message);
                     rank++;
                 }
@@ -289,7 +324,7 @@ namespace SalaryCalculator
             leftY += rowGap;
 
             Label mealLabel = new Label();
-            mealLabel.Text = "Tiền Ăn/Ngày:";
+            mealLabel.Text = "Tiền Ăn/Tháng:";
             mealLabel.Location = new System.Drawing.Point(10, leftY);
             mealLabel.Width = 110;
             mealLabel.Height = 18;

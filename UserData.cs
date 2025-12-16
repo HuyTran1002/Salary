@@ -126,9 +126,10 @@ namespace SalaryCalculator
                     }
                     else
                     {
+                        // Nếu chưa tính lương tháng hiện tại thì reset về 0
                         u.LastNetSalary = 0;
-                        u.LastCalculatedMonth = 0;
-                        u.LastCalculatedYear = 0;
+                        u.LastCalculatedMonth = nowMonth;
+                        u.LastCalculatedYear = nowYear;
                     }
                 }
                 // Xếp hạng theo lương tháng hiện tại

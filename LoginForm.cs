@@ -125,7 +125,7 @@ namespace SalaryCalculator
             this.Controls.Add(salaryTextBox);
 
             // Meal Allowance (hidden by default)
-            mealLabel.Text = "Tiền ăn/ngày:";
+            mealLabel.Text = "Tiền ăn/Tháng:";
             mealLabel.Location = new Point(contentStartX, formInputsY + 104);
             mealLabel.Width = 150;
             mealLabel.Height = 18;
@@ -330,7 +330,7 @@ namespace SalaryCalculator
 
                 if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0))
                 {
-                    MessageBox.Show($"Đăng ký thành công! Chào mừng {fullName}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Bỏ popup chào mừng, vào thẳng form tính lương
                     OpenCalculatorForm(username);
                 }
                 else
@@ -344,14 +344,14 @@ namespace SalaryCalculator
                 // Cho phép admin đăng nhập như user thường để xem bảng xếp hạng
                 if (username == "admin")
                 {
-                    MessageBox.Show("Đăng nhập thành công! Chào mừng Admin", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Bỏ popup đăng nhập thành công, vào thẳng form tính lương
                     OpenCalculatorForm("admin");
                     return;
                 }
                 var user = userDataManager.Login(username);
                 if (user != null)
                 {
-                    MessageBox.Show($"Đăng nhập thành công! Chào mừng {user.FullName}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Bỏ popup đăng nhập thành công, vào thẳng form tính lương
                     OpenCalculatorForm(username);
                 }
                 else
