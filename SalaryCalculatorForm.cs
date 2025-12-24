@@ -153,7 +153,7 @@ namespace SalaryCalculator
                     string message;
                     if (u.LastCalculatedMonth == month && u.LastCalculatedYear == year && u.LastNetSalary > 0)
                     {
-                        message = rank <= 10 ? GetNextCompliment() : GetNextEncouragement();
+                        message = rank <= 7 ? GetNextCompliment() : GetNextEncouragement();
                     }
                     else
                     {
