@@ -23,5 +23,7 @@
     <!-- Limit satellite resource languages to none to reduce output size -->
     <SatelliteResourceLanguages></SatelliteResourceLanguages>
   </PropertyGroup>
-
+  <ItemGroup>
+    <Compile Remove="SalaryCalculatorForm_backup_2025-12-24.cs" />
+  </ItemGroup>
 </Project>

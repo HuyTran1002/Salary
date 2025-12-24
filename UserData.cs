@@ -16,6 +16,7 @@ namespace SalaryCalculator
         public decimal MealAllowance { get; set; }
         public decimal AttendanceIncentive { get; set; }
         public int RecognizeCount { get; set; }
+        public decimal TaxThreshold { get; set; }
         // Lưu lịch sử lương theo tháng/năm
         public Dictionary<string, decimal> SalaryHistory { get; set; } = new Dictionary<string, decimal>();
         // Dùng cho bảng xếp hạng tháng hiện tại
@@ -35,7 +36,7 @@ namespace SalaryCalculator
                 Directory.CreateDirectory(DataFolder);
         }
 
-        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal attendanceIncentive = 710000, int recognizeCount = 0)
+        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0)
         {
             try
             {
@@ -48,7 +49,8 @@ namespace SalaryCalculator
                     BasicSalary = basicSalary,
                     MealAllowance = mealAllowance,
                     AttendanceIncentive = attendanceIncentive,
-                    RecognizeCount = recognizeCount
+                    RecognizeCount = recognizeCount,
+                    TaxThreshold = taxThreshold
                 };
 
                 string json = JsonSerializer.Serialize(user);

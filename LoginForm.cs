@@ -49,6 +49,8 @@ namespace SalaryCalculator
             TextBox ageTextBox = new TextBox();
             Button loginBtn = new Button();
             Button toggleBtn = new Button();
+            Label taxThresholdLabel = new Label();
+            TextBox taxThresholdTextBox = new TextBox();
 
             // Title
             titleLabel.Text = "💼 TÍNH LƯƠNG NHÂN VIÊN";
@@ -192,6 +194,26 @@ namespace SalaryCalculator
             NumberFormatter.FormatNumberInput(ageTextBox);
             this.Controls.Add(ageTextBox);
 
+            // Tax Threshold (hidden by default)
+            taxThresholdLabel.Text = "Mốc lương tính thuế:";
+            taxThresholdLabel.Location = new Point(contentStartX, formInputsY + 312);
+            taxThresholdLabel.Width = 150;
+            taxThresholdLabel.Height = 18;
+            taxThresholdLabel.Name = "taxThresholdLabel";
+            taxThresholdLabel.Visible = false;
+            this.Controls.Add(taxThresholdLabel);
+
+            taxThresholdTextBox.Location = new Point(contentStartX, formInputsY + 334);
+            taxThresholdTextBox.Width = contentWidth;
+            taxThresholdTextBox.Height = 24;
+            taxThresholdTextBox.Name = "taxThresholdTextBox";
+            taxThresholdTextBox.Visible = false;
+            taxThresholdTextBox.Text = NumberFormatter.FormatNumberDisplay("15500000");
+            taxThresholdTextBox.ReadOnly = false;
+            taxThresholdTextBox.BackColor = System.Drawing.Color.White;
+            NumberFormatter.FormatNumberInput(taxThresholdTextBox);
+            this.Controls.Add(taxThresholdTextBox);
+
             // Login Button - positioned at bottom of form (fixed position)
             // Center action buttons as a group
             int actionYLogin = 170;
@@ -221,15 +243,20 @@ namespace SalaryCalculator
             toggleBtn.BackColor = Color.DodgerBlue;
             toggleBtn.ForeColor = Color.White;
             toggleBtn.Name = "toggleBtn";
-            toggleBtn.Click += (s, e) => ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, attendanceTextBox,
-                                                              fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, attendanceLabel, loginBtn, toggleBtn);
+            toggleBtn.Click += (s, e) => {
+                ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, attendanceTextBox,
+                    fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, attendanceLabel, loginBtn, toggleBtn);
+                // Show/hide tax threshold controls theo isRegistering
+                taxThresholdLabel.Visible = isRegistering;
+                taxThresholdTextBox.Visible = isRegistering;
+            };
             this.Controls.Add(toggleBtn);
         }
 
         private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox phoneTextBox, TextBox ageTextBox, TextBox salaryTextBox, 
-                                       TextBox mealTextBox, TextBox attendanceTextBox,
-                                       Label fullNameLabel, Label phoneLabel, Label ageLabel, Label salaryLabel, Label mealLabel, Label attendanceLabel,
-                                       Button loginBtn, Button toggleBtn)
+                           TextBox mealTextBox, TextBox attendanceTextBox,
+                           Label fullNameLabel, Label phoneLabel, Label ageLabel, Label salaryLabel, Label mealLabel, Label attendanceLabel,
+                           Button loginBtn, Button toggleBtn)
         {
             isRegistering = !isRegistering;
 
@@ -245,6 +272,7 @@ namespace SalaryCalculator
             mealTextBox.Visible = isRegistering;
             attendanceLabel.Visible = isRegistering;
             attendanceTextBox.Visible = isRegistering;
+            // taxThresholdLabel.Visible và taxThresholdTextBox.Visible được điều khiển ở ngoài toggleBtn.Click
 
             if (isRegistering)
             {
@@ -328,7 +356,14 @@ namespace SalaryCalculator
                     return;
                 }
 
-                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0))
+                decimal taxThreshold = 0;
+                Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
+                if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
+                {
+                    decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out taxThreshold);
+                }
+                int taxThresholdInt = (int)taxThreshold;
+                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0, taxThreshold))
                 {
                     // Bỏ popup chào mừng, vào thẳng form tính lương
                     OpenCalculatorForm(username);

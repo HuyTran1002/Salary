@@ -1,0 +1,49 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build Release",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"-c",
+				"Release"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build Release",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"Salary.sln",
+				"-c",
+				"Release"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build Release",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"SalaryCalculator.csproj",
+				"-c",
+				"Release"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		}
+	]
+}
