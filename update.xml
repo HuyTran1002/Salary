@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+  <version>1.0.1.0</version>
+  <url>https://release-assets.githubusercontent.com/github-production-release-asset/1114621193/8320a182-f336-4142-bd5e-fd33012502f2?sp=r&sv=2018-11-09&sr=b&spr=https&se=2025-12-25T14%3A45%3A05Z&rscd=attachment%3B+filename%3DSalaryCalculator.exe&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2025-12-25T13%3A44%3A49Z&ske=2025-12-25T14%3A45%3A05Z&sks=b&skv=2018-11-09&sig=Jxsyxpz0FOVhnr%2BqWyWVZn%2FDYnwScFcki%2BZ6%2BeMskLk%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc2NjY3NDgzOSwibmJmIjoxNzY2NjcxMjM5LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.fQbEKQQ2qi_6orrUMgfPd6epoV-4Mga2QLdnsCG3M78&response-content-disposition=attachment%3B%20filename%3DSalaryCalculator.exe&response-content-type=application%2Foctet-stream</url>
+  <changelog>Đã cập nhật tính năng mới, sửa lỗi.</changelog>
+  <mandatory>false</mandatory>
+</item>
