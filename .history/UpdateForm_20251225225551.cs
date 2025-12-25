@@ -60,7 +60,7 @@ namespace SalaryCalculator
             Label currentVersionLabel = new Label();
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
             var version = assembly.GetName().Version;
-            currentVersionLabel.Text = $"Phiên bản hiện tại: {version?.Major}.{version?.Minor}.{version?.Build}.{version?.Revision}";
+            currentVersionLabel.Text = $"Phiên bản hiện tại: {version?.Major}.{version?.Minor}.{version?.Build}";
             currentVersionLabel.Font = new Font("Segoe UI", 10);
             currentVersionLabel.Location = new Point(20, 80);
             currentVersionLabel.Size = new Size(440, 25);

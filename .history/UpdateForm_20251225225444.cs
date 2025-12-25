@@ -60,7 +60,7 @@ namespace SalaryCalculator
             Label currentVersionLabel = new Label();
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
             var version = assembly.GetName().Version;
-            currentVersionLabel.Text = $"Phiên bản hiện tại: {version?.Major}.{version?.Minor}.{version?.Build}.{version?.Revision}";
+            currentVersionLabel.Text = $"Phiên bản hiện tại: {version?.Major}.{version?.Minor}.{version?.Build}";
             currentVersionLabel.Font = new Font("Segoe UI", 10);
             currentVersionLabel.Location = new Point(20, 80);
             currentVersionLabel.Size = new Size(440, 25);
@@ -123,10 +123,15 @@ namespace SalaryCalculator
                     Directory.CreateDirectory(tempPath);
 
 
-
                 // Đường dẫn file exe mới tải về (file tạm)
+                string exeFileName = Path.GetFileName(Application.ExecutablePath);
                 string newExePath = Path.Combine(tempPath, "SalaryCalculator_new.exe");
+
+                // Tải file exe mới về file tạm
                 await DownloadFileAsync(downloadUrl, newExePath);
+
+                // Step 1: Download installer FIRST
+                await DownloadFileAsync(downloadUrl, installerPath);
 
                 // Step 2: After download completes, run batch file để ghi đè exe gốc
                 if (File.Exists(newExePath))
@@ -138,20 +143,20 @@ namespace SalaryCalculator
                     // Tạo file batch để copy đè exe và khởi động lại app
                     string batchPath = Path.Combine(tempPath, "update_salary.bat");
                     string exePath = Application.ExecutablePath;
-                    string batchContent = string.Join("\r\n", new[] {
-                        "@echo off",
-                        "timeout /t 2 >nul",
-                        ":loop",
-                        $"tasklist | findstr /i \"{Path.GetFileNameWithoutExtension(exePath)}.exe\" >nul",
-                        "if not errorlevel 1 (",
-                        "    timeout /t 1 >nul",
-                        "    goto loop",
-                        ")",
-                        $"copy /y \"{newExePath}\" \"{exePath}\"",
-                        $"start \"\" \"{exePath}\"",
-                        $"del \"{newExePath}\"",
-                        "del \"%~f0\""
-                    });
+                    string batchContent = $@"
+@echo off
+timeout /t 2 >nul
+:loop
+tasklist | findstr /i \"{Path.GetFileNameWithoutExtension(exePath)}.exe\" >nul
+if not errorlevel 1 (
+    timeout /t 1 >nul
+    goto loop
+)
+copy /y \"{newExePath}\" \"{exePath}\"
+start \"\" \"{exePath}\"
+del \"{newExePath}\"
+del \"%~f0\"
+";
                     File.WriteAllText(batchPath, batchContent);
 
                     // Chạy batch file và thoát app
