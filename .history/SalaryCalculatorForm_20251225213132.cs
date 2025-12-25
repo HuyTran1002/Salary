@@ -3,7 +3,6 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
-using SalaryCalculator;
 
 namespace SalaryCalculator
 {
@@ -28,8 +27,15 @@ namespace SalaryCalculator
             var result = await UpdateChecker.CheckForUpdateAsync();
             if (result.hasUpdate)
             {
-                string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
-                UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
+                // Nếu là bắt buộc thì hiển thị luôn, nếu không thì hỏi người dùng
+                if (result.mandatory)
+                {
+                    UpdateChecker.ShowAutoUpdateDialog(result.latestVersion, result.downloadUrl, result.changelog, result.mandatory);
+                }
+                else
+                {
+                    UpdateChecker.ShowManualUpdateDialog(result.latestVersion, result.downloadUrl, result.changelog, result.mandatory);
+                }
             }
         }
 

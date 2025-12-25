@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
-using SalaryCalculator;
+using AutoUpdaterDotNET;
 
 namespace SalaryCalculator
 {
@@ -13,24 +13,31 @@ namespace SalaryCalculator
             private string currentUsername;
             private UserDataManager userDataManager = new UserDataManager();
 
+        // Địa chỉ file XML chứa thông tin cập nhật (bạn thay bằng link thật của bạn)
+        private const string UpdateXmlUrl = "https://raw.githubusercontent.com/HuyTran1002/Salary/refs/heads/main/update.xml";
+
+
         public SalaryCalculatorForm(string username = "")
         {
             currentUsername = username;
             InitializeComponent();
             // Để LoginForm kiểm soát quay lại khi form này đóng
 
-            // Kiểm tra cập nhật tự động khi khởi động form
-            CheckForUpdate();
+            // Kiểm tra cập nhật khi khởi động form
+            this.Load += async (s, e) =>
+            {
+                var (hasUpdate, latestVersion) = await UpdateChecker.CheckForUpdateAsync();
+                if (hasUpdate)
+                {
+                    UpdateChecker.ShowAutoUpdateDialog(latestVersion);
+                }
+            };
         }
 
-        private async void CheckForUpdate()
+        private void SalaryCalculatorForm_Load(object sender, EventArgs e)
         {
-            var result = await UpdateChecker.CheckForUpdateAsync();
-            if (result.hasUpdate)
-            {
-                string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
-                UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
-            }
+            // Gọi AutoUpdater.NET kiểm tra cập nhật
+            AutoUpdater.Start(UpdateXmlUrl);
         }
 
         private void InitializeComponent()
