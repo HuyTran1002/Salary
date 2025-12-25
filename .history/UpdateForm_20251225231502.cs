@@ -138,33 +138,9 @@ namespace SalaryCalculator
                     // Tạo file batch để copy đè exe và khởi động lại app
                     string batchPath = Path.Combine(tempPath, "update_salary.bat");
 
-                    // Xác định đường dẫn file gốc thông minh
-                    string originalExePath = Application.ExecutablePath;
+                    // Đường dẫn file exe gốc cần update (cố định)
+                    string originalExePath = @"C:\\Program Files\\Code\\Salary\\SalaryCalculator.exe";
                     string exeName = Path.GetFileNameWithoutExtension(originalExePath);
-                    // Nếu app chạy từ thư mục tạm, thử tìm shortcut trên desktop
-                    string tempPathRoot = Path.GetTempPath().TrimEnd('\\');
-                    if (originalExePath.StartsWith(tempPathRoot, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Tìm shortcut trên desktop
-                        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                        string shortcutPath = Path.Combine(desktop, "SalaryCalculator.lnk");
-                        if (File.Exists(shortcutPath))
-                        {
-                            try
-                            {
-                                // Lấy TargetPath từ shortcut
-                                var shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
-                                var shortcut = shell.GetType().InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, shell, new object[] { shortcutPath });
-                                var targetPath = shortcut.GetType().InvokeMember("TargetPath", System.Reflection.BindingFlags.GetProperty, null, shortcut, null) as string;
-                                if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath))
-                                {
-                                    originalExePath = targetPath;
-                                    exeName = Path.GetFileNameWithoutExtension(originalExePath);
-                                }
-                            }
-                            catch { /* Nếu lỗi thì giữ nguyên Application.ExecutablePath */ }
-                        }
-                    }
                     string batchContent = string.Join("\r\n", new[] {
                         "@echo off",
                         "timeout /t 2 >nul",
