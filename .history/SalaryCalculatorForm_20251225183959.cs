@@ -8,9 +8,9 @@ namespace SalaryCalculator
 {
     public partial class SalaryCalculatorForm : Form
     {
-            // Đúng vị trí bên trong class
-            private string currentUsername;
-            private UserDataManager userDataManager = new UserDataManager();
+                // Đúng vị trí bên trong class
+        private string currentUsername;
+        private UserDataManager userDataManager = new UserDataManager();
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -105,11 +105,13 @@ namespace SalaryCalculator
                     "Làm việc như robot!", "Không ai sánh bằng!", "Lương tháng này quá đã!", "Được vinh danh toàn công ty!", "Làm việc xuất thần!", "Công nhận tài năng!", "Làm việc không ngừng nghỉ!", "Lương như mơ!", "Được đồng nghiệp yêu quý!", "Làm việc cực kỳ hiệu quả!",
                     "Làm việc siêu năng suất!", "Lương tăng đều đều!", "Được thưởng lớn!", "Làm việc tận tâm!", "Làm việc sáng tạo!", "Làm việc chuyên nghiệp!", "Làm việc gương mẫu!", "Làm việc xuất sắc!", "Làm việc nhiệt huyết!", "Làm việc tận tụy!"
                 };
+                // 20 câu động viên/chê cho hạng ngoài top 10
                 string[] encouragements = new string[] {
                     "Cố gắng hơn nữa nhé!", "Đừng nản lòng!", "Sắp vào top rồi!", "Nỗ lực sẽ được đền đáp!", "Chỉ cần cố thêm chút nữa!", "Đừng bỏ cuộc!", "Cơ hội vẫn còn phía trước!", "Hãy kiên trì!", "Cần bứt phá mạnh mẽ hơn!", "Đừng để lương tháng sau thấp hơn nhé!",
                     "Cần chăm chỉ hơn!", "Hãy hỏi bí quyết từ top trên!", "Đừng để bị bỏ lại phía sau!", "Cố lên, bạn làm được!", "Hãy xem lại mục tiêu!", "Đừng để sếp nhắc nhở!", "Cần cải thiện hiệu suất!", "Đừng để đồng nghiệp vượt mặt!", "Hãy tự tin hơn!", "Lương thấp không phải mãi mãi!"
                 };
                 var rand = new Random();
+                // Tối ưu random không lặp lại cho đến khi hết danh sách
                 List<string> complimentPool = compliments.ToList();
                 List<string> encouragementPool = encouragements.ToList();
                 int complimentIndex = 0, encouragementIndex = 0;
@@ -144,9 +146,9 @@ namespace SalaryCalculator
                 foreach (var u in sortedBySalary)
                 {
                     string rankDisplay = rank.ToString();
-                    if (rank == 1) rankDisplay = "🏆1"; // Cúp vàng
-                    else if (rank == 2) rankDisplay = "🥈2"; // Huy chương bạc
-                    else if (rank == 3) rankDisplay = "🥉3"; // Huy chương đồng
+                    if (rank == 1) rankDisplay = "1👑"; // number + non-breaking space + icon
+                    else if (rank == 2) rankDisplay = " 2🥈";
+                    else if (rank == 3) rankDisplay = " 3🏅";
                     // Chỉ khen nếu có lương tháng hiện tại, còn lại động viên/chê
                     string message;
                     if (u.LastCalculatedMonth == month && u.LastCalculatedYear == year && u.LastNetSalary > 0)
@@ -403,19 +405,36 @@ namespace SalaryCalculator
             workingDaysLabel.Width = 110;
             workingDaysLabel.Height = 18;
 
+
             TextBox workingDaysTextBox = new TextBox();
             workingDaysTextBox.Location = new System.Drawing.Point(130, leftY + 1);
-            workingDaysTextBox.Width = 275;
+            workingDaysTextBox.Width = 120;
             workingDaysTextBox.Height = 20;
             workingDaysTextBox.Name = "workingDaysTextBox";
-            workingDaysTextBox.ReadOnly = true;
-            workingDaysTextBox.BackColor = System.Drawing.Color.LightGray;
+            workingDaysTextBox.ReadOnly = false;
+            workingDaysTextBox.BackColor = System.Drawing.Color.White;
             workingDaysTextBox.Font = new System.Drawing.Font("Arial", 8);
             workingDaysTextBox.Text = "0";
 
+            // Label hiển thị số ngày công mặc định
+
+            Label workingDaysDefaultLabel = new Label();
+            workingDaysDefaultLabel.Name = "workingDaysDefaultLabel";
+            workingDaysDefaultLabel.Text = "(Mặc định: 0 ngày)";
+            workingDaysDefaultLabel.Location = new System.Drawing.Point(260, leftY + 1);
+            workingDaysDefaultLabel.Width = 145;
+            workingDaysDefaultLabel.Height = 20;
+            workingDaysDefaultLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Italic);
+            workingDaysDefaultLabel.ForeColor = System.Drawing.Color.DarkGreen;
+
+            // Thêm các control vào leftPanel để hiển thị đúng vị trí
+            leftPanel.Controls.Add(workingDaysLabel);
+            leftPanel.Controls.Add(workingDaysTextBox);
+            leftPanel.Controls.Add(workingDaysDefaultLabel);
+
             // Auto-calculate working days when month/year changes
-            monthTextBox.Leave += (s, e) => CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
-            yearTextBox.Leave += (s, e) => CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+            monthTextBox.Leave += (s, e) => UpdateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox, workingDaysDefaultLabel);
+            yearTextBox.Leave += (s, e) => UpdateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox, workingDaysDefaultLabel);
 
             leftY += 28;
 
@@ -654,14 +673,9 @@ namespace SalaryCalculator
             otDays8Label.Width = 115;
             otDays8Label.Height = 18;
 
-            TextBox otDays8TextBox = new TextBox();
-            otDays8TextBox.Location = new System.Drawing.Point(130, rightY);
-            otDays8TextBox.Width = 55;
-            otDays8TextBox.Height = 22;
-            otDays8TextBox.Name = "otDays8TextBox";
-            otDays8TextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(otDays8TextBox);
 
+
+            // Bổ sung khai báo cho meal8DisplayLabel và otDays8TextBox
             Label meal8DisplayLabel = new Label();
             meal8DisplayLabel.Text = "× 20k";
             meal8DisplayLabel.Location = new System.Drawing.Point(190, rightY);
@@ -669,6 +683,16 @@ namespace SalaryCalculator
             meal8DisplayLabel.Height = 18;
             meal8DisplayLabel.ForeColor = System.Drawing.Color.DarkGreen;
             meal8DisplayLabel.Name = "meal8DisplayLabel";
+
+            TextBox otDays8TextBox = new TextBox();
+            otDays8TextBox.Location = new System.Drawing.Point(130, rightY);
+            otDays8TextBox.Width = 55;
+            otDays8TextBox.Height = 20;
+            otDays8TextBox.Name = "otDays8TextBox";
+            otDays8TextBox.Font = new System.Drawing.Font("Arial", 8);
+            otDays8TextBox.Text = "0";
+            otDays8TextBox.ReadOnly = false;
+            otDays8TextBox.BackColor = System.Drawing.Color.White;
 
             Button editMeal8Btn = new Button();
             editMeal8Btn.Text = "✏️";
@@ -854,7 +878,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label dayRate8hLabel = new Label();
-            dayRate8hLabel.Text = "Lương cơ bản 1 ngày:";
+            dayRate8hLabel.Text = "Lương 1 ngày 8 tiếng:";
             dayRate8hLabel.Location = new System.Drawing.Point(10, detailY);
             dayRate8hLabel.Width = 400;
             dayRate8hLabel.Height = 18;
@@ -872,7 +896,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label dayRateLabel = new Label();
-            dayRateLabel.Text = "Tổng lương 1 ngày công:";
+            dayRateLabel.Text = "Tổng lương 1 ngày 8 tiếng:";
             dayRateLabel.Location = new System.Drawing.Point(10, detailY);
             dayRateLabel.Width = 400;
             dayRateLabel.Height = 18;
@@ -960,7 +984,9 @@ namespace SalaryCalculator
             {
                 LoadUserData(nameTextBox, salaryTextBox, mealTextBox);
                 // Auto-calculate working days for current month
-                CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+                // Tìm label mặc định số ngày công
+                workingDaysDefaultLabel = leftPanel.Controls.Find("workingDaysDefaultLabel", false).FirstOrDefault() as Label;
+                UpdateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox, workingDaysDefaultLabel);
             }
 
             // Setup edit button handlers
@@ -1231,7 +1257,8 @@ namespace SalaryCalculator
             }
         }
 
-        private void CalculateWorkingDays(TextBox monthTextBox, TextBox yearTextBox, TextBox workingDaysTextBox)
+        // Hàm cập nhật cả label và textbox số ngày công mặc định
+        private void UpdateWorkingDays(TextBox monthTextBox, TextBox yearTextBox, TextBox workingDaysTextBox, Label workingDaysDefaultLabel)
         {
             try
             {
@@ -1254,7 +1281,12 @@ namespace SalaryCalculator
                     }
                 }
 
-                workingDaysTextBox.Text = workingDays.ToString();
+                workingDaysDefaultLabel.Text = $"(Mặc định: {workingDays} ngày)";
+                // Nếu textbox đang rỗng hoặc vừa đăng nhập, tự động điền số ngày công mặc định
+                if (string.IsNullOrWhiteSpace(workingDaysTextBox.Text) || !workingDaysTextBox.Focused)
+                {
+                    workingDaysTextBox.Text = workingDays.ToString();
+                }
             }
             catch
             {
@@ -1278,7 +1310,7 @@ namespace SalaryCalculator
                     decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
 
                     Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
-                    dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
+                    dayRateLabel.Text = $"Tổng lương 1 ngày 8 tiếng: {dailySalaryForMeal:C0} VND";
                 }
             }
             catch
@@ -1287,9 +1319,25 @@ namespace SalaryCalculator
             }
         }
 
-        private void CalculateSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
-                                      TextBox overtime2xTextBox, TextBox overtime3xTextBox, TextBox otDays12TextBox, TextBox otDays8TextBox, TextBox overtime15xTextBox, TextBox insuranceTextBox, TextBox taxTextBox,
-                                      TextBox attendanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
+        private void CalculateSalary(
+            TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
+            TextBox overtime2xTextBox, TextBox overtime3xTextBox, TextBox otDays12TextBox, TextBox otDays8TextBox, TextBox overtime15xTextBox, TextBox insuranceTextBox, TextBox taxTextBox,
+            TextBox attendanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
+        {
+            // Khai báo các label dùng cho hiển thị kết quả, chỉ khai báo một lần ở đầu hàm
+            Label overtime2xResultLabel = this.Controls.Find("overtime2xResultLabel", true)[0] as Label;
+            Label overtime3xResultLabel = this.Controls.Find("overtime3xResultLabel", true)[0] as Label;
+            Label overtime15xResultLabel = this.Controls.Find("overtime15xResultLabel", true)[0] as Label;
+            Label empNameLabel = this.Controls.Find("empNameLabel", true)[0] as Label;
+            Label grossLabel = this.Controls.Find("grossLabel", true)[0] as Label;
+            Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
+            Label taxDeductLabel = this.Controls.Find("taxDeductLabel", true)[0] as Label;
+            Label netLabel = this.Controls.Find("netLabel", true)[0] as Label;
+            Label netAfterTaxLabel = this.Controls.Find("netAfterTaxLabel", true)[0] as Label;
+            Label detailLabel = this.Controls.Find("detailLabel", true)[0] as Label;
+            Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
+            Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
+            Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
         {
             try
             {
@@ -1314,8 +1362,20 @@ namespace SalaryCalculator
                 string employeeName = nameTextBox.Text;
                 decimal basicSalary = decimal.Parse(salaryTextBox.Text);
                 decimal mealAllowancePerDay = decimal.Parse(mealTextBox.Text);
-                decimal workingDays = decimal.Parse(workingDaysTextBox.Text);
+                decimal userInputWorkingDays = decimal.Parse(workingDaysTextBox.Text); // Số ngày công người dùng nhập
                 decimal daysOff = decimal.Parse(daysOffTextBox.Text);
+
+                // Lấy số ngày công mặc định từ label
+                int defaultWorkingDays = 0;
+                var workingDaysDefaultLabel = this.Controls.Find("workingDaysDefaultLabel", true).FirstOrDefault() as Label;
+                if (workingDaysDefaultLabel != null)
+                {
+                    // Parse số ngày công từ text label: (Mặc định: XX ngày)
+                    var match = System.Text.RegularExpressions.Regex.Match(workingDaysDefaultLabel.Text, @"(\d+)");
+                    if (match.Success)
+                        int.TryParse(match.Groups[1].Value, out defaultWorkingDays);
+                }
+                if (defaultWorkingDays <= 0) defaultWorkingDays = (int)userInputWorkingDays;
                 decimal overtime2xHours = decimal.Parse(overtime2xTextBox.Text);  // Làm thêm x2 lương
                 decimal overtime3xHours = decimal.Parse(overtime3xTextBox.Text);  // Làm thêm x3 lương
                 decimal otDays12 = decimal.Parse(otDays12TextBox.Text);  // Số ngày OT 8/12h
@@ -1332,13 +1392,13 @@ namespace SalaryCalculator
                 decimal meal12Amount = editMeal12Btn != null && decimal.TryParse(editMeal12Btn.Tag.ToString(), out decimal m12) ? m12 : 30000;
                 decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
 
-                // Calculate actual working days after deducting days off
-                decimal actualWorkingDays = workingDays - daysOff;
+                // Số ngày công thực tế sau khi trừ ngày nghỉ
+                decimal actualWorkingDays = userInputWorkingDays - daysOff;
 
-                // Calculate total meal allowance for the month
+                // Tổng tiền ăn tháng
                 decimal totalMealAllowance = mealAllowancePerDay * actualWorkingDays;
 
-                // Add bonus meal allowance based on OT days (using editable amounts)
+                // Tiền ăn bonus OT
                 decimal bonusMealAllowance = 0;
                 if (otDays12 > 0)
                 {
@@ -1348,22 +1408,22 @@ namespace SalaryCalculator
                 {
                     bonusMealAllowance += otDays8 * meal8Amount;
                 }
-
                 totalMealAllowance += bonusMealAllowance;
 
-                // Calculate daily salary components (based on original working days, NOT after days off)
-                decimal basicDailySalary = basicSalary / workingDays;
-                decimal mealDailySalary = mealAllowancePerDay / workingDays;
+                // Tính lương một ngày dựa trên số ngày công mặc định
+                decimal basicDailySalary = basicSalary / defaultWorkingDays;
+                decimal mealDailySalary = mealAllowancePerDay / defaultWorkingDays;
                 decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
 
-                // Calculate hourly rate based on BASIC SALARY only (for OT calculation)
+                // Tính lương giờ dựa trên lương một ngày
                 decimal hourlyRate = basicDailySalary / 8;
 
-                // Calculate gross salary components:
+                // Tính tổng lương dựa trên số ngày công người dùng nhập
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
                 decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
                 decimal overtime3xSalary = overtime3xHours * hourlyRate * 3;
                 decimal overtime15xSalary = overtime15xHours * hourlyRate * 1.5m;
+
 
                 // Calculate Incentive
                 decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
@@ -1371,84 +1431,69 @@ namespace SalaryCalculator
                 // Lương Brutto bao gồm tiền ăn bonus và incentive
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
 
-                // Calculate deductions - Bảo hiểm chỉ đóng 10.5% lương cơ bản
-                decimal insuranceDeduction = basicSalary * 0.105m;
-                decimal taxableAmount = grossSalary - insuranceDeduction;
-
-                // Calculate net salary before tax
-                decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
-
-                // Tax logic
-                decimal taxBase = netSalaryBeforeTax - taxThreshold;
+                decimal insuranceDeduction = 0;
+                decimal taxDeduction = 0;
+                decimal netSalary = 0;
+                decimal netSalaryBeforeTax = 0;
                 decimal taxRate = 0;
-                if (taxBase <= 0)
+                decimal taxableAmount = 0;
+
+                // Nếu số ngày công nhập khác mặc định thì không trừ bảo hiểm và thuế
+                if ((int)userInputWorkingDays != defaultWorkingDays)
                 {
+                    insuranceDeductLabel.Text = "Không trừ bảo hiểm";
+                    taxDeductLabel.Text = "Không trừ thuế";
+                    netSalary = grossSalary;
+                    netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
+                    netAfterTaxLabel.Text = $"Lương thực nhận sau thuế: {netSalary:C0} VND";
+                    taxTextBox.Text = "0";
+                }
+                else
+                {
+                    // Tính bảo hiểm, thuế như cũ
+                    insuranceDeduction = basicSalary * 0.105m;
+                    taxableAmount = grossSalary - insuranceDeduction;
+                    netSalaryBeforeTax = grossSalary - insuranceDeduction;
+                    decimal taxBase = netSalaryBeforeTax - taxThreshold;
                     taxRate = 0;
+                    if (taxBase <= 0)
+                    {
+                        taxRate = 0;
+                    }
+                    else if (taxBase > 0 && taxBase <= 10000000)
+                    {
+                        taxRate = 0.05m;
+                    }
+                    else if (taxBase > 10000000 && taxBase <= 30000000)
+                    {
+                        taxRate = 0.10m;
+                    }
+                    else if (taxBase > 30000000 && taxBase <= 60000000)
+                    {
+                        taxRate = 0.20m;
+                    }
+                    else if (taxBase > 60000000 && taxBase <= 100000000)
+                    {
+                        taxRate = 0.30m;
+                    }
+                    else if (taxBase > 100000000)
+                    {
+                        taxRate = 0.30m;
+                    }
+                    taxTextBox.Text = ((int)(taxRate * 100)).ToString();
+                    taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
+                    netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
+                    netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
+                    netAfterTaxLabel.Text = $"Lương thực nhận sau thuế: {(netSalary - taxDeduction):C0} VND";
+                    insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
+                    taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeduction > 0 ? taxDeduction.ToString("C0") + " VND" : "0 VND")}";
                 }
-                else if (taxBase > 0 && taxBase <= 10000000)
-                {
-                    taxRate = 0.05m;
-                }
-                else if (taxBase > 10000000 && taxBase <= 30000000)
-                {
-                    taxRate = 0.10m;
-                }
-                else if (taxBase > 30000000 && taxBase <= 60000000)
-                {
-                    taxRate = 0.20m;
-                }
-                else if (taxBase > 60000000 && taxBase <= 100000000)
-                {
-                    taxRate = 0.30m;
-                }
-                else if (taxBase > 100000000)
-                {
-                    taxRate = 0.30m;
-                }
-
-                // Update taxTextBox to show correct % (always integer, no decimal)
-                taxTextBox.Text = ((int)(taxRate * 100)).ToString();
-
-                decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
-
-                // Calculate net salary
-                decimal netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
 
                 // Save calculation to user data
                 int month = int.Parse(monthTextBox.Text);
                 int year = int.Parse(yearTextBox.Text);
                 userDataManager.UpdateLastCalculation(currentUsername, month, year, netSalary);
 
-                // Update OT result labels
-                Label overtime2xResultLabel = this.Controls.Find("overtime2xResultLabel", true)[0] as Label;
-                Label overtime3xResultLabel = this.Controls.Find("overtime3xResultLabel", true)[0] as Label;
-                Label overtime15xResultLabel = this.Controls.Find("overtime15xResultLabel", true)[0] as Label;
-                overtime2xResultLabel.Text = $"→ {overtime2xSalary:C0} VND";
-                overtime3xResultLabel.Text = $"→ {overtime3xSalary:C0} VND";
-                overtime15xResultLabel.Text = $"→ {overtime15xSalary:C0} VND";
-
-                // Display results
-                Label empNameLabel = this.Controls.Find("empNameLabel", true)[0] as Label;
-                Label grossLabel = this.Controls.Find("grossLabel", true)[0] as Label;
-                Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
-                Label taxDeductLabel = this.Controls.Find("taxDeductLabel", true)[0] as Label;
-                Label netLabel = this.Controls.Find("netLabel", true)[0] as Label;
-                Label netAfterTaxLabel = this.Controls.Find("netAfterTaxLabel", true)[0] as Label;
-                Label detailLabel = this.Controls.Find("detailLabel", true)[0] as Label;
-                Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
-                Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
-                Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
-
-                empNameLabel.Text = $"Nhân Viên: {employeeName}";
-                dayRate8hLabel.Text = $"Lương cơ bản 1 ngày: {basicDailySalary:C0} VND";
-                mealDayLabel.Text = $"Tiền ăn 1 ngày: {mealDailySalary:C0} VND";
-                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
-                grossLabel.Text = $"Lương Brutto: {grossSalary:C0} VND";
-                insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
-                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeduction > 0 ? taxDeduction.ToString("C0") + " VND" : "0 VND")}";
-                netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
-                netAfterTaxLabel.Text = $"Lương thực nhận sau thuế: {(netSalary - taxDeduction):C0} VND";
-                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
 
                 // Show detail breakdown
                 string bonusInfo = "";
@@ -1485,6 +1530,67 @@ namespace SalaryCalculator
         }
 
         private void OpenMealEditForm(Button button, Label displayLabel, string title)
+        {
+            Form editForm = new Form();
+            editForm.Text = "Chỉnh Sửa " + title;
+            editForm.Width = 350;
+            editForm.Height = 150;
+            editForm.StartPosition = FormStartPosition.CenterParent;
+            editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            editForm.MaximizeBox = false;
+            editForm.MinimizeBox = false;
+            editForm.BackColor = System.Drawing.Color.White;
+
+            Label label = new Label();
+            label.Text = "Số tiền (VND):";
+            label.Location = new System.Drawing.Point(30, 30);
+            label.Width = 120;
+            editForm.Controls.Add(label);
+
+            TextBox amountBox = new TextBox();
+            amountBox.Location = new System.Drawing.Point(160, 27);
+            amountBox.Width = 150;
+            amountBox.Height = 20;
+            amountBox.Font = new System.Drawing.Font("Arial", 9);
+            amountBox.TextAlign = HorizontalAlignment.Left;
+            amountBox.BorderStyle = BorderStyle.Fixed3D;
+            amountBox.BackColor = System.Drawing.Color.White;
+            amountBox.Text = button.Tag.ToString();
+            NumberFormatter.FormatNumberInput(amountBox);
+            editForm.Controls.Add(amountBox);
+
+            Button saveBtn = new Button();
+            saveBtn.Text = "💾 Lưu";
+            saveBtn.Location = new System.Drawing.Point(80, 80);
+            saveBtn.Width = 100;
+            saveBtn.Height = 35;
+            saveBtn.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+            saveBtn.BackColor = System.Drawing.Color.Green;
+            saveBtn.ForeColor = System.Drawing.Color.White;
+            saveBtn.Click += (s, e) =>
+            {
+                if (decimal.TryParse(amountBox.Text, out decimal amount))
+                {
+                    button.Tag = amount;
+                    // Update display label with k format
+                    if (displayLabel != null)
+                    {
+                        decimal k = amount / 1000;
+                        displayLabel.Text = $"× {k:F0}k";
+                    }
+                    editForm.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Vui lòng nhập số tiền hợp lệ!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            editForm.Controls.Add(saveBtn);
+
+            editForm.ShowDialog();
+        }
+
+    }
         {
             Form editForm = new Form();
             editForm.Text = "Chỉnh Sửa " + title;

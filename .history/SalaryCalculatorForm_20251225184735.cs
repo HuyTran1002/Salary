@@ -8,9 +8,9 @@ namespace SalaryCalculator
 {
     public partial class SalaryCalculatorForm : Form
     {
-            // Đúng vị trí bên trong class
-            private string currentUsername;
-            private UserDataManager userDataManager = new UserDataManager();
+                // Đúng vị trí bên trong class
+        private string currentUsername;
+        private UserDataManager userDataManager = new UserDataManager();
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -105,11 +105,13 @@ namespace SalaryCalculator
                     "Làm việc như robot!", "Không ai sánh bằng!", "Lương tháng này quá đã!", "Được vinh danh toàn công ty!", "Làm việc xuất thần!", "Công nhận tài năng!", "Làm việc không ngừng nghỉ!", "Lương như mơ!", "Được đồng nghiệp yêu quý!", "Làm việc cực kỳ hiệu quả!",
                     "Làm việc siêu năng suất!", "Lương tăng đều đều!", "Được thưởng lớn!", "Làm việc tận tâm!", "Làm việc sáng tạo!", "Làm việc chuyên nghiệp!", "Làm việc gương mẫu!", "Làm việc xuất sắc!", "Làm việc nhiệt huyết!", "Làm việc tận tụy!"
                 };
+                // 20 câu động viên/chê cho hạng ngoài top 10
                 string[] encouragements = new string[] {
                     "Cố gắng hơn nữa nhé!", "Đừng nản lòng!", "Sắp vào top rồi!", "Nỗ lực sẽ được đền đáp!", "Chỉ cần cố thêm chút nữa!", "Đừng bỏ cuộc!", "Cơ hội vẫn còn phía trước!", "Hãy kiên trì!", "Cần bứt phá mạnh mẽ hơn!", "Đừng để lương tháng sau thấp hơn nhé!",
                     "Cần chăm chỉ hơn!", "Hãy hỏi bí quyết từ top trên!", "Đừng để bị bỏ lại phía sau!", "Cố lên, bạn làm được!", "Hãy xem lại mục tiêu!", "Đừng để sếp nhắc nhở!", "Cần cải thiện hiệu suất!", "Đừng để đồng nghiệp vượt mặt!", "Hãy tự tin hơn!", "Lương thấp không phải mãi mãi!"
                 };
                 var rand = new Random();
+                // Tối ưu random không lặp lại cho đến khi hết danh sách
                 List<string> complimentPool = compliments.ToList();
                 List<string> encouragementPool = encouragements.ToList();
                 int complimentIndex = 0, encouragementIndex = 0;
