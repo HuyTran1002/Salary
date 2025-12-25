@@ -405,19 +405,30 @@ namespace SalaryCalculator
             workingDaysLabel.Width = 110;
             workingDaysLabel.Height = 18;
 
+
             TextBox workingDaysTextBox = new TextBox();
             workingDaysTextBox.Location = new System.Drawing.Point(130, leftY + 1);
-            workingDaysTextBox.Width = 275;
+            workingDaysTextBox.Width = 120;
             workingDaysTextBox.Height = 20;
             workingDaysTextBox.Name = "workingDaysTextBox";
-            workingDaysTextBox.ReadOnly = true;
-            workingDaysTextBox.BackColor = System.Drawing.Color.LightGray;
+            workingDaysTextBox.ReadOnly = false;
+            workingDaysTextBox.BackColor = System.Drawing.Color.White;
             workingDaysTextBox.Font = new System.Drawing.Font("Arial", 8);
             workingDaysTextBox.Text = "0";
 
+            // Label hiển thị số ngày công mặc định
+            Label workingDaysDefaultLabel = new Label();
+            workingDaysDefaultLabel.Name = "workingDaysDefaultLabel";
+            workingDaysDefaultLabel.Text = "(Mặc định: 0 ngày)";
+            workingDaysDefaultLabel.Location = new System.Drawing.Point(260, leftY + 1);
+            workingDaysDefaultLabel.Width = 145;
+            workingDaysDefaultLabel.Height = 20;
+            workingDaysDefaultLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Italic);
+            workingDaysDefaultLabel.ForeColor = System.Drawing.Color.DarkGreen;
+
             // Auto-calculate working days when month/year changes
-            monthTextBox.Leave += (s, e) => CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
-            yearTextBox.Leave += (s, e) => CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+            monthTextBox.Leave += (s, e) => UpdateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox, workingDaysDefaultLabel);
+            yearTextBox.Leave += (s, e) => UpdateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox, workingDaysDefaultLabel);
 
             leftY += 28;
 
@@ -656,14 +667,9 @@ namespace SalaryCalculator
             otDays8Label.Width = 115;
             otDays8Label.Height = 18;
 
-            TextBox otDays8TextBox = new TextBox();
-            otDays8TextBox.Location = new System.Drawing.Point(130, rightY);
-            otDays8TextBox.Width = 55;
-            otDays8TextBox.Height = 22;
-            otDays8TextBox.Name = "otDays8TextBox";
-            otDays8TextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(otDays8TextBox);
 
+
+            // Bổ sung khai báo cho meal8DisplayLabel và otDays8TextBox
             Label meal8DisplayLabel = new Label();
             meal8DisplayLabel.Text = "× 20k";
             meal8DisplayLabel.Location = new System.Drawing.Point(190, rightY);
@@ -671,6 +677,16 @@ namespace SalaryCalculator
             meal8DisplayLabel.Height = 18;
             meal8DisplayLabel.ForeColor = System.Drawing.Color.DarkGreen;
             meal8DisplayLabel.Name = "meal8DisplayLabel";
+
+            TextBox otDays8TextBox = new TextBox();
+            otDays8TextBox.Location = new System.Drawing.Point(130, rightY);
+            otDays8TextBox.Width = 55;
+            otDays8TextBox.Height = 20;
+            otDays8TextBox.Name = "otDays8TextBox";
+            otDays8TextBox.Font = new System.Drawing.Font("Arial", 8);
+            otDays8TextBox.Text = "0";
+            otDays8TextBox.ReadOnly = false;
+            otDays8TextBox.BackColor = System.Drawing.Color.White;
 
             Button editMeal8Btn = new Button();
             editMeal8Btn.Text = "✏️";
@@ -962,7 +978,9 @@ namespace SalaryCalculator
             {
                 LoadUserData(nameTextBox, salaryTextBox, mealTextBox);
                 // Auto-calculate working days for current month
-                CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+                // Tìm label mặc định số ngày công
+                var workingDaysDefaultLabel = leftPanel.Controls.Find("workingDaysDefaultLabel", false).FirstOrDefault() as Label;
+                UpdateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox, workingDaysDefaultLabel);
             }
 
             // Setup edit button handlers
@@ -1233,7 +1251,8 @@ namespace SalaryCalculator
             }
         }
 
-        private void CalculateWorkingDays(TextBox monthTextBox, TextBox yearTextBox, TextBox workingDaysTextBox)
+        // Hàm cập nhật cả label và textbox số ngày công mặc định
+        private void UpdateWorkingDays(TextBox monthTextBox, TextBox yearTextBox, TextBox workingDaysTextBox, Label workingDaysDefaultLabel)
         {
             try
             {
@@ -1256,7 +1275,12 @@ namespace SalaryCalculator
                     }
                 }
 
-                workingDaysTextBox.Text = workingDays.ToString();
+                workingDaysDefaultLabel.Text = $"(Mặc định: {workingDays} ngày)";
+                // Nếu textbox đang rỗng hoặc vừa đăng nhập, tự động điền số ngày công mặc định
+                if (string.IsNullOrWhiteSpace(workingDaysTextBox.Text) || !workingDaysTextBox.Focused)
+                {
+                    workingDaysTextBox.Text = workingDays.ToString();
+                }
             }
             catch
             {
