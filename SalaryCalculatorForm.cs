@@ -3,6 +3,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
+using System.IO;
+using System.Media;
 using SalaryCalculator;
 
 namespace SalaryCalculator
@@ -68,7 +70,9 @@ namespace SalaryCalculator
                 rankingGrid.Location = new System.Drawing.Point((formWidth - gridWidth) / 2, rankingTitle.Bottom + 10);
                 rankingGrid.Width = gridWidth;
                 rankingGrid.Height = gridHeight;
-                rankingGrid.BorderStyle = BorderStyle.FixedSingle;
+                rankingGrid.BorderStyle = BorderStyle.None;
+                rankingGrid.GridColor = Color.FromArgb(230, 230, 230);
+                rankingGrid.BackgroundColor = Color.White;
                 rankingGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 rankingGrid.ColumnCount = 4;
                 rankingGrid.Columns[0].Name = "Hạng";
@@ -89,17 +93,33 @@ namespace SalaryCalculator
                 rankingGrid.AllowUserToDeleteRows = false;
                 rankingGrid.RowHeadersVisible = false;
                 rankingGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                // Prevent users from resizing or reordering
+                rankingGrid.AllowUserToResizeColumns = false;
+                rankingGrid.AllowUserToResizeRows = false;
+                rankingGrid.AllowUserToOrderColumns = false;
                 rankingGrid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-                rankingGrid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                // Prevent header text from wrapping and lock header height to avoid stretching
+                rankingGrid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
+                rankingGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                rankingGrid.ColumnHeadersHeight = 40; // fixed header height
                 rankingGrid.EnableHeadersVisualStyles = false;
-                rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.LightSteelBlue;
+                // Header style (orange primary like ecommerce)
+                rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(255, 90, 0);
+                rankingGrid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                rankingGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
                 rankingGrid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 rankingGrid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                rankingGrid.RowsDefaultCellStyle.BackColor = System.Drawing.Color.White;
-                rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.AliceBlue;
-                rankingGrid.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.LightGoldenrodYellow;
-                rankingGrid.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
-                // Tắt chức năng sort khi click vào tiêu đề
+                rankingGrid.RowsDefaultCellStyle.BackColor = Color.White;
+                rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = Color.White; // no zebra
+                rankingGrid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(255, 235, 205);
+                rankingGrid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(34, 34, 34);
+                rankingGrid.DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                rankingGrid.RowTemplate.Height = 36;
+                rankingGrid.RowTemplate.Resizable = DataGridViewTriState.False;
+                rankingGrid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+                rankingGrid.EnableHeadersVisualStyles = false;
+                rankingGrid.Margin = new Padding(8);
+                // Tắt chức năng sort khi click vào tiêu đề và khóa từng cột
                 foreach (DataGridViewColumn col in rankingGrid.Columns)
                 {
                     col.SortMode = DataGridViewColumnSortMode.NotSortable;
@@ -107,6 +127,7 @@ namespace SalaryCalculator
                     {
                         col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                     }
+                    col.Resizable = DataGridViewTriState.False;
                 }
 
                 // ...existing code...
@@ -172,37 +193,41 @@ namespace SalaryCalculator
                         message = GetNextEncouragement();
                     }
                     int rowIdx = rankingGrid.Rows.Add(rankDisplay, u.FullName, u.LastNetSalary.ToString("N0"), message);
-                    // Làm nổi bật 3 hạng đầu
+                    // Làm nổi bật 3 hạng đầu — chỉ override background cho 3 hàng này
+                    // Apply bold fonts for top 3 and a subtle light-orange background to make them stand out
                     if (rank == 1)
                     {
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(255, 250, 205); // LightGoldenrodYellow
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(255, 244, 230);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
                     }
                     else if (rank == 2)
                     {
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(255, 250, 205); // LightGoldenrodYellow
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(255, 249, 230);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
                     }
                     else if (rank == 3)
                     {
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 10.5f, System.Drawing.FontStyle.Bold);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(255, 250, 205); // LightGoldenrodYellow
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(255, 252, 236);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
                     }
                     else
                     {
+                        // Regular rows: consistent white background and dark text
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 9.5f, System.Drawing.FontStyle.Regular);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = System.Drawing.Color.White;
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.White;
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
                     }
                     rank++;
                 }
                 // Thêm dòng trống nếu ít hơn 20 hạng
                 for (int i = sorted.Count + 1; i <= minRows; i++)
                 {
-                    rankingGrid.Rows.Add(i.ToString(), "", "", "");
+                    int idx = rankingGrid.Rows.Add(i.ToString(), "", "", "");
+                    // Make sure blank rows are white like the rest
+                    rankingGrid.Rows[idx].DefaultCellStyle.BackColor = Color.White;
                 }
                 // Thêm sự kiện click vào tên nhân viên để hiện chi tiết
                 rankingGrid.CellClick += (s, e) =>
@@ -224,6 +249,24 @@ namespace SalaryCalculator
                     }
                 };
                 this.Controls.Add(rankingGrid);
+                // Apply ecommerce theme so admin ranking uses the same design system
+                try { Theme.ApplyEcommerceTheme(this); } catch { }
+
+                // Theme.ApplyEcommerceTheme may apply a DataGridView style intended for other themes.
+                // Re-assert the ranking grid's white styling so numbers remain dark and readable.
+                try
+                {
+                    rankingGrid.BackgroundColor = Color.White;
+                    rankingGrid.RowsDefaultCellStyle.BackColor = Color.White;
+                    rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = Color.White;
+                    rankingGrid.DefaultCellStyle.BackColor = Color.White;
+                    rankingGrid.DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                    rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(255, 90, 0);
+                    rankingGrid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                    rankingGrid.EnableHeadersVisualStyles = false;
+                }
+                catch { }
+
                 return;
             }
 
@@ -246,12 +289,48 @@ namespace SalaryCalculator
             titleLabelUser.Padding = new Padding(0, 5, 0, 0);
             this.Controls.Add(titleLabelUser);
 
+            // Small Calculator Launcher Button (bottom-right inside mainPanel)
+            Button calculatorLauncher = new Button();
+            // Use a calculator-like glyph; fallback to text if emoji not available
+            calculatorLauncher.Text = "🔢";
+            calculatorLauncher.Width = 44;
+            calculatorLauncher.Height = 28;
+            calculatorLauncher.Font = new System.Drawing.Font("Segoe UI Emoji", 12);
+            calculatorLauncher.BackColor = Color.FromArgb(255, 90, 0);
+            calculatorLauncher.ForeColor = Color.White;
+            calculatorLauncher.FlatStyle = FlatStyle.Flat;
+            calculatorLauncher.FlatAppearance.BorderSize = 0;
+            calculatorLauncher.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            calculatorLauncher.Click += (s, e) => {
+                try
+                {
+                    var calc = new CalculatorForm();
+                    // Center the calculator over the current form to avoid off-screen placement
+                    calc.StartPosition = FormStartPosition.Manual;
+                    var parentCenter = new Point(this.Location.X + this.Width / 2, this.Location.Y + this.Height / 2);
+                    var calcLocation = new Point(parentCenter.X - calc.Width / 2, parentCenter.Y - calc.Height / 2);
+                    // Ensure calculator is within primary screen bounds
+                    var screenBounds = Screen.PrimaryScreen.WorkingArea;
+                    if (calcLocation.X < screenBounds.Left) calcLocation.X = screenBounds.Left + 16;
+                    if (calcLocation.Y < screenBounds.Top) calcLocation.Y = screenBounds.Top + 16;
+                    if (calcLocation.X + calc.Width > screenBounds.Right) calcLocation.X = screenBounds.Right - calc.Width - 16;
+                    if (calcLocation.Y + calc.Height > screenBounds.Bottom) calcLocation.Y = screenBounds.Bottom - calc.Height - 16;
+                    calc.Location = calcLocation;
+                    calc.Show(this);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Không thể mở máy tính: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            // We'll add this button into mainPanel after mainPanel is created so anchoring works
+
             // Main Panel with Auto Scroll
             Panel mainPanel = new Panel();
             mainPanel.Location = new System.Drawing.Point((this.Width - 885) / 2 - 8, 32);
             mainPanel.Width = 885;
-            mainPanel.Height = 680;
-            mainPanel.AutoScroll = true;
+            mainPanel.Height = 740; // increase height to show all content without scrolling
+            mainPanel.AutoScroll = false; // disable scroll as requested
 
             // Left/Right Column Panels (balanced and centered)
             Panel leftPanel = new Panel();
@@ -813,8 +892,149 @@ namespace SalaryCalculator
             calculateBtn.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
             calculateBtn.BackColor = System.Drawing.Color.Green;
             calculateBtn.ForeColor = System.Drawing.Color.White;
-            calculateBtn.Click += (s, e) => CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+            calculateBtn.Click += (s, e) =>
+            {
+                // Disable calculate button during animation
+                calculateBtn.Enabled = false;
+
+                var originalLocation = this.Location;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var animTimer = new System.Windows.Forms.Timer();
+                animTimer.Interval = 15; // smooth animation
+
+                // Compute net salary from inputs to determine shake duration
+                decimal estimatedNet = 0m;
+                try
+                {
+                    EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                    estimatedNet = ComputeNetSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                }
+                catch { estimatedNet = 0m; }
+
+                // Map salary ranges to duration (ms)
+                int durationMs = 1500; // default
+                if (estimatedNet > 20000000m) durationMs = 6000;
+                else if (estimatedNet > 15000000m) durationMs = 4500;
+                else if (estimatedNet > 10000000m) durationMs = 3500;
+                else if (estimatedNet > 5000000m) durationMs = 2500;
+                else durationMs = 1500;
+
+                animTimer.Tick += (ts, te) =>
+                {
+                    long elapsed = sw.ElapsedMilliseconds;
+                    if (elapsed >= durationMs)
+                    {
+                        animTimer.Stop();
+                        sw.Stop();
+                        try { this.Location = originalLocation; } catch { }
+                        calculateBtn.Enabled = true;
+
+                        // (no sound) stop any audio if present - none used
+                        try { } catch { }
+
+                        // After shaking animation, perform the actual calculation
+                        CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+
+                        // Play fireworks sound to celebrate result: prefer embedded resource, then external file, then fallback melody
+                        try
+                        {
+                            bool played = false;
+                            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                            // Resource name pattern: {DefaultNamespace}.Assets.audio.fireworks.wav
+                            string resourceName = asm.GetName().Name + ".Assets.audio.fireworks.wav";
+                            using (var rs = asm.GetManifestResourceStream(resourceName))
+                            {
+                                if (rs != null)
+                                {
+                                    try
+                                    {
+                                        // Copy embedded resource to a temp file so SoundPlayer can play it reliably
+                                        var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "fireworks_" + System.Guid.NewGuid().ToString() + ".wav");
+                                        using (var fs = System.IO.File.Create(tmp)) { rs.CopyTo(fs); }
+                                        try
+                                        {
+                                            var sp = new System.Media.SoundPlayer(tmp);
+                                            sp.Play();
+                                            // schedule temp file deletion after a delay so playback can finish
+                                            System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
+                                            played = true;
+                                        }
+                                        catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
+                                    }
+                                    catch { played = false; }
+                                }
+                            }
+
+                            if (!played)
+                            {
+                                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                                string diagMsg = null;
+                                // try several common locations
+                                var candidates = new List<string>() {
+                                    System.IO.Path.Combine(appDir, "fireworks.wav"),
+                                    System.IO.Path.Combine(appDir, "Assets", "audio", "fireworks.wav")
+                                };
+                                // also try to find any fireworks.wav under appDir (one level deep)
+                                try
+                                {
+                                    var found = System.IO.Directory.GetFiles(appDir, "fireworks.wav", System.IO.SearchOption.AllDirectories).FirstOrDefault();
+                                    if (!string.IsNullOrEmpty(found)) candidates.Add(found);
+                                }
+                                catch { }
+
+                                foreach (var fireworksPath in candidates)
+                                {
+                                    if (System.IO.File.Exists(fireworksPath))
+                                    {
+                                        try { using (var sp = new System.Media.SoundPlayer(fireworksPath)) { sp.Play(); } played = true; break; } catch { played = false; }
+                                    }
+                                }
+                                if (played)
+                                {
+                                    diagMsg = "Played external WAV from one of the candidate paths.";
+                                }
+                                else
+                                {
+                                    diagMsg = "No external WAV found or playback failed; will use fallback melody.";
+                                }
+                                // Audio diagnostic suppressed by user request; previously showed diagMsg.
+                            }
+
+                            if (!played)
+                            {
+                                // No audio available; silently skip celebratory sound (user requested no beep)
+                                // Intentionally do nothing here to avoid system beeps.
+                            }
+                        }
+                        catch { }
+
+                        try { animTimer.Dispose(); } catch { }
+                        return;
+                    }
+
+                    // Intense chaotic shake for earthquake
+                    double progress = (double)elapsed / durationMs; // 0..1
+                    double damp = 1.0 - progress; // reduce amplitude
+                    int amplitude = 38; // very strong
+                    // chaotic combination of sines with random jitter
+                    int offsetX = (int)((Math.Sin(elapsed / 30.0 * 2 * Math.PI) * amplitude + Math.Sin(elapsed / 45.0 * 2 * Math.PI) * (amplitude / 2) + (Math.Sin(elapsed / 13.0 * 2 * Math.PI) * (amplitude / 3))) * damp + (int)((elapsed % 7) - 3));
+                    int offsetY = (int)((Math.Cos(elapsed / 35.0 * 2 * Math.PI) * (amplitude / 1.7) + Math.Cos(elapsed / 55.0 * 2 * Math.PI) * (amplitude / 3)) * damp + (int)(((elapsed / 11) % 5) - 2));
+                    try { this.Location = new System.Drawing.Point(originalLocation.X + offsetX, originalLocation.Y + offsetY); } catch { }
+                };
+
+                // No audio: only visual shake
+                animTimer.Start();
+            };
             mainPanel.Controls.Add(calculateBtn);
+
+            // Place calculator launcher inside mainPanel near the bottom-right corner
+            try
+            {
+                // Position it to the right of logout button area; anchor keeps it at bottom-right
+                calculatorLauncher.Location = new Point(mainPanel.Width - calculatorLauncher.Width - 12, actionY + 2);
+                mainPanel.Controls.Add(calculatorLauncher);
+            }
+            catch { mainPanel.Controls.Add(calculatorLauncher); }
 
             // Logout Button
             Button logoutBtn = new Button();
@@ -834,9 +1054,10 @@ namespace SalaryCalculator
             // Result Panel
             Panel resultPanel = new Panel();
             int resultX = (mainPanel.Width - 855) / 2;
-            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 60);
+            // Move result panel a bit lower and increase height to ensure labels are not overlapped
+            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 90);
             resultPanel.Width = 855;
-            resultPanel.Height = 205;
+            resultPanel.Height = 240;
             resultPanel.Padding = new Padding(5);
             resultPanel.BorderStyle = BorderStyle.Fixed3D;
 
@@ -933,15 +1154,6 @@ namespace SalaryCalculator
             netLabel.Name = "netLabel";
 
             detailY += detailSpacing;
-            Label netAfterTaxLabel = new Label();
-            netAfterTaxLabel.Text = "Lương thực nhận sau thuế:";
-            netAfterTaxLabel.Font = new System.Drawing.Font("Arial", detailFontBold, System.Drawing.FontStyle.Bold);
-            netAfterTaxLabel.ForeColor = System.Drawing.Color.DarkRed;
-            netAfterTaxLabel.Location = new System.Drawing.Point(10, detailY);
-            netAfterTaxLabel.Width = 400;
-            netAfterTaxLabel.Height = 18;
-            netAfterTaxLabel.Name = "netAfterTaxLabel";
-
             // Right Column - Detail breakdown
             Label detailTitleLabel = new Label();
             detailTitleLabel.Text = "CHI TIẾT:";
@@ -955,14 +1167,14 @@ namespace SalaryCalculator
             detailLabel.Text = "...";
             detailLabel.Location = new System.Drawing.Point(430, 52);
             detailLabel.Width = 410;
-            detailLabel.Height = 165;
-            detailLabel.Height = 140;
+            // Increase height so detailed breakdown lines are not clipped by other panels
+            detailLabel.Height = 180;
             detailLabel.Name = "detailLabel";
             detailLabel.Font = new System.Drawing.Font("Arial", 8);
             detailLabel.AutoSize = false;
 
             resultPanel.Controls.AddRange(new Control[] { 
-                resultTitleLabel, empNameLabel, dayRate8hLabel, mealDayLabel, dayRateLabel, grossLabel, insuranceDeductLabel, taxDeductLabel, netLabel, netAfterTaxLabel,
+                resultTitleLabel, empNameLabel, dayRate8hLabel, mealDayLabel, dayRateLabel, grossLabel, insuranceDeductLabel, taxDeductLabel, netLabel,
                 detailTitleLabel, detailLabel
             });
 
@@ -992,6 +1204,9 @@ namespace SalaryCalculator
             {
                 editMeal8BtnRef.Click += (s, e) => OpenMealEditForm(editMeal8BtnRef, meal8DisplayLabelRef, "Tiền ăn OT +4h (mặc định 20,000 VND)");
             }
+
+            // Apply e-commerce theme tweaks
+            try { Theme.ApplyEcommerceTheme(this); } catch { }
         }
 
         private void LoadUserData(TextBox nameTextBox, TextBox salaryTextBox, TextBox mealTextBox)
@@ -1057,6 +1272,7 @@ namespace SalaryCalculator
             editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
             editForm.MaximizeBox = false;
             editForm.MinimizeBox = false;
+            try { Theme.ApplyEcommerceTheme(editForm); } catch { }
 
             // Full Name
             int startY = 30, gapY = 50;
@@ -1193,6 +1409,9 @@ namespace SalaryCalculator
             cancelBtn.Click += (s, e) => editForm.Close();
             editForm.Controls.Add(cancelBtn);
 
+            // Tweak save button to use ecommerce primary color
+            try { saveBtn.BackColor = System.Drawing.Color.FromArgb(255, 90, 0); } catch { }
+
             editForm.ShowDialog();
         }
 
@@ -1307,6 +1526,8 @@ namespace SalaryCalculator
         {
             try
             {
+                // Ensure numeric fields are not empty to avoid parse errors
+                EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
                 // Validate required info before calculation
                 if (string.IsNullOrEmpty(nameTextBox.Text) || string.IsNullOrEmpty(salaryTextBox.Text) || string.IsNullOrEmpty(mealTextBox.Text) ||
                     string.IsNullOrEmpty(workingDaysTextBox.Text) || string.IsNullOrEmpty(attendanceTextBox.Text) || string.IsNullOrEmpty(taxThresholdTextBox.Text))
@@ -1447,7 +1668,6 @@ namespace SalaryCalculator
                 Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
                 Label taxDeductLabel = this.Controls.Find("taxDeductLabel", true)[0] as Label;
                 Label netLabel = this.Controls.Find("netLabel", true)[0] as Label;
-                Label netAfterTaxLabel = this.Controls.Find("netAfterTaxLabel", true)[0] as Label;
                 Label detailLabel = this.Controls.Find("detailLabel", true)[0] as Label;
                 Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
                 Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
@@ -1461,7 +1681,6 @@ namespace SalaryCalculator
                 insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
                 taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeduction > 0 ? taxDeduction.ToString("C0") + " VND" : "0 VND")}";
                 netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
-                netAfterTaxLabel.Text = $"Lương thực nhận sau thuế: {(netSalary - taxDeduction):C0} VND";
                 dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
 
                 // Show detail breakdown
@@ -1557,6 +1776,245 @@ namespace SalaryCalculator
             editForm.Controls.Add(saveBtn);
 
             editForm.ShowDialog();
+        }
+
+        // Compute net salary using the same logic as CalculateSalary but return the net value (no UI changes)
+        private decimal ComputeNetSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
+                                      TextBox overtime2xTextBox, TextBox overtime3xTextBox, TextBox otDays12TextBox, TextBox otDays8TextBox, TextBox overtime15xTextBox, TextBox insuranceTextBox, TextBox taxTextBox,
+                                      TextBox attendanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
+        {
+            try
+            {
+                decimal taxThreshold = 0;
+                if (taxThresholdTextBox != null)
+                    decimal.TryParse(taxThresholdTextBox.Text, out taxThreshold);
+
+                string employeeName = nameTextBox.Text;
+                decimal basicSalary = decimal.Parse(salaryTextBox.Text);
+                decimal mealAllowancePerDay = decimal.Parse(mealTextBox.Text);
+                decimal workingDays = decimal.Parse(workingDaysTextBox.Text);
+                decimal daysOff = decimal.Parse(daysOffTextBox.Text);
+                decimal overtime2xHours = decimal.Parse(overtime2xTextBox.Text);
+                decimal overtime3xHours = decimal.Parse(overtime3xTextBox.Text);
+                decimal otDays12 = decimal.Parse(otDays12TextBox.Text);
+                decimal otDays8 = decimal.Parse(otDays8TextBox.Text);
+                decimal overtime15xHours = decimal.Parse(overtime15xTextBox.Text);
+                decimal insuranceRate = decimal.Parse(insuranceTextBox.Text) / 100;
+                decimal attendanceIncentive = decimal.Parse(attendanceTextBox.Text);
+                int recognizeCount = int.Parse(recognizeTextBox.Text);
+                decimal otherBonus = decimal.Parse(otherBonusTextBox.Text);
+
+                Button editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
+                Button editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
+                decimal meal12Amount = editMeal12Btn != null && decimal.TryParse(editMeal12Btn.Tag.ToString(), out decimal m12) ? m12 : 30000;
+                decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
+
+                decimal actualWorkingDays = workingDays - daysOff;
+                decimal totalMealAllowance = mealAllowancePerDay * actualWorkingDays;
+                decimal bonusMealAllowance = 0;
+                if (otDays12 > 0) bonusMealAllowance += otDays12 * meal12Amount;
+                if (otDays8 > 0) bonusMealAllowance += otDays8 * meal8Amount;
+                totalMealAllowance += bonusMealAllowance;
+
+                decimal basicDailySalary = basicSalary / workingDays;
+                decimal mealDailySalary = mealAllowancePerDay / workingDays;
+                decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
+                decimal hourlyRate = basicDailySalary / 8;
+
+                decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
+                decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
+                decimal overtime3xSalary = overtime3xHours * hourlyRate * 3;
+                decimal overtime15xSalary = overtime15xHours * hourlyRate * 1.5m;
+
+                decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
+                decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
+                decimal insuranceDeduction = basicSalary * 0.105m;
+                decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
+
+                decimal taxBase = netSalaryBeforeTax - taxThreshold;
+                decimal taxRate = 0;
+                if (taxBase <= 0) taxRate = 0;
+                else if (taxBase > 0 && taxBase <= 10000000) taxRate = 0.05m;
+                else if (taxBase > 10000000 && taxBase <= 30000000) taxRate = 0.10m;
+                else if (taxBase > 30000000 && taxBase <= 60000000) taxRate = 0.20m;
+                else if (taxBase > 60000000 && taxBase <= 100000000) taxRate = 0.30m;
+                else taxRate = 0.30m;
+
+                decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
+                decimal netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
+                return netSalary;
+            }
+            catch
+            {
+                return 0m;
+            }
+        }
+
+        // Ensure textboxes that should contain numeric values are not empty
+        private void EnsureNumericDefaults(params TextBox[] boxes)
+        {
+            if (boxes == null) return;
+            foreach (var tb in boxes)
+            {
+                try
+                {
+                    if (tb == null) continue;
+                    if (string.IsNullOrWhiteSpace(tb.Text)) tb.Text = "0";
+                }
+                catch { }
+            }
+        }
+
+        // Generate a short rumble WAV (white noise with low-pass filtering approximation)
+        private void GenerateRumbleWav(string path, int durationMs)
+        {
+            try
+            {
+                int sampleRate = 22050;
+                short bitsPerSample = 16;
+                short channels = 1;
+                int bytesPerSample = bitsPerSample / 8;
+                int totalSamples = (int)((sampleRate * durationMs) / 1000.0);
+                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                using (var bw = new BinaryWriter(fs))
+                {
+                    // RIFF header
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                    bw.Write(36 + totalSamples * bytesPerSample * channels);
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                    // fmt chunk
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+                    bw.Write(16);
+                    bw.Write((short)1); // PCM
+                    bw.Write(channels);
+                    bw.Write(sampleRate);
+                    bw.Write(sampleRate * channels * bytesPerSample);
+                    bw.Write((short)(channels * bytesPerSample));
+                    bw.Write(bitsPerSample);
+                    // data chunk
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                    bw.Write(totalSamples * bytesPerSample * channels);
+
+                    var rnd = new Random();
+                    double cutoff = 400.0; // low-pass cutoff-ish to make it rumble
+                    double rc = 1.0 / (2 * Math.PI * cutoff);
+                    double dt = 1.0 / sampleRate;
+                    double alpha = dt / (rc + dt);
+                    double last = 0.0;
+
+                    for (int i = 0; i < totalSamples; i++)
+                    {
+                        // white noise sample
+                        double white = (rnd.NextDouble() * 2.0 - 1.0);
+                        // simple one-pole low-pass filter to get rumble
+                        last = last + alpha * (white - last);
+                        // apply envelope to fade out towards end to avoid abrupt stop
+                        double env = 1.0 - (double)i / totalSamples;
+                        double sample = last * 0.6 * env; // scale down
+                        short s = (short)(Math.Max(-1.0, Math.Min(1.0, sample)) * short.MaxValue);
+                        bw.Write(s);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        // Synthesize an earthquake-like WAV: deep sub-bass rumble, tremor texture, and long shaking tail
+        private void GenerateEarthquakeWav(string path, int durationMs)
+        {
+            try
+            {
+                int sampleRate = 22050;
+                short bitsPerSample = 16;
+                short channels = 1;
+                int bytesPerSample = bitsPerSample / 8;
+                int totalSamples = (int)((sampleRate * Math.Min(durationMs, 7000)) / 1000.0); // up to 7s
+
+                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                using (var bw = new BinaryWriter(fs))
+                {
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                    bw.Write(36 + totalSamples * bytesPerSample * channels);
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+                    bw.Write(16);
+                    bw.Write((short)1);
+                    bw.Write(channels);
+                    bw.Write(sampleRate);
+                    bw.Write(sampleRate * channels * bytesPerSample);
+                    bw.Write((short)(channels * bytesPerSample));
+                    bw.Write(bitsPerSample);
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                    bw.Write(totalSamples * bytesPerSample * channels);
+
+                    var rnd = new Random();
+
+                    // Sub-bass generator parameters
+                    double baseFreq = 20.0 + rnd.NextDouble() * 10.0; // 20-30 Hz
+                    double modFreq = 0.5 + rnd.NextDouble() * 1.0; // slow modulation
+
+                    // Tremor noise filter
+                    double tremorCut = 60.0;
+                    double dt = 1.0 / sampleRate;
+                    double rcTremor = 1.0 / (2 * Math.PI * tremorCut);
+                    double aTremor = dt / (rcTremor + dt);
+                    double lastTremor = 0.0;
+
+                    // Higher-frequency rumble texture
+                    double hfCut = 600.0;
+                    double rcHf = 1.0 / (2 * Math.PI * hfCut);
+                    double aHf = dt / (rcHf + dt);
+                    double lastHf = 0.0;
+
+                    // Reverb taps for long tail
+                    int[] delays = new int[] { (int)(0.12 * sampleRate), (int)(0.28 * sampleRate), (int)(0.6 * sampleRate) };
+                    double[] decay = new double[] { 0.6, 0.35, 0.18 };
+                    double[] buffer = new double[delays.Max() + 1];
+
+                    for (int i = 0; i < totalSamples; i++)
+                    {
+                        double t = (double)i / sampleRate;
+                        double rel = (double)i / totalSamples;
+
+                        // Deep sub-bass sine with slight modulation
+                        double lf = baseFreq + Math.Sin(2 * Math.PI * rel * modFreq) * 2.0;
+                        double sub = Math.Sin(2 * Math.PI * lf * i / sampleRate) * 0.9;
+
+                        // Tremor: filtered low noise
+                        double white = rnd.NextDouble() * 2.0 - 1.0;
+                        lastTremor = lastTremor + aTremor * (white - lastTremor);
+                        double tremor = lastTremor * 0.8;
+
+                        // High-frequency crackling texture
+                        lastHf = lastHf + aHf * (white - lastHf);
+                        double hf = (white - lastHf) * 0.6;
+
+                        // occasional strong tremor spikes
+                        double spike = 0.0;
+                        if (rnd.NextDouble() < 0.0009) spike = (rnd.NextDouble() * 2.0 - 1.0) * 1.2;
+
+                        // Envelope: sustained with slow decay
+                        double env = Math.Exp(-1.8 * rel) * (1.0 - Math.Exp(-6.0 * rel));
+
+                        double sample = (sub * 0.8 + tremor * 0.7 + hf * 0.5 + spike) * env;
+
+                        // Reverb tail
+                        double wet = sample;
+                        for (int d = 0; d < delays.Length; d++)
+                        {
+                            int idx = i - delays[d];
+                            double tap = idx >= 0 ? buffer[idx % buffer.Length] * decay[d] : 0.0;
+                            wet += tap;
+                        }
+
+                        buffer[i % buffer.Length] = wet;
+
+                        short s = (short)(Math.Max(-1.0, Math.Min(1.0, wet * 0.78)) * short.MaxValue);
+                        bw.Write(s);
+                    }
+                }
+            }
+            catch { }
         }
 
 

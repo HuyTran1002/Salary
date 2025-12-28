@@ -36,6 +36,7 @@ namespace SalaryCalculator
 
             // Setup form controls
             SetupControls(newVersion);
+            try { Theme.ApplyEcommerceTheme(this); } catch { }
         }
 
         private void SetupControls(string newVersion)

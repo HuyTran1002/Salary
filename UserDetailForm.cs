@@ -126,6 +126,7 @@ namespace SalaryCalculator
             mainPanel.Controls.Add(salaryGroup, 0, 2);
 
             this.Controls.Add(mainPanel);
+            try { Theme.ApplyEcommerceTheme(this); } catch { }
         }
     }
 }

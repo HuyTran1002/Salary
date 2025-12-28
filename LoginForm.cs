@@ -228,7 +228,7 @@ namespace SalaryCalculator
             loginBtn.Width = calcWidth;
             loginBtn.Height = 32;
             loginBtn.Font = new Font("Arial", 10, FontStyle.Bold);
-            loginBtn.BackColor = Color.Green;
+            loginBtn.BackColor = Color.FromArgb(255, 90, 0);
             loginBtn.ForeColor = Color.White;
             loginBtn.Name = "loginBtn";
             loginBtn.Click += (s, e) => HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, attendanceTextBox.Text);
@@ -251,6 +251,8 @@ namespace SalaryCalculator
                 taxThresholdTextBox.Visible = isRegistering;
             };
             this.Controls.Add(toggleBtn);
+            // Apply e-commerce theme tweaks
+            try { Theme.ApplyEcommerceTheme(this); } catch { }
         }
 
         private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox phoneTextBox, TextBox ageTextBox, TextBox salaryTextBox, 
@@ -279,7 +281,7 @@ namespace SalaryCalculator
                 this.Height = 580;
                 loginBtn.Text = "✔️ Đăng Ký";
                 toggleBtn.Text = "🔐 Quay lại Đăng Nhập";
-                loginBtn.BackColor = Color.Orange;
+                loginBtn.BackColor = Color.FromArgb(255, 90, 0);
                 int formWidthLocal = this.Width;
                 int calcWidthLocal = 210;
                 int toggleWidthLocal = 210;
@@ -296,7 +298,7 @@ namespace SalaryCalculator
                 this.Height = 300;
                 loginBtn.Text = "🔐 Đăng Nhập";
                 toggleBtn.Text = "📝 Chuyển sang Đăng Ký";
-                loginBtn.BackColor = Color.Green;
+                loginBtn.BackColor = Color.FromArgb(255, 90, 0);
                 int formWidthLocal = this.Width;
                 int calcWidthLocal = 210;
                 int toggleWidthLocal = 210;
@@ -446,7 +448,8 @@ namespace SalaryCalculator
             // Cập nhật nút và vị trí theo chế độ đăng nhập
             if (loginBtn != null) {
                 (loginBtn as Button).Text = "🔐 Đăng Nhập";
-                (loginBtn as Button).BackColor = System.Drawing.Color.Green;
+                (loginBtn as Button).BackColor = System.Drawing.Color.FromArgb(255, 90, 0);
+                (loginBtn as Button).ForeColor = System.Drawing.Color.White;
             }
             if (toggleBtn != null) {
                 (toggleBtn as Button).Text = "📝 Chuyển sang Đăng Ký";
