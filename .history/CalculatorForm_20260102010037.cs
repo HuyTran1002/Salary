@@ -364,57 +364,14 @@ namespace SalaryCalculator
                 return;
             }
 
-            // Handle percentage - chỉ tính % cho số cuối cùng
+            // Handle percentage
             if (key == "%")
             {
                 try
                 {
-                    // Tìm vị trí của operator cuối cùng
-                    int lastOpPos = -1;
-                    for (int i = expression.Length - 1; i >= 0; i--)
-                    {
-                        char c = expression[i];
-                        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')')
-                        {
-                            lastOpPos = i;
-                            break;
-                        }
-                    }
-                    
-                    // Tách số cuối cùng
-                    string lastNumber = "";
-                    if (lastOpPos == -1)
-                    {
-                        // Không có operator, toàn bộ là một số
-                        lastNumber = expression;
-                    }
-                    else if (lastOpPos == expression.Length - 1)
-                    {
-                        // Operator ở cuối, không có số sau nó
-                        return;
-                    }
-                    else
-                    {
-                        // Số từ vị trí sau operator đến cuối
-                        lastNumber = expression.Substring(lastOpPos + 1);
-                    }
-                    
-                    // Tính percentage
-                    double numVal = double.Parse(lastNumber, CultureInfo.InvariantCulture);
-                    double percentVal = numVal / 100;
-                    string percentStr = percentVal.ToString(CultureInfo.InvariantCulture);
-                    
-                    // Thay thế số cuối bằng kết quả percentage
-                    if (lastOpPos == -1)
-                    {
-                        expression = percentStr;
-                    }
-                    else
-                    {
-                        expression = expression.Substring(0, lastOpPos + 1) + percentStr;
-                    }
-                    
-                    cursorPos = expression.Length;
+                    double val = EvaluateExpression(expression);
+                    val = val / 100;
+                    expression = val.ToString(CultureInfo.InvariantCulture);
                     UpdateDisplay();
                 }
                 catch { }

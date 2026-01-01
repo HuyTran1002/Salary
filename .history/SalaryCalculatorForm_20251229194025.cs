@@ -14,12 +14,10 @@ namespace SalaryCalculator
             // Đúng vị trí bên trong class
             private string currentUsername;
             private UserDataManager userDataManager = new UserDataManager();
-            private bool isCustomTaxRate = false;  // Flag để theo dõi người dùng nhập % thủ công
 
         public SalaryCalculatorForm(string username = "")
         {
             currentUsername = username;
-            isCustomTaxRate = false;  // Reset lại trạng thái % thuế mỗi khi đăng nhập lại
             InitializeComponent();
             // Để LoginForm kiểm soát quay lại khi form này đóng
 
@@ -574,8 +572,6 @@ namespace SalaryCalculator
             taxTextBox.Font = new System.Drawing.Font("Arial", 8);
             taxTextBox.Text = "0";
             NumberFormatter.FormatNumberInput(taxTextBox);
-            // Thêm event để phát hiện khi người dùng nhập % thủ công
-            taxTextBox.TextChanged += (s, e) => { isCustomTaxRate = true; };
 
             Label taxThresholdLabel = new Label();
             taxThresholdLabel.Text = "Mốc lương tính thuế:";
@@ -1549,45 +1545,33 @@ namespace SalaryCalculator
                 // Tax logic
                 decimal taxBase = netSalaryBeforeTax - taxThreshold;
                 decimal taxRate = 0;
-                
-                // Nếu người dùng chưa nhập % thủ công, tự động tính theo mốc lương
-                if (!isCustomTaxRate)
+                if (taxBase <= 0)
                 {
-                    if (taxBase <= 0)
-                    {
-                        taxRate = 0;
-                    }
-                    else if (taxBase > 0 && taxBase <= 10000000)
-                    {
-                        taxRate = 0.05m;
-                    }
-                    else if (taxBase > 10000000 && taxBase <= 30000000)
-                    {
-                        taxRate = 0.10m;
-                    }
-                    else if (taxBase > 30000000 && taxBase <= 60000000)
-                    {
-                        taxRate = 0.20m;
-                    }
-                    else if (taxBase > 60000000 && taxBase <= 100000000)
-                    {
-                        taxRate = 0.30m;
-                    }
-                    else if (taxBase > 100000000)
-                    {
-                        taxRate = 0.30m;
-                    }
-                    // Update taxTextBox to show correct % (always integer, no decimal)
-                    taxTextBox.Text = ((int)(taxRate * 100)).ToString();
+                    taxRate = 0;
                 }
-                else
+                else if (taxBase > 0 && taxBase <= 10000000)
                 {
-                    // Người dùng đã nhập % thủ công, dùng % từ taxTextBox
-                    if (decimal.TryParse(taxTextBox.Text, out decimal customTaxPercent))
-                    {
-                        taxRate = customTaxPercent / 100;
-                    }
+                    taxRate = 0.05m;
                 }
+                else if (taxBase > 10000000 && taxBase <= 30000000)
+                {
+                    taxRate = 0.10m;
+                }
+                else if (taxBase > 30000000 && taxBase <= 60000000)
+                {
+                    taxRate = 0.20m;
+                }
+                else if (taxBase > 60000000 && taxBase <= 100000000)
+                {
+                    taxRate = 0.30m;
+                }
+                else if (taxBase > 100000000)
+                {
+                    taxRate = 0.30m;
+                }
+
+                // Update taxTextBox to show correct % (always integer, no decimal)
+                taxTextBox.Text = ((int)(taxRate * 100)).ToString();
 
                 decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
 
@@ -1655,15 +1639,7 @@ namespace SalaryCalculator
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
                 detailLabel.Text = detail;
-                // Play embedded applause.wav if available (only if net salary > 10 million)
-                if (netSalary > 10000000)
-                {
-                    try
-                    {
-                        PlayApplauseEmbedded();
-                    }
-                    catch { }
-                }
+                // No audio playback after showing result (user requested removal)
             }
             catch (Exception ex)
             {
@@ -1821,53 +1797,6 @@ namespace SalaryCalculator
 
         
 
-
-        // Play embedded applause.wav (or fallback to external Assets/audio/applause.wav)
-        private void PlayApplauseEmbedded()
-        {
-            try
-            {
-                bool played = false;
-                var asm = System.Reflection.Assembly.GetExecutingAssembly();
-                string resourceName = asm.GetName().Name + ".Assets.audio.applause.wav";
-                using (var rs = asm.GetManifestResourceStream(resourceName))
-                {
-                    if (rs != null)
-                    {
-                        try
-                        {
-                            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "applause_" + System.Guid.NewGuid().ToString() + ".wav");
-                            using (var fs = System.IO.File.Create(tmp)) { rs.CopyTo(fs); }
-                            try
-                            {
-                                var sp = new System.Media.SoundPlayer(tmp);
-                                sp.Play();
-                                System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
-                                played = true;
-                            }
-                            catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
-                        }
-                        catch { played = false; }
-                    }
-                }
-
-                if (!played)
-                {
-                    var appDir = AppDomain.CurrentDomain.BaseDirectory;
-                    var path = System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav");
-                    try
-                    {
-                        if (System.IO.File.Exists(path))
-                        {
-                            using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
-                            played = true;
-                        }
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-        }
 
     }
 }

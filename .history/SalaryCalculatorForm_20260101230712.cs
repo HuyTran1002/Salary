@@ -19,7 +19,6 @@ namespace SalaryCalculator
         public SalaryCalculatorForm(string username = "")
         {
             currentUsername = username;
-            isCustomTaxRate = false;  // Reset lại trạng thái % thuế mỗi khi đăng nhập lại
             InitializeComponent();
             // Để LoginForm kiểm soát quay lại khi form này đóng
 

@@ -48,7 +48,7 @@ namespace SalaryCalculator
             displayLabel.ForeColor = Color.FromArgb(255, 140, 0);  // Màu cam
             displayLabel.BackColor = Color.Black;   // Nền đen tuyệt đối
             displayLabel.BorderStyle = BorderStyle.FixedSingle;
-            displayLabel.TextAlign = ContentAlignment.MiddleLeft;  // Align trái (để hiển thị cursor)
+            displayLabel.TextAlign = ContentAlignment.MiddleRight;  // Align phải (nhập từ phải)
             displayLabel.AutoSize = false;  // Không tự động resize
             displayLabel.Location = new Point(10, 10);
             displayLabel.Size = new Size(380, 90);
@@ -291,19 +291,15 @@ namespace SalaryCalculator
 
             if (key == "DEL")
             {
-                // Xóa ký tự trước cursor (backspace)
+                // Xóa ký tự trước cursor (phía bên trái cursor)
                 if (cursorPos > 0)
                 {
                     expression = expression.Substring(0, cursorPos - 1) + expression.Substring(cursorPos);
                     cursorPos--;
-                    
-                    // Nếu expression trở thành rỗng, set về "0" và đặt cursor ở vị trí 1 (sau "0")
                     if (expression == "")
-                    {
                         expression = "0";
-                        cursorPos = 1;  // Cursor ở phải, sau "0"
-                    }
                 }
+                // Nếu expression chỉ còn "0" và cursor ở cuối, không cho xóa thêm
                 newNumber = false;
                 UpdateDisplay();
                 return;
@@ -354,7 +350,7 @@ namespace SalaryCalculator
             if (key == "+" || key == "-" || key == "*" || key == "/")
             {
                 // Chèn operator tại vị trí cursor
-                if (expression != "0" && !expression.Contains("Lỗi"))
+                if (expression != "0" && expression != "Lỗi")
                 {
                     expression = expression.Substring(0, cursorPos) + key + expression.Substring(cursorPos);
                     cursorPos++;
@@ -364,57 +360,14 @@ namespace SalaryCalculator
                 return;
             }
 
-            // Handle percentage - chỉ tính % cho số cuối cùng
+            // Handle percentage
             if (key == "%")
             {
                 try
                 {
-                    // Tìm vị trí của operator cuối cùng
-                    int lastOpPos = -1;
-                    for (int i = expression.Length - 1; i >= 0; i--)
-                    {
-                        char c = expression[i];
-                        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')')
-                        {
-                            lastOpPos = i;
-                            break;
-                        }
-                    }
-                    
-                    // Tách số cuối cùng
-                    string lastNumber = "";
-                    if (lastOpPos == -1)
-                    {
-                        // Không có operator, toàn bộ là một số
-                        lastNumber = expression;
-                    }
-                    else if (lastOpPos == expression.Length - 1)
-                    {
-                        // Operator ở cuối, không có số sau nó
-                        return;
-                    }
-                    else
-                    {
-                        // Số từ vị trí sau operator đến cuối
-                        lastNumber = expression.Substring(lastOpPos + 1);
-                    }
-                    
-                    // Tính percentage
-                    double numVal = double.Parse(lastNumber, CultureInfo.InvariantCulture);
-                    double percentVal = numVal / 100;
-                    string percentStr = percentVal.ToString(CultureInfo.InvariantCulture);
-                    
-                    // Thay thế số cuối bằng kết quả percentage
-                    if (lastOpPos == -1)
-                    {
-                        expression = percentStr;
-                    }
-                    else
-                    {
-                        expression = expression.Substring(0, lastOpPos + 1) + percentStr;
-                    }
-                    
-                    cursorPos = expression.Length;
+                    double val = EvaluateExpression(expression);
+                    val = val / 100;
+                    expression = val.ToString(CultureInfo.InvariantCulture);
                     UpdateDisplay();
                 }
                 catch { }
@@ -425,7 +378,7 @@ namespace SalaryCalculator
             if (key == "^")
             {
                 // Chèn ^ tại vị trí cursor
-                if (expression == "0" || expression.Contains("Lỗi"))
+                if (expression == "0" || expression == "Lỗi")
                     expression = "^";
                 else
                 {
@@ -440,17 +393,19 @@ namespace SalaryCalculator
             // Handle parentheses
             if (key == "(" || key == ")")
             {
-                // Chèn parenthesis tại vị trí cursor
-                if (expression == "0")
+                // Nếu bấm ( và expression là "0", thay thế thành "("; còn lại chèn tại cursor
+                if (key == "(" && expression == "0")
                 {
-                    expression = key;
+                    expression = "(";
                     cursorPos = 1;
                 }
-                else if (!expression.Contains("Lỗi"))
+                else if (expression != "0" && expression != "Lỗi")
                 {
                     expression = expression.Substring(0, cursorPos) + key + expression.Substring(cursorPos);
                     cursorPos++;
                 }
+                else
+                    expression = key;
                 newNumber = true;
                 UpdateDisplay();
                 return;
@@ -462,22 +417,20 @@ namespace SalaryCalculator
                 if (newNumber)
                 {
                     expression = "0.";
-                    cursorPos = 2;  // Cursor sau "0."
                     newNumber = false;
                 }
                 else if (!expression.EndsWith(".") && !expression.Contains("."))
                 {
                     expression += ".";
-                    cursorPos = expression.Length;  // Cursor cuối, sau "."
                 }
                 UpdateDisplay();
                 return;
             }
-            // Handle digit input - nhập tại vị trí cursor (chèn)
+            // Handle digit input
             if (char.IsDigit(key[0]))
             {
                 // Nếu expression là "0" hoặc "Lỗi", thay thế; nếu không thì chèn tại cursor
-                if (expression == "0" || expression.Contains("Lỗi"))
+                if (expression == "0" || expression == "Lỗi")
                 {
                     expression = key;
                     cursorPos = 1;
@@ -496,12 +449,6 @@ namespace SalaryCalculator
 
         private void UpdateDisplay()
         {
-            // Bảo vệ cursorPos không vượt quá expression.Length
-            if (cursorPos > expression.Length)
-                cursorPos = expression.Length;
-            if (cursorPos < 0)
-                cursorPos = 0;
-            
             // Điều chỉnh font size dựa trên độ dài chữ
             float fontSize = 36;
             if (expression.Length > 18)
@@ -514,31 +461,10 @@ namespace SalaryCalculator
                 fontSize = 32;
             
             displayLabel.Font = new Font("Segoe UI", fontSize, FontStyle.Bold);
-            
-            // Tạo display text với con trỏ
+            // Chèn con trỏ (dấu nháy) vào vị trí cursor - chỉ hiển thị nếu cursorVisible = true
             string displayText = expression.Substring(0, cursorPos) + 
                                  (cursorVisible ? "|" : " ") + 
                                  expression.Substring(cursorPos);
-            
-            // Nếu text quá dài (> 52 ký tự), cuộn để hiển thị phần nơi cursor ở
-            int maxChars = 52;  // Số ký tự tối đa có thể hiển thị
-            if (displayText.Length > maxChars)
-            {
-                // Tính startIndex để cursor luôn nằm trong display
-                // Ưu tiên hiển thị từ cursor trở về cuối
-                int displayCursorPos = cursorPos + 1;  // +1 vì có dấu nháy
-                
-                int startIdx = Math.Max(0, displayCursorPos - maxChars / 2);  // Đặt cursor ở giữa nếu có thể
-                if (startIdx + maxChars > displayText.Length)
-                    startIdx = Math.Max(0, displayText.Length - maxChars);
-                
-                displayText = displayText.Substring(startIdx, maxChars);
-                
-                // Thêm "..." ở đầu nếu không phải từ đầu
-                if (startIdx > 0)
-                    displayText = "..." + displayText.Substring(3);
-            }
-            
             displayLabel.Text = displayText;
         }
         // Evaluate expression with parentheses and operators

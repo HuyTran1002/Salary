@@ -7,9 +7,9 @@
     <RootNamespace>SalaryCalculator</RootNamespace>
     <StartupObject>SalaryCalculator.Program</StartupObject>
     <ApplicationIcon>calculator_coin_dollar_money_icon_127186.ico</ApplicationIcon>
-    <Version>1.0.1.3</Version>
-    <AssemblyVersion>1.0.1.3</AssemblyVersion>
-    <FileVersion>1.0.1.3</FileVersion>
+    <Version>1.0.3.0</Version>
+    <AssemblyVersion>1.0.3.0</AssemblyVersion>
+    <FileVersion>1.0.3.0</FileVersion>
     <!-- Publish settings for single-file, smaller exe -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
@@ -30,6 +30,8 @@
     </None>
     <!-- If you include a fireworks.wav here it will be embedded into the single-file exe -->
     <EmbeddedResource Include="Assets\audio\fireworks.wav" Condition="Exists('Assets\\audio\\fireworks.wav')" />
+    <!-- Embed applause.wav when present so the single-file exe can play it -->
+    <EmbeddedResource Include="Assets\audio\applause.wav" Condition="Exists('Assets\\audio\\applause.wav')" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="SalaryCalculatorForm_backup_2025-12-24.cs" />

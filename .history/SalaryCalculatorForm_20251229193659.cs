@@ -14,12 +14,10 @@ namespace SalaryCalculator
             // Đúng vị trí bên trong class
             private string currentUsername;
             private UserDataManager userDataManager = new UserDataManager();
-            private bool isCustomTaxRate = false;  // Flag để theo dõi người dùng nhập % thủ công
 
         public SalaryCalculatorForm(string username = "")
         {
             currentUsername = username;
-            isCustomTaxRate = false;  // Reset lại trạng thái % thuế mỗi khi đăng nhập lại
             InitializeComponent();
             // Để LoginForm kiểm soát quay lại khi form này đóng
 
@@ -574,8 +572,6 @@ namespace SalaryCalculator
             taxTextBox.Font = new System.Drawing.Font("Arial", 8);
             taxTextBox.Text = "0";
             NumberFormatter.FormatNumberInput(taxTextBox);
-            // Thêm event để phát hiện khi người dùng nhập % thủ công
-            taxTextBox.TextChanged += (s, e) => { isCustomTaxRate = true; };
 
             Label taxThresholdLabel = new Label();
             taxThresholdLabel.Text = "Mốc lương tính thuế:";
@@ -939,7 +935,77 @@ namespace SalaryCalculator
                         // After shaking animation, perform the actual calculation
                         CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
 
-                        // No audio playback here per user request
+                        // Play fireworks sound to celebrate result: prefer embedded resource, then external file, then fallback melody
+                        try
+                        {
+                            bool played = false;
+                            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                            // Resource name pattern: {DefaultNamespace}.Assets.audio.fireworks.wav
+                            string resourceName = asm.GetName().Name + ".Assets.audio.fireworks.wav";
+                            using (var rs = asm.GetManifestResourceStream(resourceName))
+                            {
+                                if (rs != null)
+                                {
+                                    try
+                                    {
+                                        // Copy embedded resource to a temp file so SoundPlayer can play it reliably
+                                        var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "fireworks_" + System.Guid.NewGuid().ToString() + ".wav");
+                                        using (var fs = System.IO.File.Create(tmp)) { rs.CopyTo(fs); }
+                                        try
+                                        {
+                                            var sp = new System.Media.SoundPlayer(tmp);
+                                            sp.Play();
+                                            // schedule temp file deletion after a delay so playback can finish
+                                            System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
+                                            played = true;
+                                        }
+                                        catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
+                                    }
+                                    catch { played = false; }
+                                }
+                            }
+
+                            if (!played)
+                            {
+                                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                                // try several common locations
+                                var candidates = new List<string>() {
+                                    System.IO.Path.Combine(appDir, "fireworks.wav"),
+                                    System.IO.Path.Combine(appDir, "Assets", "audio", "fireworks.wav")
+                                };
+                                // also try to find any fireworks.wav under appDir (one level deep)
+                                try
+                                {
+                                    var found = System.IO.Directory.GetFiles(appDir, "fireworks.wav", System.IO.SearchOption.AllDirectories).FirstOrDefault();
+                                    if (!string.IsNullOrEmpty(found)) candidates.Add(found);
+                                }
+                                catch { }
+
+                                foreach (var fireworksPath in candidates)
+                                {
+                                    if (System.IO.File.Exists(fireworksPath))
+                                    {
+                                        try { using (var sp = new System.Media.SoundPlayer(fireworksPath)) { sp.Play(); } played = true; break; } catch { played = false; }
+                                    }
+                                }
+                                if (played)
+                                {
+                                    // Played external WAV from one of the candidate paths.
+                                }
+                                else
+                                {
+                                    // No external WAV found or playback failed; fallback would have played.
+                                }
+                                // Audio diagnostic suppressed by user request; previously showed diagMsg.
+                            }
+
+                            if (!played)
+                            {
+                                // No audio available; silently skip celebratory sound (user requested no beep)
+                                // Intentionally do nothing here to avoid system beeps.
+                            }
+                        }
+                        catch { }
 
                         try { animTimer.Dispose(); } catch { }
                         return;
@@ -1549,45 +1615,33 @@ namespace SalaryCalculator
                 // Tax logic
                 decimal taxBase = netSalaryBeforeTax - taxThreshold;
                 decimal taxRate = 0;
-                
-                // Nếu người dùng chưa nhập % thủ công, tự động tính theo mốc lương
-                if (!isCustomTaxRate)
+                if (taxBase <= 0)
                 {
-                    if (taxBase <= 0)
-                    {
-                        taxRate = 0;
-                    }
-                    else if (taxBase > 0 && taxBase <= 10000000)
-                    {
-                        taxRate = 0.05m;
-                    }
-                    else if (taxBase > 10000000 && taxBase <= 30000000)
-                    {
-                        taxRate = 0.10m;
-                    }
-                    else if (taxBase > 30000000 && taxBase <= 60000000)
-                    {
-                        taxRate = 0.20m;
-                    }
-                    else if (taxBase > 60000000 && taxBase <= 100000000)
-                    {
-                        taxRate = 0.30m;
-                    }
-                    else if (taxBase > 100000000)
-                    {
-                        taxRate = 0.30m;
-                    }
-                    // Update taxTextBox to show correct % (always integer, no decimal)
-                    taxTextBox.Text = ((int)(taxRate * 100)).ToString();
+                    taxRate = 0;
                 }
-                else
+                else if (taxBase > 0 && taxBase <= 10000000)
                 {
-                    // Người dùng đã nhập % thủ công, dùng % từ taxTextBox
-                    if (decimal.TryParse(taxTextBox.Text, out decimal customTaxPercent))
-                    {
-                        taxRate = customTaxPercent / 100;
-                    }
+                    taxRate = 0.05m;
                 }
+                else if (taxBase > 10000000 && taxBase <= 30000000)
+                {
+                    taxRate = 0.10m;
+                }
+                else if (taxBase > 30000000 && taxBase <= 60000000)
+                {
+                    taxRate = 0.20m;
+                }
+                else if (taxBase > 60000000 && taxBase <= 100000000)
+                {
+                    taxRate = 0.30m;
+                }
+                else if (taxBase > 100000000)
+                {
+                    taxRate = 0.30m;
+                }
+
+                // Update taxTextBox to show correct % (always integer, no decimal)
+                taxTextBox.Text = ((int)(taxRate * 100)).ToString();
 
                 decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
 
@@ -1655,15 +1709,12 @@ namespace SalaryCalculator
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
                 detailLabel.Text = detail;
-                // Play embedded applause.wav if available (only if net salary > 10 million)
-                if (netSalary > 10000000)
+                // After showing the result, try playing applause sound if available
+                try
                 {
-                    try
-                    {
-                        PlayApplauseEmbedded();
-                    }
-                    catch { }
+                    PlayApplauseIfAvailable();
                 }
+                catch { }
             }
             catch (Exception ex)
             {
@@ -1819,55 +1870,158 @@ namespace SalaryCalculator
             }
         }
 
-        
-
-
-        // Play embedded applause.wav (or fallback to external Assets/audio/applause.wav)
-        private void PlayApplauseEmbedded()
+        // Generate a short rumble WAV (white noise with low-pass filtering approximation)
+        private void GenerateRumbleWav(string path, int durationMs)
         {
             try
             {
-                bool played = false;
-                var asm = System.Reflection.Assembly.GetExecutingAssembly();
-                string resourceName = asm.GetName().Name + ".Assets.audio.applause.wav";
-                using (var rs = asm.GetManifestResourceStream(resourceName))
+                int sampleRate = 22050;
+                short bitsPerSample = 16;
+                short channels = 1;
+                int bytesPerSample = bitsPerSample / 8;
+                int totalSamples = (int)((sampleRate * durationMs) / 1000.0);
+                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                using (var bw = new BinaryWriter(fs))
                 {
-                    if (rs != null)
-                    {
-                        try
-                        {
-                            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "applause_" + System.Guid.NewGuid().ToString() + ".wav");
-                            using (var fs = System.IO.File.Create(tmp)) { rs.CopyTo(fs); }
-                            try
-                            {
-                                var sp = new System.Media.SoundPlayer(tmp);
-                                sp.Play();
-                                System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
-                                played = true;
-                            }
-                            catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
-                        }
-                        catch { played = false; }
-                    }
-                }
+                    // RIFF header
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                    bw.Write(36 + totalSamples * bytesPerSample * channels);
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                    // fmt chunk
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+                    bw.Write(16);
+                    bw.Write((short)1); // PCM
+                    bw.Write(channels);
+                    bw.Write(sampleRate);
+                    bw.Write(sampleRate * channels * bytesPerSample);
+                    bw.Write((short)(channels * bytesPerSample));
+                    bw.Write(bitsPerSample);
+                    // data chunk
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                    bw.Write(totalSamples * bytesPerSample * channels);
 
-                if (!played)
-                {
-                    var appDir = AppDomain.CurrentDomain.BaseDirectory;
-                    var path = System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav");
-                    try
+                    var rnd = new Random();
+                    double cutoff = 400.0; // low-pass cutoff-ish to make it rumble
+                    double rc = 1.0 / (2 * Math.PI * cutoff);
+                    double dt = 1.0 / sampleRate;
+                    double alpha = dt / (rc + dt);
+                    double last = 0.0;
+
+                    for (int i = 0; i < totalSamples; i++)
                     {
-                        if (System.IO.File.Exists(path))
-                        {
-                            using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
-                            played = true;
-                        }
+                        // white noise sample
+                        double white = (rnd.NextDouble() * 2.0 - 1.0);
+                        // simple one-pole low-pass filter to get rumble
+                        last = last + alpha * (white - last);
+                        // apply envelope to fade out towards end to avoid abrupt stop
+                        double env = 1.0 - (double)i / totalSamples;
+                        double sample = last * 0.6 * env; // scale down
+                        short s = (short)(Math.Max(-1.0, Math.Min(1.0, sample)) * short.MaxValue);
+                        bw.Write(s);
                     }
-                    catch { }
                 }
             }
             catch { }
         }
+
+        // Synthesize an earthquake-like WAV: deep sub-bass rumble, tremor texture, and long shaking tail
+        private void GenerateEarthquakeWav(string path, int durationMs)
+        {
+            try
+            {
+                int sampleRate = 22050;
+                short bitsPerSample = 16;
+                short channels = 1;
+                int bytesPerSample = bitsPerSample / 8;
+                int totalSamples = (int)((sampleRate * Math.Min(durationMs, 7000)) / 1000.0); // up to 7s
+
+                using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+                using (var bw = new BinaryWriter(fs))
+                {
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                    bw.Write(36 + totalSamples * bytesPerSample * channels);
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+                    bw.Write(16);
+                    bw.Write((short)1);
+                    bw.Write(channels);
+                    bw.Write(sampleRate);
+                    bw.Write(sampleRate * channels * bytesPerSample);
+                    bw.Write((short)(channels * bytesPerSample));
+                    bw.Write(bitsPerSample);
+                    bw.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                    bw.Write(totalSamples * bytesPerSample * channels);
+
+                    var rnd = new Random();
+
+                    // Sub-bass generator parameters
+                    double baseFreq = 20.0 + rnd.NextDouble() * 10.0; // 20-30 Hz
+                    double modFreq = 0.5 + rnd.NextDouble() * 1.0; // slow modulation
+
+                    // Tremor noise filter
+                    double tremorCut = 60.0;
+                    double dt = 1.0 / sampleRate;
+                    double rcTremor = 1.0 / (2 * Math.PI * tremorCut);
+                    double aTremor = dt / (rcTremor + dt);
+                    double lastTremor = 0.0;
+
+                    // Higher-frequency rumble texture
+                    double hfCut = 600.0;
+                    double rcHf = 1.0 / (2 * Math.PI * hfCut);
+                    double aHf = dt / (rcHf + dt);
+                    double lastHf = 0.0;
+
+                    // Reverb taps for long tail
+                    int[] delays = new int[] { (int)(0.12 * sampleRate), (int)(0.28 * sampleRate), (int)(0.6 * sampleRate) };
+                    double[] decay = new double[] { 0.6, 0.35, 0.18 };
+                    double[] buffer = new double[delays.Max() + 1];
+
+                    for (int i = 0; i < totalSamples; i++)
+                    {
+                        double t = (double)i / sampleRate;
+                        double rel = (double)i / totalSamples;
+
+                        // Deep sub-bass sine with slight modulation
+                        double lf = baseFreq + Math.Sin(2 * Math.PI * rel * modFreq) * 2.0;
+                        double sub = Math.Sin(2 * Math.PI * lf * i / sampleRate) * 0.9;
+
+                        // Tremor: filtered low noise
+                        double white = rnd.NextDouble() * 2.0 - 1.0;
+                        lastTremor = lastTremor + aTremor * (white - lastTremor);
+                        double tremor = lastTremor * 0.8;
+
+                        // High-frequency crackling texture
+                        lastHf = lastHf + aHf * (white - lastHf);
+                        double hf = (white - lastHf) * 0.6;
+
+                        // occasional strong tremor spikes
+                        double spike = 0.0;
+                        if (rnd.NextDouble() < 0.0009) spike = (rnd.NextDouble() * 2.0 - 1.0) * 1.2;
+
+                        // Envelope: sustained with slow decay
+                        double env = Math.Exp(-1.8 * rel) * (1.0 - Math.Exp(-6.0 * rel));
+
+                        double sample = (sub * 0.8 + tremor * 0.7 + hf * 0.5 + spike) * env;
+
+                        // Reverb tail
+                        double wet = sample;
+                        for (int d = 0; d < delays.Length; d++)
+                        {
+                            int idx = i - delays[d];
+                            double tap = idx >= 0 ? buffer[idx % buffer.Length] * decay[d] : 0.0;
+                            wet += tap;
+                        }
+
+                        buffer[i % buffer.Length] = wet;
+
+                        short s = (short)(Math.Max(-1.0, Math.Min(1.0, wet * 0.78)) * short.MaxValue);
+                        bw.Write(s);
+                    }
+                }
+            }
+            catch { }
+        }
+
 
     }
 }

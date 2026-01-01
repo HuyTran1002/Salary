@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Media;
 using System.Windows.Forms;
-using Timer = System.Windows.Forms.Timer;
 
 namespace SalaryCalculator
 {
@@ -20,8 +19,6 @@ namespace SalaryCalculator
         private List<string> formulaHistory = new List<string>();  // Lưu công thức
         private int historyIndex = -1;
         private int cursorPos = 1;  // Vị trí con trỏ (1 = sau "0" ban đầu)
-        private Timer cursorBlinkTimer;  // Timer để nhấp nháy con trỏ
-        private bool cursorVisible = true;  // Trạng thái hiển thị con trỏ
 
         public CalculatorForm()
         {
@@ -48,8 +45,7 @@ namespace SalaryCalculator
             displayLabel.ForeColor = Color.FromArgb(255, 140, 0);  // Màu cam
             displayLabel.BackColor = Color.Black;   // Nền đen tuyệt đối
             displayLabel.BorderStyle = BorderStyle.FixedSingle;
-            displayLabel.TextAlign = ContentAlignment.MiddleLeft;  // Align trái (để hiển thị cursor)
-            displayLabel.AutoSize = false;  // Không tự động resize
+            displayLabel.TextAlign = ContentAlignment.MiddleRight;
             displayLabel.Location = new Point(10, 10);
             displayLabel.Size = new Size(380, 90);
             displayLabel.Tag = "0";  // Lưu giá trị hiện tại
@@ -204,16 +200,6 @@ namespace SalaryCalculator
             // Đảm bảo displayLabel có màu cam sau khi theme được áp dụng
             displayLabel.ForeColor = Color.FromArgb(255, 140, 0);  // Màu cam
             displayLabel.BackColor = Color.Black;   // Nền đen
-
-            // Khởi tạo Timer để nhấp nháy con trỏ
-            cursorBlinkTimer = new Timer();
-            cursorBlinkTimer.Interval = 500;  // Nhấp nháy mỗi 500ms
-            cursorBlinkTimer.Tick += (s, e) =>
-            {
-                cursorVisible = !cursorVisible;  // Toggle trạng thái
-                UpdateDisplay();  // Cập nhật hiển thị
-            };
-            cursorBlinkTimer.Start();
         }
 
         private Color DarkenColor(Color color)
@@ -237,7 +223,6 @@ namespace SalaryCalculator
                 {
                     historyIndex++;
                     expression = formulaHistory[formulaHistory.Count - 1 - historyIndex];
-                    cursorPos = expression.Length;  // Đặt cursor ở cuối
                     UpdateDisplay();
                 }
                 return;
@@ -249,14 +234,12 @@ namespace SalaryCalculator
                 {
                     historyIndex--;
                     expression = formulaHistory[formulaHistory.Count - 1 - historyIndex];
-                    cursorPos = expression.Length;  // Đặt cursor ở cuối
                     UpdateDisplay();
                 }
                 else if (historyIndex == 0)
                 {
                     historyIndex = -1;
                     expression = "0";
-                    cursorPos = 1;  // Reset cursor
                     UpdateDisplay();
                 }
                 return;
@@ -291,23 +274,20 @@ namespace SalaryCalculator
 
             if (key == "DEL")
             {
-                // Xóa ký tự trước cursor (backspace)
+                // Xóa ký tự trước cursor (phía bên trái cursor)
                 if (cursorPos > 0)
                 {
                     expression = expression.Substring(0, cursorPos - 1) + expression.Substring(cursorPos);
                     cursorPos--;
-                    
-                    // Nếu expression trở thành rỗng, set về "0" và đặt cursor ở vị trí 1 (sau "0")
                     if (expression == "")
-                    {
                         expression = "0";
-                        cursorPos = 1;  // Cursor ở phải, sau "0"
-                    }
                 }
+                // Nếu expression chỉ còn "0" và cursor ở cuối, không cho xóa thêm
                 newNumber = false;
                 UpdateDisplay();
                 return;
             }
+
             if (key == "Ans")
             {
                 if (expression == "0")
@@ -318,20 +298,19 @@ namespace SalaryCalculator
                 {
                     expression += lastAnswer;
                 }
-                cursorPos = expression.Length;  // Đặt cursor ở cuối phải
                 newNumber = true;  // Bấm số tiếp theo sẽ thay thế, không thêm vào
                 UpdateDisplay();
                 return;
             }
+
             if (key == "=")
             {
-                string originalExpression = expression;  // Lưu công thức gốc trước khi tính
                 try
                 {
+                    string originalExpression = expression;  // Lưu công thức gốc trước khi tính
                     double result = EvaluateExpression(expression);
                     lastAnswer = result.ToString(CultureInfo.InvariantCulture);
                     expression = lastAnswer;
-                    cursorPos = expression.Length;  // Đặt cursor ở cuối
                     
                     // Save formula to history (not the result)
                     formulaHistory.Add(originalExpression);
@@ -340,12 +319,10 @@ namespace SalaryCalculator
                     newNumber = true;
                     UpdateDisplay();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    expression = "Lỗi: " + ex.Message;
-                    cursorPos = expression.Length;
+                    expression = "Lỗi";
                     UpdateDisplay();
-                    System.Diagnostics.Debug.WriteLine("Calculator Error: " + ex.Message + "\nExpression: " + originalExpression);
                 }
                 return;
             }
@@ -354,7 +331,7 @@ namespace SalaryCalculator
             if (key == "+" || key == "-" || key == "*" || key == "/")
             {
                 // Chèn operator tại vị trí cursor
-                if (expression != "0" && !expression.Contains("Lỗi"))
+                if (expression != "0" && expression != "Lỗi")
                 {
                     expression = expression.Substring(0, cursorPos) + key + expression.Substring(cursorPos);
                     cursorPos++;
@@ -364,57 +341,14 @@ namespace SalaryCalculator
                 return;
             }
 
-            // Handle percentage - chỉ tính % cho số cuối cùng
+            // Handle percentage
             if (key == "%")
             {
                 try
                 {
-                    // Tìm vị trí của operator cuối cùng
-                    int lastOpPos = -1;
-                    for (int i = expression.Length - 1; i >= 0; i--)
-                    {
-                        char c = expression[i];
-                        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')')
-                        {
-                            lastOpPos = i;
-                            break;
-                        }
-                    }
-                    
-                    // Tách số cuối cùng
-                    string lastNumber = "";
-                    if (lastOpPos == -1)
-                    {
-                        // Không có operator, toàn bộ là một số
-                        lastNumber = expression;
-                    }
-                    else if (lastOpPos == expression.Length - 1)
-                    {
-                        // Operator ở cuối, không có số sau nó
-                        return;
-                    }
-                    else
-                    {
-                        // Số từ vị trí sau operator đến cuối
-                        lastNumber = expression.Substring(lastOpPos + 1);
-                    }
-                    
-                    // Tính percentage
-                    double numVal = double.Parse(lastNumber, CultureInfo.InvariantCulture);
-                    double percentVal = numVal / 100;
-                    string percentStr = percentVal.ToString(CultureInfo.InvariantCulture);
-                    
-                    // Thay thế số cuối bằng kết quả percentage
-                    if (lastOpPos == -1)
-                    {
-                        expression = percentStr;
-                    }
-                    else
-                    {
-                        expression = expression.Substring(0, lastOpPos + 1) + percentStr;
-                    }
-                    
-                    cursorPos = expression.Length;
+                    double val = EvaluateExpression(expression);
+                    val = val / 100;
+                    expression = val.ToString(CultureInfo.InvariantCulture);
                     UpdateDisplay();
                 }
                 catch { }
@@ -424,14 +358,11 @@ namespace SalaryCalculator
             // Handle power
             if (key == "^")
             {
-                // Chèn ^ tại vị trí cursor
-                if (expression == "0" || expression.Contains("Lỗi"))
+                // Nếu expression là "0", thay thế thành "^"; nếu không thì append
+                if (expression == "0" || expression == "Lỗi")
                     expression = "^";
                 else
-                {
-                    expression = expression.Substring(0, cursorPos) + "^" + expression.Substring(cursorPos);
-                    cursorPos++;
-                }
+                    expression += "^";
                 newNumber = true;
                 UpdateDisplay();
                 return;
@@ -440,17 +371,13 @@ namespace SalaryCalculator
             // Handle parentheses
             if (key == "(" || key == ")")
             {
-                // Chèn parenthesis tại vị trí cursor
-                if (expression == "0")
-                {
-                    expression = key;
-                    cursorPos = 1;
-                }
-                else if (!expression.Contains("Lỗi"))
-                {
-                    expression = expression.Substring(0, cursorPos) + key + expression.Substring(cursorPos);
-                    cursorPos++;
-                }
+                // Nếu bấm ( và expression là "0", thay thế thành "("; còn lại append
+                if (key == "(" && expression == "0")
+                    expression = "(";
+                else if (expression != "0" || key == ")")
+                    expression += key;
+                else
+                    expression = key;  // Phòng trường hợp khác
                 newNumber = true;
                 UpdateDisplay();
                 return;
@@ -462,22 +389,20 @@ namespace SalaryCalculator
                 if (newNumber)
                 {
                     expression = "0.";
-                    cursorPos = 2;  // Cursor sau "0."
                     newNumber = false;
                 }
                 else if (!expression.EndsWith(".") && !expression.Contains("."))
                 {
                     expression += ".";
-                    cursorPos = expression.Length;  // Cursor cuối, sau "."
                 }
                 UpdateDisplay();
                 return;
             }
-            // Handle digit input - nhập tại vị trí cursor (chèn)
+            // Handle digit input
             if (char.IsDigit(key[0]))
             {
                 // Nếu expression là "0" hoặc "Lỗi", thay thế; nếu không thì chèn tại cursor
-                if (expression == "0" || expression.Contains("Lỗi"))
+                if (expression == "0" || expression == "Lỗi")
                 {
                     expression = key;
                     cursorPos = 1;
@@ -496,12 +421,6 @@ namespace SalaryCalculator
 
         private void UpdateDisplay()
         {
-            // Bảo vệ cursorPos không vượt quá expression.Length
-            if (cursorPos > expression.Length)
-                cursorPos = expression.Length;
-            if (cursorPos < 0)
-                cursorPos = 0;
-            
             // Điều chỉnh font size dựa trên độ dài chữ
             float fontSize = 36;
             if (expression.Length > 18)
@@ -514,40 +433,18 @@ namespace SalaryCalculator
                 fontSize = 32;
             
             displayLabel.Font = new Font("Segoe UI", fontSize, FontStyle.Bold);
-            
-            // Tạo display text với con trỏ
-            string displayText = expression.Substring(0, cursorPos) + 
-                                 (cursorVisible ? "|" : " ") + 
-                                 expression.Substring(cursorPos);
-            
-            // Nếu text quá dài (> 52 ký tự), cuộn để hiển thị phần nơi cursor ở
-            int maxChars = 52;  // Số ký tự tối đa có thể hiển thị
-            if (displayText.Length > maxChars)
-            {
-                // Tính startIndex để cursor luôn nằm trong display
-                // Ưu tiên hiển thị từ cursor trở về cuối
-                int displayCursorPos = cursorPos + 1;  // +1 vì có dấu nháy
-                
-                int startIdx = Math.Max(0, displayCursorPos - maxChars / 2);  // Đặt cursor ở giữa nếu có thể
-                if (startIdx + maxChars > displayText.Length)
-                    startIdx = Math.Max(0, displayText.Length - maxChars);
-                
-                displayText = displayText.Substring(startIdx, maxChars);
-                
-                // Thêm "..." ở đầu nếu không phải từ đầu
-                if (startIdx > 0)
-                    displayText = "..." + displayText.Substring(3);
-            }
-            
+            // Chèn con trỏ (dấu nháy) vào vị trí cursor và hiển thị
+            string displayText = expression.Substring(0, cursorPos) + "|" + expression.Substring(cursorPos);
             displayLabel.Text = displayText;
         }
+
         // Evaluate expression with parentheses and operators
         private double EvaluateExpression(string expr)
         {
             try
             {
-                // Remove spaces and cursor
-                expr = expr.Replace(" ", "").Replace("|", "");
+                // Remove spaces
+                expr = expr.Replace(" ", "");
                 
                 // Replace operators
                 expr = expr.Replace("÷", "/").Replace("×", "*").Replace("−", "-");
@@ -561,53 +458,39 @@ namespace SalaryCalculator
                     
                     string innerExpr = expr.Substring(lastOpen + 1, firstClose - lastOpen - 1);
                     double innerResult = SimpleEvaluate(innerExpr);
-                    // Dùng G17 format để tránh scientific notation
-                    string innerResultStr = innerResult.ToString("G17", CultureInfo.InvariantCulture);
-                    expr = expr.Substring(0, lastOpen) + innerResultStr + expr.Substring(firstClose + 1);
-                    // Debug: Show expression after parentheses removal
-                    System.Diagnostics.Debug.WriteLine($"After removing parentheses: {expr}");
+                    expr = expr.Substring(0, lastOpen) + innerResult.ToString(CultureInfo.InvariantCulture) + expr.Substring(firstClose + 1);
                 }
                 
                 return SimpleEvaluate(expr);
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Expression evaluation error: {ex.Message}");
-                throw new Exception("Invalid expression: " + ex.Message);
+                throw new Exception("Invalid expression");
             }
         }
 
         // Simple evaluator for +, -, *, /, ^
         private double SimpleEvaluate(string expr)
         {
-            expr = expr.Trim();
-            if (string.IsNullOrEmpty(expr))
-                throw new Exception("Empty expression");
-            
             // Handle ^ first (highest precedence)
             while (expr.Contains("^"))
             {
                 int idx = expr.IndexOf("^");
-                
-                // Find left number - go back from idx-1
-                int leftEnd = idx - 1;
-                while (leftEnd > 0 && (char.IsDigit(expr[leftEnd - 1]) || expr[leftEnd - 1] == '.'))
-                    leftEnd--;
-                
-                // Find right number - go forward from idx+1
+                int leftStart = idx - 1;
+                while (leftStart > 0 && (char.IsDigit(expr[leftStart - 1]) || expr[leftStart - 1] == '.'))
+                    leftStart--;
                 int rightEnd = idx + 1;
-                while (rightEnd < expr.Length && (char.IsDigit(expr[rightEnd]) || expr[rightEnd] == '.'))
+                while (rightEnd < expr.Length - 1 && (char.IsDigit(expr[rightEnd + 1]) || expr[rightEnd + 1] == '.'))
                     rightEnd++;
-                rightEnd--;  // Move back to last digit/decimal point
                 
-                string leftStr = expr.Substring(leftEnd, idx - leftEnd);
+                string leftStr = expr.Substring(leftStart, idx - leftStart);
                 string rightStr = expr.Substring(idx + 1, rightEnd - idx);
                 
                 double leftVal = double.Parse(leftStr, CultureInfo.InvariantCulture);
                 double rightVal = double.Parse(rightStr, CultureInfo.InvariantCulture);
                 double result = Math.Pow(leftVal, rightVal);
                 
-                expr = expr.Substring(0, leftEnd) + result.ToString("G17", CultureInfo.InvariantCulture) + expr.Substring(rightEnd + 1);
+                expr = expr.Substring(0, leftStart) + result.ToString(CultureInfo.InvariantCulture) + expr.Substring(rightEnd + 1);
             }
             
             // Handle * and /
@@ -627,66 +510,46 @@ namespace SalaryCalculator
                 
                 op = expr[idx];
                 
-                // Find left number
-                int leftEnd = idx - 1;
-                while (leftEnd > 0 && (char.IsDigit(expr[leftEnd - 1]) || expr[leftEnd - 1] == '.'))
-                    leftEnd--;
-                
-                // Find right number
+                // Find numbers
+                int leftStart = idx - 1;
+                while (leftStart > 0 && (char.IsDigit(expr[leftStart - 1]) || expr[leftStart - 1] == '.'))
+                    leftStart--;
                 int rightEnd = idx + 1;
-                while (rightEnd < expr.Length && (char.IsDigit(expr[rightEnd]) || expr[rightEnd] == '.'))
+                while (rightEnd < expr.Length - 1 && (char.IsDigit(expr[rightEnd + 1]) || expr[rightEnd + 1] == '.'))
                     rightEnd++;
-                rightEnd--;  // Move back to last digit/decimal point
                 
-                string leftStr = expr.Substring(leftEnd, idx - leftEnd);
+                string leftStr = expr.Substring(leftStart, idx - leftStart);
                 string rightStr = expr.Substring(idx + 1, rightEnd - idx);
                 
                 double leftVal = double.Parse(leftStr, CultureInfo.InvariantCulture);
                 double rightVal = double.Parse(rightStr, CultureInfo.InvariantCulture);
                 double result = op == '*' ? leftVal * rightVal : leftVal / rightVal;
                 
-                expr = expr.Substring(0, leftEnd) + result.ToString("G17", CultureInfo.InvariantCulture) + expr.Substring(rightEnd + 1);
+                expr = expr.Substring(0, leftStart) + result.ToString(CultureInfo.InvariantCulture) + expr.Substring(rightEnd + 1);
             }
             
-            // Handle + and - (left to right)
+            // Handle + and -
+            // Skip first char if it's minus (negative number)
             int startIdx = 0;
             if (expr.Length > 0 && expr[0] == '-')
                 startIdx = 1;
             
-            while (true)
+            for (int i = startIdx; i < expr.Length; i++)
             {
-                int opIdx = -1;
-                char opChar = ' ';
-                
-                for (int i = startIdx; i < expr.Length; i++)
+                if (expr[i] == '+' || expr[i] == '-')
                 {
-                    if (expr[i] == '+' || expr[i] == '-')
-                    {
-                        opIdx = i;
-                        opChar = expr[i];
-                        break;
-                    }
+                    int leftStart = 0;
+                    int rightEnd = expr.Length - 1;
+                    
+                    string leftStr = expr.Substring(leftStart, i - leftStart);
+                    string rightStr = expr.Substring(i + 1);
+                    
+                    double leftVal = double.Parse(leftStr, CultureInfo.InvariantCulture);
+                    double rightVal = double.Parse(rightStr, CultureInfo.InvariantCulture);
+                    double result = expr[i] == '+' ? leftVal + rightVal : leftVal - rightVal;
+                    
+                    return result;
                 }
-                
-                if (opIdx == -1)
-                    break;
-                
-                string leftStr = expr.Substring(0, opIdx);
-                
-                // Find right number - only take the next number, not everything after operator
-                int rightEnd = opIdx + 1;
-                while (rightEnd < expr.Length && (char.IsDigit(expr[rightEnd]) || expr[rightEnd] == '.'))
-                    rightEnd++;
-                rightEnd--;  // Move back to last digit
-                
-                string rightStr = expr.Substring(opIdx + 1, rightEnd - opIdx);
-                
-                double leftVal = double.Parse(leftStr, CultureInfo.InvariantCulture);
-                double rightVal = double.Parse(rightStr, CultureInfo.InvariantCulture);
-                double result = opChar == '+' ? leftVal + rightVal : leftVal - rightVal;
-                
-                expr = result.ToString("G17", CultureInfo.InvariantCulture) + expr.Substring(rightEnd + 1);
-                startIdx = 0;
             }
             
             return double.Parse(expr, CultureInfo.InvariantCulture);
