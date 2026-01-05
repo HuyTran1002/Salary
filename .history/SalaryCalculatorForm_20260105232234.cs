@@ -591,10 +591,10 @@ namespace SalaryCalculator
             taxThresholdTextBox.Height = 20;
             taxThresholdTextBox.Name = "taxThresholdTextBox";
             taxThresholdTextBox.Font = new System.Drawing.Font("Arial", 8);
-            taxThresholdTextBox.Text = "";
+            taxThresholdTextBox.Text = NumberFormatter.FormatNumberDisplay(BaseTaxThreshold.ToString());
             NumberFormatter.FormatNumberInput(taxThresholdTextBox);
-            taxThresholdTextBox.ReadOnly = true;
-            taxThresholdTextBox.BackColor = System.Drawing.Color.LightGray;
+            taxThresholdTextBox.ReadOnly = false;
+            taxThresholdTextBox.BackColor = System.Drawing.Color.White;
 
             // RIGHT COLUMN - Overtime, Meal, Incentive - NEW STRUCTURE (3 SECTIONS)
             // SECTION 1: TIỀN TĂNG CA (Overtime Money)
@@ -989,8 +989,8 @@ namespace SalaryCalculator
             // Result Panel
             Panel resultPanel = new Panel();
             int resultX = (mainPanel.Width - 855) / 2;
-            // Lift result panel a bit higher to avoid touching bottom edge
-            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 75);
+            // Move result panel a bit lower and increase height to ensure labels are not overlapped
+            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 90);
             resultPanel.Width = 855;
             resultPanel.Height = 240;
             resultPanel.Padding = new Padding(5);
@@ -1006,17 +1006,21 @@ namespace SalaryCalculator
             // Left Column Results
             Label empNameLabel = new Label();
             empNameLabel.Text = "Nhân Viên:";
-            empNameLabel.Location = new System.Drawing.Point(10, 40);
+            empNameLabel.Location = new System.Drawing.Point(10, 30);
             empNameLabel.Width = 400;
             empNameLabel.Height = 18;
             empNameLabel.Name = "empNameLabel";
             empNameLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
             empNameLabel.ForeColor = System.Drawing.Color.DarkBlue;
-            int detailY = 40; // bắt đầu từ nhân viên
-            // spacing đều 19px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
-            int detailSpacing = 19;
+            int detailY = 24; // bắt đầu cao hơn một chút cho cân đối
+            // spacing đều 22px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
+            int detailSpacing = 22;
             float detailFont = 8.5f;
             float detailFontBold = 8.5f;
+
+            empNameLabel.Location = new System.Drawing.Point(10, detailY);
+            empNameLabel.Width = 400;
+            empNameLabel.Height = 18;
 
             detailY += detailSpacing;
             Label dayRate8hLabel = new Label();
@@ -1065,15 +1069,6 @@ namespace SalaryCalculator
             insuranceDeductLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
             detailY += detailSpacing;
-            Label taxThresholdResultLabel = new Label();
-            taxThresholdResultLabel.Text = "Mốc thuế áp dụng:";
-            taxThresholdResultLabel.Location = new System.Drawing.Point(10, detailY);
-            taxThresholdResultLabel.Width = 400;
-            taxThresholdResultLabel.Height = 18;
-            taxThresholdResultLabel.Name = "taxThresholdResultLabel";
-            taxThresholdResultLabel.Font = new System.Drawing.Font("Arial", detailFont);
-
-            detailY += detailSpacing;
             Label taxDeductLabel = new Label();
             taxDeductLabel.Text = "Khấu Trừ Thuế:";
             taxDeductLabel.Location = new System.Drawing.Point(10, detailY);
@@ -1081,6 +1076,16 @@ namespace SalaryCalculator
             taxDeductLabel.Height = 18;
             taxDeductLabel.Name = "taxDeductLabel";
             taxDeductLabel.Font = new System.Drawing.Font("Arial", detailFont);
+
+
+            detailY += detailSpacing;
+            Label taxThresholdResultLabel = new Label();
+            taxThresholdResultLabel.Text = "Mốc thuế áp dụng:";
+            taxThresholdResultLabel.Location = new System.Drawing.Point(10, detailY);
+            taxThresholdResultLabel.Width = 400;
+            taxThresholdResultLabel.Height = 18;
+            taxThresholdResultLabel.Name = "taxThresholdResultLabel";
+            taxThresholdResultLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
 
             detailY += detailSpacing;
@@ -1308,7 +1313,8 @@ namespace SalaryCalculator
             TextBox taxThresholdEditBox = new TextBox();
             taxThresholdEditBox.Location = new System.Drawing.Point(160, startY + gapY * 6 - 3);
             taxThresholdEditBox.Width = 250;
-            taxThresholdEditBox.Text = user.TaxThreshold > 0 ? NumberFormatter.FormatNumberDisplay(user.TaxThreshold) : "";
+            decimal thresholdEditValue = user.TaxThreshold > 0 ? user.TaxThreshold : BaseTaxThreshold;
+            taxThresholdEditBox.Text = NumberFormatter.FormatNumberDisplay(thresholdEditValue);
             NumberFormatter.FormatNumberInput(taxThresholdEditBox);
             editForm.Controls.Add(taxThresholdEditBox);
 
@@ -1473,9 +1479,6 @@ namespace SalaryCalculator
         {
             try
             {
-                // Reset custom tax rate flag to always auto-calculate based on salary brackets
-                isCustomTaxRate = false;
-                
                 // Ensure numeric fields are not empty to avoid parse errors
                 EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
                 // Validate required info before calculation
@@ -1483,13 +1486,6 @@ namespace SalaryCalculator
                     string.IsNullOrEmpty(workingDaysTextBox.Text) || string.IsNullOrEmpty(attendanceTextBox.Text))
                 {
                     MessageBox.Show("Vui lòng điền đầy đủ thông tin nhân viên trước khi tính lương!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Validate tax threshold
-                if (string.IsNullOrEmpty(taxThresholdTextBox.Text) || !decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out decimal taxThresholdValue) || taxThresholdValue <= 0)
-                {
-                    MessageBox.Show("Vui lòng nhập mốc lương tính thuế (phải > 0) trong phần chỉnh sửa thông tin!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -1591,7 +1587,7 @@ namespace SalaryCalculator
                     }
                     else if (taxBase > 100000000)
                     {
-                        taxRate = 0.35m;
+                        taxRate = 0.30m;
                     }
                     // Update taxTextBox to show correct % (always integer, no decimal)
                     taxTextBox.Text = ((int)(taxRate * 100)).ToString();

@@ -15,8 +15,7 @@ namespace SalaryCalculator
             private string currentUsername;
             private UserDataManager userDataManager = new UserDataManager();
             private bool isCustomTaxRate = false;  // Flag để theo dõi người dùng nhập % thủ công
-            private const decimal BaseTaxThreshold = 16230000m; // Mốc lương tính thuế cơ bản mặc định
-            private const decimal FixedThresholdAddon = 730000m; // Khoản cố định cộng vào mốc thuế
+            private const decimal BaseTaxThreshold = 16230000m; // Mốc lương tính thuế cơ bản
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -591,7 +590,7 @@ namespace SalaryCalculator
             taxThresholdTextBox.Height = 20;
             taxThresholdTextBox.Name = "taxThresholdTextBox";
             taxThresholdTextBox.Font = new System.Drawing.Font("Arial", 8);
-            taxThresholdTextBox.Text = "";
+            taxThresholdTextBox.Text = NumberFormatter.FormatNumberDisplay(BaseTaxThreshold.ToString());
             NumberFormatter.FormatNumberInput(taxThresholdTextBox);
             taxThresholdTextBox.ReadOnly = true;
             taxThresholdTextBox.BackColor = System.Drawing.Color.LightGray;
@@ -989,8 +988,8 @@ namespace SalaryCalculator
             // Result Panel
             Panel resultPanel = new Panel();
             int resultX = (mainPanel.Width - 855) / 2;
-            // Lift result panel a bit higher to avoid touching bottom edge
-            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 75);
+            // Move result panel a bit lower and increase height to ensure labels are not overlapped
+            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 90);
             resultPanel.Width = 855;
             resultPanel.Height = 240;
             resultPanel.Padding = new Padding(5);
@@ -1006,17 +1005,21 @@ namespace SalaryCalculator
             // Left Column Results
             Label empNameLabel = new Label();
             empNameLabel.Text = "Nhân Viên:";
-            empNameLabel.Location = new System.Drawing.Point(10, 40);
+            empNameLabel.Location = new System.Drawing.Point(10, 30);
             empNameLabel.Width = 400;
             empNameLabel.Height = 18;
             empNameLabel.Name = "empNameLabel";
             empNameLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
             empNameLabel.ForeColor = System.Drawing.Color.DarkBlue;
-            int detailY = 40; // bắt đầu từ nhân viên
-            // spacing đều 19px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
-            int detailSpacing = 19;
+            int detailY = 24; // bắt đầu cao hơn một chút cho cân đối
+            // spacing đều 22px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
+            int detailSpacing = 22;
             float detailFont = 8.5f;
             float detailFontBold = 8.5f;
+
+            empNameLabel.Location = new System.Drawing.Point(10, detailY);
+            empNameLabel.Width = 400;
+            empNameLabel.Height = 18;
 
             detailY += detailSpacing;
             Label dayRate8hLabel = new Label();
@@ -1065,15 +1068,6 @@ namespace SalaryCalculator
             insuranceDeductLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
             detailY += detailSpacing;
-            Label taxThresholdResultLabel = new Label();
-            taxThresholdResultLabel.Text = "Mốc thuế áp dụng:";
-            taxThresholdResultLabel.Location = new System.Drawing.Point(10, detailY);
-            taxThresholdResultLabel.Width = 400;
-            taxThresholdResultLabel.Height = 18;
-            taxThresholdResultLabel.Name = "taxThresholdResultLabel";
-            taxThresholdResultLabel.Font = new System.Drawing.Font("Arial", detailFont);
-
-            detailY += detailSpacing;
             Label taxDeductLabel = new Label();
             taxDeductLabel.Text = "Khấu Trừ Thuế:";
             taxDeductLabel.Location = new System.Drawing.Point(10, detailY);
@@ -1114,7 +1108,7 @@ namespace SalaryCalculator
             detailLabel.AutoSize = false;
 
             resultPanel.Controls.AddRange(new Control[] { 
-                resultTitleLabel, empNameLabel, dayRate8hLabel, mealDayLabel, dayRateLabel, grossLabel, insuranceDeductLabel, taxDeductLabel, taxThresholdResultLabel, netLabel,
+                resultTitleLabel, empNameLabel, dayRate8hLabel, mealDayLabel, dayRateLabel, grossLabel, insuranceDeductLabel, taxDeductLabel, netLabel,
                 detailTitleLabel, detailLabel
             });
 
@@ -1308,7 +1302,8 @@ namespace SalaryCalculator
             TextBox taxThresholdEditBox = new TextBox();
             taxThresholdEditBox.Location = new System.Drawing.Point(160, startY + gapY * 6 - 3);
             taxThresholdEditBox.Width = 250;
-            taxThresholdEditBox.Text = user.TaxThreshold > 0 ? NumberFormatter.FormatNumberDisplay(user.TaxThreshold) : "";
+            decimal thresholdEditValue = user.TaxThreshold > 0 ? user.TaxThreshold : BaseTaxThreshold;
+            taxThresholdEditBox.Text = NumberFormatter.FormatNumberDisplay(thresholdEditValue.ToString());
             NumberFormatter.FormatNumberInput(taxThresholdEditBox);
             editForm.Controls.Add(taxThresholdEditBox);
 
@@ -1461,10 +1456,10 @@ namespace SalaryCalculator
             }
         }
 
-        private decimal ComputeTaxThreshold(decimal baseThreshold, decimal hourlyRate, decimal overtime2xHours, decimal overtime3xHours, decimal insuranceDeduction)
+        private decimal ComputeTaxThreshold(decimal hourlyRate, decimal overtime2xHours, decimal overtime3xHours)
         {
             decimal overtimeExtras = (hourlyRate * overtime2xHours) + (hourlyRate * overtime3xHours * 2m);
-            return baseThreshold + FixedThresholdAddon + overtimeExtras + insuranceDeduction;
+            return BaseTaxThreshold + overtimeExtras;
         }
 
         private void CalculateSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
@@ -1473,9 +1468,6 @@ namespace SalaryCalculator
         {
             try
             {
-                // Reset custom tax rate flag to always auto-calculate based on salary brackets
-                isCustomTaxRate = false;
-                
                 // Ensure numeric fields are not empty to avoid parse errors
                 EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
                 // Validate required info before calculation
@@ -1483,13 +1475,6 @@ namespace SalaryCalculator
                     string.IsNullOrEmpty(workingDaysTextBox.Text) || string.IsNullOrEmpty(attendanceTextBox.Text))
                 {
                     MessageBox.Show("Vui lòng điền đầy đủ thông tin nhân viên trước khi tính lương!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Validate tax threshold
-                if (string.IsNullOrEmpty(taxThresholdTextBox.Text) || !decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out decimal taxThresholdValue) || taxThresholdValue <= 0)
-                {
-                    MessageBox.Show("Vui lòng nhập mốc lương tính thuế (phải > 0) trong phần chỉnh sửa thông tin!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -1504,14 +1489,10 @@ namespace SalaryCalculator
                 decimal otDays12 = decimal.Parse(otDays12TextBox.Text);  // Số ngày OT 8/12h
                 decimal otDays8 = decimal.Parse(otDays8TextBox.Text);    // Số ngày OT +4h
                 decimal overtime15xHours = decimal.Parse(overtime15xTextBox.Text); // Làm thêm x1.5 lương
+                decimal insuranceRate = decimal.Parse(insuranceTextBox.Text) / 100;
                 decimal attendanceIncentive = decimal.Parse(attendanceTextBox.Text); // Tiền chuyên cần
                 int recognizeCount = int.Parse(recognizeTextBox.Text); // Số lượng Recognize
                 decimal otherBonus = decimal.Parse(otherBonusTextBox.Text); // Tiền bonus khác
-                decimal baseTaxThresholdInput = BaseTaxThreshold;
-                if (taxThresholdTextBox != null && decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out decimal userInputThreshold) && userInputThreshold > 0)
-                {
-                    baseTaxThresholdInput = userInputThreshold;
-                }
 
                 // Get editable meal amounts from edit button Tags
                 Button editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
@@ -1521,6 +1502,9 @@ namespace SalaryCalculator
 
                 // Calculate actual working days after deducting days off
                 decimal actualWorkingDays = workingDays - daysOff;
+
+                // Calculate total meal allowance for the month
+                decimal totalMealAllowance = mealAllowancePerDay * actualWorkingDays;
 
                 // Add bonus meal allowance based on OT days (using editable amounts)
                 decimal bonusMealAllowance = 0;
@@ -1533,6 +1517,8 @@ namespace SalaryCalculator
                     bonusMealAllowance += otDays8 * meal8Amount;
                 }
 
+                totalMealAllowance += bonusMealAllowance;
+
                 // Calculate daily salary components (based on original working days, NOT after days off)
                 decimal basicDailySalary = basicSalary / workingDays;
                 decimal mealDailySalary = mealAllowancePerDay / workingDays;
@@ -1541,11 +1527,12 @@ namespace SalaryCalculator
                 // Calculate hourly rate based on BASIC SALARY only (for OT calculation)
                 decimal hourlyRate = basicDailySalary / 8;
 
-                // Calculate deductions - Bảo hiểm chỉ đóng 10.5% lương cơ bản
-                decimal insuranceDeduction = basicSalary * 0.105m;
-
-                // Dynamic tax threshold = base (user input) + 730,000 + phần chênh lệch OT x2/x3 + khấu trừ BH
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
+                // Dynamic tax threshold = base + phần chênh lệch OT x2/x3
+                decimal taxThreshold = ComputeTaxThreshold(hourlyRate, overtime2xHours, overtime3xHours);
+                if (taxThresholdTextBox != null)
+                {
+                    taxThresholdTextBox.Text = NumberFormatter.FormatNumberDisplay(taxThreshold);
+                }
 
                 // Calculate gross salary components:
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
@@ -1558,6 +1545,10 @@ namespace SalaryCalculator
 
                 // Lương Brutto bao gồm tiền ăn bonus và incentive
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
+
+                // Calculate deductions - Bảo hiểm chỉ đóng 10.5% lương cơ bản
+                decimal insuranceDeduction = basicSalary * 0.105m;
+                decimal taxableAmount = grossSalary - insuranceDeduction;
 
                 // Calculate net salary before tax
                 decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
@@ -1591,7 +1582,7 @@ namespace SalaryCalculator
                     }
                     else if (taxBase > 100000000)
                     {
-                        taxRate = 0.35m;
+                        taxRate = 0.30m;
                     }
                     // Update taxTextBox to show correct % (always integer, no decimal)
                     taxTextBox.Text = ((int)(taxRate * 100)).ToString();
@@ -1628,7 +1619,6 @@ namespace SalaryCalculator
                 Label grossLabel = this.Controls.Find("grossLabel", true)[0] as Label;
                 Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
                 Label taxDeductLabel = this.Controls.Find("taxDeductLabel", true)[0] as Label;
-                Label taxThresholdResultLabel = this.Controls.Find("taxThresholdResultLabel", true)[0] as Label;
                 Label netLabel = this.Controls.Find("netLabel", true)[0] as Label;
                 Label detailLabel = this.Controls.Find("detailLabel", true)[0] as Label;
                 Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
@@ -1642,7 +1632,6 @@ namespace SalaryCalculator
                 grossLabel.Text = $"Lương Brutto: {grossSalary:C0} VND";
                 insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
                 taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeduction > 0 ? taxDeduction.ToString("C0") + " VND" : "0 VND")}";
-                taxThresholdResultLabel.Text = $"Mốc thuế áp dụng: {taxThreshold:C0} VND";
                 netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
                 dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
 
@@ -1757,6 +1746,7 @@ namespace SalaryCalculator
         {
             try
             {
+                string employeeName = nameTextBox.Text;
                 decimal basicSalary = decimal.Parse(salaryTextBox.Text);
                 decimal mealAllowancePerDay = decimal.Parse(mealTextBox.Text);
                 decimal workingDays = decimal.Parse(workingDaysTextBox.Text);
@@ -1766,14 +1756,10 @@ namespace SalaryCalculator
                 decimal otDays12 = decimal.Parse(otDays12TextBox.Text);
                 decimal otDays8 = decimal.Parse(otDays8TextBox.Text);
                 decimal overtime15xHours = decimal.Parse(overtime15xTextBox.Text);
+                decimal insuranceRate = decimal.Parse(insuranceTextBox.Text) / 100;
                 decimal attendanceIncentive = decimal.Parse(attendanceTextBox.Text);
                 int recognizeCount = int.Parse(recognizeTextBox.Text);
                 decimal otherBonus = decimal.Parse(otherBonusTextBox.Text);
-                decimal baseTaxThresholdInput = BaseTaxThreshold;
-                if (taxThresholdTextBox != null && decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out decimal userInputThreshold) && userInputThreshold > 0)
-                {
-                    baseTaxThresholdInput = userInputThreshold;
-                }
 
                 Button editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
                 Button editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
@@ -1781,17 +1767,18 @@ namespace SalaryCalculator
                 decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
 
                 decimal actualWorkingDays = workingDays - daysOff;
+                decimal totalMealAllowance = mealAllowancePerDay * actualWorkingDays;
                 decimal bonusMealAllowance = 0;
                 if (otDays12 > 0) bonusMealAllowance += otDays12 * meal12Amount;
                 if (otDays8 > 0) bonusMealAllowance += otDays8 * meal8Amount;
+                totalMealAllowance += bonusMealAllowance;
 
                 decimal basicDailySalary = basicSalary / workingDays;
                 decimal mealDailySalary = mealAllowancePerDay / workingDays;
                 decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
                 decimal hourlyRate = basicDailySalary / 8;
 
-                decimal insuranceDeduction = basicSalary * 0.105m;
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
+                decimal taxThreshold = ComputeTaxThreshold(hourlyRate, overtime2xHours, overtime3xHours);
 
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
                 decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
@@ -1800,6 +1787,7 @@ namespace SalaryCalculator
 
                 decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
+                decimal insuranceDeduction = basicSalary * 0.105m;
                 decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
 
                 decimal taxBase = netSalaryBeforeTax - taxThreshold;

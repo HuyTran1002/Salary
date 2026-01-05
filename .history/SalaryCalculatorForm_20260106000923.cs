@@ -1006,17 +1006,21 @@ namespace SalaryCalculator
             // Left Column Results
             Label empNameLabel = new Label();
             empNameLabel.Text = "Nhân Viên:";
-            empNameLabel.Location = new System.Drawing.Point(10, 40);
+            empNameLabel.Location = new System.Drawing.Point(10, 30);
             empNameLabel.Width = 400;
             empNameLabel.Height = 18;
             empNameLabel.Name = "empNameLabel";
             empNameLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
             empNameLabel.ForeColor = System.Drawing.Color.DarkBlue;
-            int detailY = 40; // bắt đầu từ nhân viên
-            // spacing đều 19px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
-            int detailSpacing = 19;
+            int detailY = 24; // bắt đầu cao hơn một chút cho cân đối
+            // spacing đều 22px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
+            int detailSpacing = 22;
             float detailFont = 8.5f;
             float detailFontBold = 8.5f;
+
+            empNameLabel.Location = new System.Drawing.Point(10, detailY);
+            empNameLabel.Width = 400;
+            empNameLabel.Height = 18;
 
             detailY += detailSpacing;
             Label dayRate8hLabel = new Label();

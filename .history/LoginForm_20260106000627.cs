@@ -371,6 +371,12 @@ namespace SalaryCalculator
                     return;
                 }
 
+                decimal taxThreshold = 0;
+                Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
+                if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
+                {
+                    decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out taxThreshold);
+                }
                 int taxThresholdInt = (int)taxThreshold;
                 if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0, taxThreshold))
                 {

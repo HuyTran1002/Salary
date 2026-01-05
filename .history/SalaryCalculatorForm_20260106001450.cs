@@ -1012,9 +1012,9 @@ namespace SalaryCalculator
             empNameLabel.Name = "empNameLabel";
             empNameLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
             empNameLabel.ForeColor = System.Drawing.Color.DarkBlue;
-            int detailY = 40; // bắt đầu từ nhân viên
-            // spacing đều 19px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
-            int detailSpacing = 19;
+            int detailY = 62; // bắt đầu sau nhân viên với khoảng cách đều
+            // spacing đều 20px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
+            int detailSpacing = 20;
             float detailFont = 8.5f;
             float detailFontBold = 8.5f;
 

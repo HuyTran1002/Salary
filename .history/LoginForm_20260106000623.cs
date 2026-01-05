@@ -336,19 +336,6 @@ namespace SalaryCalculator
                     return;
                 }
 
-                // Validate tax threshold
-                decimal taxThreshold = 0;
-                Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
-                if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
-                {
-                    decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out taxThreshold);
-                }
-                if (taxThreshold <= 0)
-                {
-                    MessageBox.Show("Vui lòng nhập mốc lương tính thuế (phải > 0)!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
                 // Validate phone number: must be exactly 10 digits
                 string phoneDigits = new string(phone.Where(char.IsDigit).ToArray());
                 if (phoneDigits.Length != 10)
@@ -371,6 +358,12 @@ namespace SalaryCalculator
                     return;
                 }
 
+                decimal taxThreshold = 0;
+                Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
+                if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
+                {
+                    decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out taxThreshold);
+                }
                 int taxThresholdInt = (int)taxThreshold;
                 if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0, taxThreshold))
                 {
