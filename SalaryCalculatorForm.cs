@@ -1463,8 +1463,32 @@ namespace SalaryCalculator
 
         private decimal ComputeTaxThreshold(decimal baseThreshold, decimal hourlyRate, decimal overtime2xHours, decimal overtime3xHours, decimal insuranceDeduction)
         {
-            decimal overtimeExtras = (hourlyRate * overtime2xHours) + (hourlyRate * overtime3xHours * 2m);
-            return baseThreshold + FixedThresholdAddon + overtimeExtras + insuranceDeduction;
+            // Tính tiền OT miễn thuế với giới hạn 28 tiếng
+            const decimal maxTaxExemptHours = 28m;
+            decimal taxExemptOT = 0m;
+            
+            // Ưu tiên số tiếng x3 trước
+            if (overtime3xHours > 0)
+            {
+                decimal x3HoursForExempt = Math.Min(overtime3xHours, maxTaxExemptHours);
+                taxExemptOT += hourlyRate * x3HoursForExempt * 2m;
+                
+                // Nếu còn giới hạn, tính thêm từ x2
+                decimal remainingHours = maxTaxExemptHours - x3HoursForExempt;
+                if (remainingHours > 0 && overtime2xHours > 0)
+                {
+                    decimal x2HoursForExempt = Math.Min(overtime2xHours, remainingHours);
+                    taxExemptOT += hourlyRate * x2HoursForExempt * 1m;
+                }
+            }
+            else if (overtime2xHours > 0)
+            {
+                // Nếu không có x3, chỉ tính x2
+                decimal x2HoursForExempt = Math.Min(overtime2xHours, maxTaxExemptHours);
+                taxExemptOT += hourlyRate * x2HoursForExempt * 1m;
+            }
+            
+            return baseThreshold + FixedThresholdAddon + taxExemptOT + insuranceDeduction;
         }
 
         private void CalculateSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
@@ -1539,7 +1563,8 @@ namespace SalaryCalculator
                 decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
 
                 // Calculate hourly rate based on BASIC SALARY only (for OT calculation)
-                decimal hourlyRate = basicDailySalary / 8;
+                // Round to 3 decimal places for exact calculation
+                decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
 
                 // Calculate deductions - Bảo hiểm chỉ đóng 10.5% lương cơ bản
                 decimal insuranceDeduction = basicSalary * 0.105m;
@@ -1549,9 +1574,9 @@ namespace SalaryCalculator
 
                 // Calculate gross salary components:
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
-                decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
-                decimal overtime3xSalary = overtime3xHours * hourlyRate * 3;
-                decimal overtime15xSalary = overtime15xHours * hourlyRate * 1.5m;
+                decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
+                decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
+                decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
                 // Calculate Incentive
                 decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
@@ -1562,8 +1587,8 @@ namespace SalaryCalculator
                 // Calculate net salary before tax
                 decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
 
-                // Tax logic
-                decimal taxBase = netSalaryBeforeTax - taxThreshold;
+                // Tax logic - Tính thuế dựa trên chênh lệch giữa Lương Brutto và Mốc thuế
+                decimal taxBase = grossSalary - taxThreshold;
                 decimal taxRate = 0;
                 
                 // Nếu người dùng chưa nhập % thủ công, tự động tính theo mốc lương
@@ -1605,10 +1630,12 @@ namespace SalaryCalculator
                     }
                 }
 
-                decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
+                // Round tax down (Floor) for calculation, but round up for display
+                decimal taxDeduction = taxBase > 0 ? Math.Floor(taxBase * taxRate) : 0;
+                decimal taxDeductionDisplay = taxBase > 0 ? Math.Round(taxBase * taxRate, 0, MidpointRounding.AwayFromZero) : 0;
 
-                // Calculate net salary
-                decimal netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
+                // Calculate net salary = Gross - Insurance - Tax
+                decimal netSalary = grossSalary - insuranceDeduction - taxDeduction;
 
                 // Save calculation to user data
                 int month = int.Parse(monthTextBox.Text);
@@ -1641,7 +1668,7 @@ namespace SalaryCalculator
                 dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
                 grossLabel.Text = $"Lương Brutto: {grossSalary:C0} VND";
                 insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
-                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeduction > 0 ? taxDeduction.ToString("C0") + " VND" : "0 VND")}";
+                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("C0") + " VND" : "0 VND")}";
                 taxThresholdResultLabel.Text = $"Mốc thuế áp dụng: {taxThreshold:C0} VND";
                 netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
                 dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
@@ -1788,21 +1815,23 @@ namespace SalaryCalculator
                 decimal basicDailySalary = basicSalary / workingDays;
                 decimal mealDailySalary = mealAllowancePerDay / workingDays;
                 decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
-                decimal hourlyRate = basicDailySalary / 8;
+                // Round to 3 decimal places for exact calculation
+                decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
 
                 decimal insuranceDeduction = basicSalary * 0.105m;
                 decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
-                decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
-                decimal overtime3xSalary = overtime3xHours * hourlyRate * 3;
-                decimal overtime15xSalary = overtime15xHours * hourlyRate * 1.5m;
+                decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
+                decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
+                decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
                 decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
                 decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
 
-                decimal taxBase = netSalaryBeforeTax - taxThreshold;
+                // Tax logic - Tính thuế dựa trên chênh lệch giữa Lương Brutto và Mốc thuế
+                decimal taxBase = grossSalary - taxThreshold;
                 decimal taxRate = 0;
                 if (taxBase <= 0) taxRate = 0;
                 else if (taxBase > 0 && taxBase <= 10000000) taxRate = 0.05m;
@@ -1811,8 +1840,8 @@ namespace SalaryCalculator
                 else if (taxBase > 60000000 && taxBase <= 100000000) taxRate = 0.30m;
                 else taxRate = 0.30m;
 
-                decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
-                decimal netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
+                decimal taxDeduction = taxBase > 0 ? Math.Floor(taxBase * taxRate) : 0;
+                decimal netSalary = grossSalary - insuranceDeduction - taxDeduction;
                 return netSalary;
             }
             catch

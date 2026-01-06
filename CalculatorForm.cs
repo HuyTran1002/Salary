@@ -214,6 +214,10 @@ namespace SalaryCalculator
                 UpdateDisplay();  // Cập nhật hiển thị
             };
             cursorBlinkTimer.Start();
+            
+            // Đảm bảo form giữ focus để nhận keyboard events
+            this.Focus();
+            this.ActiveControl = null;  // Không để focus vào control nào cả
         }
 
         private Color DarkenColor(Color color)
@@ -696,8 +700,32 @@ namespace SalaryCalculator
         {
             string key = "";
             
+            // Số (0-9) từ hàng ngang hoặc numpad
             if (char.IsDigit((char)e.KeyCode))
-                key = ((char)e.KeyCode).ToString();
+            {
+                // Số từ hàng ngang
+                if (e.Shift)
+                {
+                    if (e.KeyCode == Keys.D9)
+                        key = "(";
+                    else if (e.KeyCode == Keys.D0)
+                        key = ")";
+                    else if (e.KeyCode == Keys.D6)
+                        key = "^";
+                    else if (e.KeyCode == Keys.D5)
+                        key = "%";
+                    else
+                        key = ((char)e.KeyCode).ToString();
+                }
+                else
+                    key = ((char)e.KeyCode).ToString();
+            }
+            // Số từ numpad
+            else if (e.KeyCode >= Keys.NumPad0 && e.KeyCode <= Keys.NumPad9)
+            {
+                key = ((int)(e.KeyCode - Keys.NumPad0)).ToString();
+            }
+            // Phép toán
             else if (e.KeyCode == Keys.Add)
                 key = "+";
             else if (e.KeyCode == Keys.Subtract || e.KeyCode == Keys.OemMinus)
@@ -708,27 +736,88 @@ namespace SalaryCalculator
                 key = "/";
             else if (e.KeyCode == Keys.Decimal || e.KeyCode == Keys.OemPeriod)
                 key = ".";
-            else if (e.KeyCode == Keys.Return)
-                key = "=";
+            // Backspace = xóa
             else if (e.KeyCode == Keys.Back)
+            {
+                e.SuppressKeyPress = true;
                 key = "DEL";
+            }
+            // Delete = xóa hết
             else if (e.KeyCode == Keys.Delete)
+            {
+                e.SuppressKeyPress = true;
                 key = "AC";
+            }
+            // Escape = xóa hết
+            else if (e.KeyCode == Keys.Escape)
+            {
+                e.SuppressKeyPress = true;
+                key = "AC";
+            }
+            // Suppress Enter key completely
+            else if (e.KeyCode == Keys.Return)
+            {
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+                return;
+            }
 
             if (!string.IsNullOrEmpty(key))
             {
-                // Trigger button click
-                foreach (Control ctrl in ((TableLayoutPanel)this.Controls[1]).Controls)
+                ClickButtonByTag(key);
+                if (e.Handled == false)
                 {
-                    if (ctrl is Button btn && (btn.Tag as string) == key)
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+            }
+        }
+
+        private void ClickButtonByTag(string tag)
+        {
+            foreach (Control ctrl in this.Controls)
+            {
+                if (ctrl is TableLayoutPanel panel)
+                {
+                    foreach (Control panelCtrl in panel.Controls)
                     {
-                        btn.PerformClick();
-                        e.Handled = true;
-                        e.SuppressKeyPress = true;
-                        break;
+                        if (panelCtrl is Button btn && (btn.Tag as string) == tag)
+                        {
+                            btn.PerformClick();
+                            return;
+                        }
                     }
                 }
             }
+        }
+
+        private void MoveCursorLeft()
+        {
+            if (cursorPos > 1)
+            {
+                cursorPos--;
+                UpdateDisplay();
+            }
+        }
+
+        private void MoveCursorRight()
+        {
+            if (cursorPos < (expression?.Length ?? 0) + 1)
+            {
+                cursorPos++;
+                UpdateDisplay();
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            // Make Enter key work like "=" button
+            if (keyData == Keys.Return)
+            {
+                ClickButtonByTag("=");
+                return true;  // Indicate we handled it, suppress default behavior
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
 }
