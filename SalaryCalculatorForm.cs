@@ -917,13 +917,20 @@ namespace SalaryCalculator
                 }
                 catch { estimatedNet = 0m; }
 
-                // Map salary ranges to duration (ms)
-                int durationMs = 1500; // default
-                if (estimatedNet > 20000000m) durationMs = 6000;
-                else if (estimatedNet > 15000000m) durationMs = 4500;
-                else if (estimatedNet > 10000000m) durationMs = 3500;
-                else if (estimatedNet > 5000000m) durationMs = 2500;
-                else durationMs = 1500;
+                // Map salary ranges to shake duration (ms)
+                int durationMs = 0; // default: no shake under 9M
+                if (estimatedNet > 17000000m) durationMs = 9000;         // >17M
+                else if (estimatedNet > 14000000m) durationMs = 7000;    // >14M to 17M
+                else if (estimatedNet > 12000000m) durationMs = 5000;    // >12M to 14M
+                else if (estimatedNet > 9000000m) durationMs = 3000;     // >9M to 12M
+
+                // If no shake required, run calculation immediately
+                if (durationMs <= 0)
+                {
+                    CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                    calculateBtn.Enabled = true;
+                    return;
+                }
 
                 animTimer.Tick += (ts, te) =>
                 {
@@ -1700,8 +1707,8 @@ namespace SalaryCalculator
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
                 detailLabel.Text = detail;
-                // Play embedded applause.wav if available (only if net salary > 10 million)
-                if (netSalary > 10000000)
+                // Play applause sound when net salary exceeds 15 million
+                if (netSalary > 15000000)
                 {
                     try
                     {
@@ -1875,11 +1882,17 @@ namespace SalaryCalculator
             {
                 bool played = false;
                 var asm = System.Reflection.Assembly.GetExecutingAssembly();
-                string resourceName = asm.GetName().Name + ".Assets.audio.applause.wav";
-                using (var rs = asm.GetManifestResourceStream(resourceName))
+                var resourceCandidates = new[]
                 {
-                    if (rs != null)
+                    asm.GetName().Name + ".Assets.audio.clap.wav",   // new file
+                    asm.GetName().Name + ".Assets.audio.applause.wav" // legacy name
+                };
+
+                foreach (var resName in resourceCandidates)
+                {
+                    using (var rs = asm.GetManifestResourceStream(resName))
                     {
+                        if (rs == null) continue;
                         try
                         {
                             var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "applause_" + System.Guid.NewGuid().ToString() + ".wav");
@@ -1890,26 +1903,37 @@ namespace SalaryCalculator
                                 sp.Play();
                                 System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
                                 played = true;
+                                break;
                             }
                             catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
                         }
                         catch { played = false; }
                     }
+                    if (played) break;
                 }
 
                 if (!played)
                 {
                     var appDir = AppDomain.CurrentDomain.BaseDirectory;
-                    var path = System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav");
-                    try
+                    var fileCandidates = new[]
                     {
-                        if (System.IO.File.Exists(path))
+                        System.IO.Path.Combine(appDir, "Assets", "audio", "clap.wav"),
+                        System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav")
+                    };
+
+                    foreach (var path in fileCandidates)
+                    {
+                        try
                         {
-                            using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
-                            played = true;
+                            if (System.IO.File.Exists(path))
+                            {
+                                using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
+                                played = true;
+                                break;
+                            }
                         }
+                        catch { }
                     }
-                    catch { }
                 }
             }
             catch { }
