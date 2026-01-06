@@ -7,9 +7,9 @@
     <RootNamespace>SalaryCalculator</RootNamespace>
     <StartupObject>SalaryCalculator.Program</StartupObject>
     <ApplicationIcon>calculator_coin_dollar_money_icon_127186.ico</ApplicationIcon>
-    <Version>1.0.5.0</Version>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
+    <Version>1.0.5.1</Version>
+    <AssemblyVersion>1.0.5.1</AssemblyVersion>
+    <FileVersion>1.0.5.1</FileVersion>
     <!-- Publish settings for single-file, smaller exe -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>

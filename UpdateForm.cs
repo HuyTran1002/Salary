@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,10 @@ namespace SalaryCalculator
         private CancellationTokenSource cancellationTokenSource;
         private long totalBytes = 0;
         private long downloadedBytes = 0;
+        private const int BUFFER_SIZE = 65536; // 64KB buffer for faster download
+        private const int MAX_RETRIES = 3;
+        private DateTime lastUpdateTime = DateTime.Now;
+        private long lastDownloadedBytes = 0;
 
         public UpdateForm(string newVersion, string downloadUrl)
         {
@@ -31,7 +36,24 @@ namespace SalaryCalculator
             this.Width = 520;
             this.Height = 300;
 
-            httpClient = new HttpClient();
+            // Optimize HttpClient for faster downloads
+            var handler = new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                AllowAutoRedirect = true,
+                MaxConnectionsPerServer = 10,
+                UseCookies = false
+            };
+            
+            httpClient = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromMinutes(30) // Longer timeout for large files
+            };
+            
+            // Add headers for better compatibility and speed
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "SalaryCalculator-Updater/2.0");
+            httpClient.DefaultRequestHeaders.ConnectionClose = false; // Keep-alive
+            
             cancellationTokenSource = new CancellationTokenSource();
 
             // Setup form controls
@@ -207,6 +229,45 @@ namespace SalaryCalculator
 
         private async Task DownloadFileAsync(string url, string filePath)
         {
+            int retryCount = 0;
+            Exception lastException = null;
+
+            while (retryCount < MAX_RETRIES)
+            {
+                try
+                {
+                    await DownloadFileWithProgressAsync(url, filePath);
+                    return; // Success
+                }
+                catch (Exception ex) when (retryCount < MAX_RETRIES - 1 && IsRetryableException(ex))
+                {
+                    lastException = ex;
+                    retryCount++;
+                    
+                    // Show retry message
+                    this.Invoke((MethodInvoker)(() =>
+                    {
+                        Label statusLabel = (Label)this.Controls["statusLabel"];
+                        statusLabel.Text = $"Kết nối bị gián đoạn. Đang thử lại ({retryCount}/{MAX_RETRIES})...";
+                    }));
+                    
+                    await Task.Delay(1000 * retryCount); // Exponential backoff
+                }
+            }
+            
+            // If we got here, all retries failed
+            throw lastException ?? new Exception("Download failed after multiple retries");
+        }
+
+        private bool IsRetryableException(Exception ex)
+        {
+            return ex is HttpRequestException || 
+                   ex is TaskCanceledException || 
+                   ex is IOException;
+        }
+
+        private async Task DownloadFileWithProgressAsync(string url, string filePath)
+        {
             using (var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationTokenSource.Token))
             {
                 response.EnsureSuccessStatusCode();
@@ -215,35 +276,78 @@ namespace SalaryCalculator
                 if (totalBytes == -1)
                 {
                     // If content length is unknown, download without progress tracking
-                    await response.Content.CopyToAsync(new FileStream(filePath, FileMode.Create, FileAccess.Write));
+                    using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, BUFFER_SIZE, useAsync: true))
+                    {
+                        await response.Content.CopyToAsync(fs);
+                    }
                     return;
                 }
 
                 using (var contentStream = await response.Content.ReadAsStreamAsync())
-                using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, useAsync: true))
+                using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, BUFFER_SIZE, useAsync: true))
                 {
                     downloadedBytes = 0;
-                    byte[] buffer = new byte[8192];
+                    lastDownloadedBytes = 0;
+                    lastUpdateTime = DateTime.Now;
+                    byte[] buffer = new byte[BUFFER_SIZE]; // 64KB buffer
                     int bytesRead;
+                    int uiUpdateCounter = 0;
 
                     while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token)) != 0)
                     {
                         await fileStream.WriteAsync(buffer, 0, bytesRead, cancellationTokenSource.Token);
                         downloadedBytes += bytesRead;
+                        uiUpdateCounter++;
 
-                        // Update UI
-                        int percentage = (int)((downloadedBytes * 100) / totalBytes);
-                        this.Invoke((MethodInvoker)(() =>
+                        // Update UI less frequently (every 8 iterations or ~512KB) to reduce overhead
+                        if (uiUpdateCounter >= 8)
                         {
-                            ProgressBar progressBar = (ProgressBar)this.Controls["progressBar"];
-                            Label statusLabel = (Label)this.Controls["statusLabel"];
-
-                            progressBar.Value = Math.Min(percentage, 100);
-                            statusLabel.Text = $"Đang tải: {downloadedBytes / (1024 * 1024)}MB / {totalBytes / (1024 * 1024)}MB ({percentage}%)";
-                        }));
+                            uiUpdateCounter = 0;
+                            UpdateDownloadProgress();
+                        }
                     }
+                    
+                    // Final update
+                    UpdateDownloadProgress();
                 }
             }
+        }
+
+        private void UpdateDownloadProgress()
+        {
+            int percentage = (int)((downloadedBytes * 100) / totalBytes);
+            
+            // Calculate download speed
+            DateTime now = DateTime.Now;
+            double elapsedSeconds = (now - lastUpdateTime).TotalSeconds;
+            double speed = 0;
+            
+            if (elapsedSeconds > 0)
+            {
+                speed = (downloadedBytes - lastDownloadedBytes) / elapsedSeconds / (1024 * 1024); // MB/s
+                lastUpdateTime = now;
+                lastDownloadedBytes = downloadedBytes;
+            }
+
+            this.Invoke((MethodInvoker)(() =>
+            {
+                ProgressBar progressBar = (ProgressBar)this.Controls["progressBar"];
+                Label statusLabel = (Label)this.Controls["statusLabel"];
+
+                progressBar.Value = Math.Min(percentage, 100);
+                
+                double downloadedMB = downloadedBytes / (1024.0 * 1024.0);
+                double totalMB = totalBytes / (1024.0 * 1024.0);
+                
+                if (speed > 0)
+                {
+                    statusLabel.Text = $"Đang tải: {downloadedMB:F2}MB / {totalMB:F2}MB ({percentage}%) - {speed:F2} MB/s";
+                }
+                else
+                {
+                    statusLabel.Text = $"Đang tải: {downloadedMB:F2}MB / {totalMB:F2}MB ({percentage}%)";
+                }
+            }));
         }
 
         private void RunInstaller()

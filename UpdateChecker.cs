@@ -59,7 +59,8 @@ namespace SalaryCalculator
             try
             {
                 using var client = new System.Net.Http.HttpClient();
-                client.Timeout = System.TimeSpan.FromSeconds(5);
+                client.Timeout = System.TimeSpan.FromSeconds(10); // Increased timeout from 5 to 10 seconds
+                client.DefaultRequestHeaders.Add("User-Agent", "SalaryCalculator-Updater/2.0");
                 var versionString = await client.GetStringAsync(VERSION_CHECK_URL);
                 versionString = versionString.Trim();
 
