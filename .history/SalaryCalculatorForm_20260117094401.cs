@@ -1674,25 +1674,37 @@ namespace SalaryCalculator
                 };
                 
                 int labelIndex = 0;
-                typingTimer.Interval = 200; // Stagger each label by 200ms (faster)
+                typingTimer.Interval = 300; // Stagger each label by 300ms
                 typingTimer.Tick += (s, e) =>
                 {
                     if (labelIndex < labels.Length)
                     {
-                        string currentText = labelTexts[labelIndex];
-                        AnimateTypingEffect(labels[labelIndex], currentText, 5); // 5ms per character (faster)
+                        AnimateTypingEffect(labels[labelIndex], labelTexts[labelIndex], 10);
+                        labelIndex++;
+                    }
+                    else
+                    {
+                        typingTimer.Stop();
+                        try { typingTimer.Dispose(); } catch { }
                         
-                        // If this is the last label (netLabel), set timer to show detail after it completes
-                        if (labelIndex == labels.Length - 1)
+                        // Display detail label all at once after main labels complete
+                        // Use a new timer to wait for all main labels typing to complete
+                        var detailDisplayTimer = new System.Windows.Forms.Timer();
+                        detailDisplayTimer.Interval = 50;
+                        int detailWaitCounter = 0;
+                        
+                        detailDisplayTimer.Tick += (ts, te) =>
                         {
-                            var showDetailTimer = new System.Windows.Forms.Timer();
-                            showDetailTimer.Interval = (int)(currentText.Length * 10 + 100); // Wait for typing to complete + buffer
-                            showDetailTimer.Tick += (st, se) =>
+                            // Wait for main labels typing to complete
+                            detailWaitCounter++;
+                            int estimatedDuration = labels.Length * 300 / 50 + 10; // Wait for all label animations
+                            
+                            if (detailWaitCounter >= estimatedDuration)
                             {
-                                showDetailTimer.Stop();
-                                try { showDetailTimer.Dispose(); } catch { }
+                                detailDisplayTimer.Stop();
+                                try { detailDisplayTimer.Dispose(); } catch { }
                                 
-                                // Display detail label all at once
+                                // Display detail label all at once (no typing effect)
                                 detailLabel.Text = detail;
                                 
                                 // Play applause sound when net salary exceeds 15 million
@@ -1704,16 +1716,9 @@ namespace SalaryCalculator
                                     }
                                     catch { }
                                 }
-                            };
-                            showDetailTimer.Start();
-                        }
-                        
-                        labelIndex++;
-                    }
-                    else
-                    {
-                        typingTimer.Stop();
-                        try { typingTimer.Dispose(); } catch { }
+                            }
+                        };
+                        detailDisplayTimer.Start();
                     }
                 };
                 typingTimer.Start();

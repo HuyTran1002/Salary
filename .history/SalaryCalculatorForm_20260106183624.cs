@@ -900,14 +900,65 @@ namespace SalaryCalculator
             calculateBtn.ForeColor = System.Drawing.Color.White;
             calculateBtn.Click += (s, e) =>
             {
-                // Disable calculate button during calculation
+                // Disable calculate button during animation
                 calculateBtn.Enabled = false;
 
-                // Perform calculation
-                CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                var originalLocation = this.Location;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                var animTimer = new System.Windows.Forms.Timer();
+                animTimer.Interval = 15; // smooth animation
 
-                // Re-enable button after calculation
-                calculateBtn.Enabled = true;
+                // Compute net salary from inputs to determine shake duration
+                decimal estimatedNet = 0m;
+                try
+                {
+                    EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                    estimatedNet = ComputeNetSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                }
+                catch { estimatedNet = 0m; }
+
+                // Map salary ranges to duration (ms)
+                int durationMs = 1500; // default
+                if (estimatedNet > 20000000m) durationMs = 6000;
+                else if (estimatedNet > 15000000m) durationMs = 4500;
+                else if (estimatedNet > 10000000m) durationMs = 3500;
+                else if (estimatedNet > 5000000m) durationMs = 2500;
+                else durationMs = 1500;
+
+                animTimer.Tick += (ts, te) =>
+                {
+                    long elapsed = sw.ElapsedMilliseconds;
+                    if (elapsed >= durationMs)
+                    {
+                        animTimer.Stop();
+                        sw.Stop();
+                        try { this.Location = originalLocation; } catch { }
+                        calculateBtn.Enabled = true;
+
+                        // (no sound) stop any audio if present - none used
+                        try { } catch { }
+
+                        // After shaking animation, perform the actual calculation
+                        CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+
+                        // No audio playback here per user request
+
+                        try { animTimer.Dispose(); } catch { }
+                        return;
+                    }
+
+                    // Intense chaotic shake for earthquake
+                    double progress = (double)elapsed / durationMs; // 0..1
+                    double damp = 1.0 - progress; // reduce amplitude
+                    int amplitude = 38; // very strong
+                    // chaotic combination of sines with random jitter
+                    int offsetX = (int)((Math.Sin(elapsed / 30.0 * 2 * Math.PI) * amplitude + Math.Sin(elapsed / 45.0 * 2 * Math.PI) * (amplitude / 2) + (Math.Sin(elapsed / 13.0 * 2 * Math.PI) * (amplitude / 3))) * damp + (int)((elapsed % 7) - 3));
+                    int offsetY = (int)((Math.Cos(elapsed / 35.0 * 2 * Math.PI) * (amplitude / 1.7) + Math.Cos(elapsed / 55.0 * 2 * Math.PI) * (amplitude / 3)) * damp + (int)(((elapsed / 11) % 5) - 2));
+                    try { this.Location = new System.Drawing.Point(originalLocation.X + offsetX, originalLocation.Y + offsetY); } catch { }
+                };
+
+                // No audio: only visual shake
+                animTimer.Start();
             };
             mainPanel.Controls.Add(calculateBtn);
 
@@ -954,7 +1005,7 @@ namespace SalaryCalculator
 
             // Left Column Results
             Label empNameLabel = new Label();
-            empNameLabel.Text = "";
+            empNameLabel.Text = "Nhân Viên:";
             empNameLabel.Location = new System.Drawing.Point(10, 40);
             empNameLabel.Width = 400;
             empNameLabel.Height = 18;
@@ -969,7 +1020,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label dayRate8hLabel = new Label();
-            dayRate8hLabel.Text = "";
+            dayRate8hLabel.Text = "Lương cơ bản 1 ngày:";
             dayRate8hLabel.Location = new System.Drawing.Point(10, detailY);
             dayRate8hLabel.Width = 400;
             dayRate8hLabel.Height = 18;
@@ -978,7 +1029,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label mealDayLabel = new Label();
-            mealDayLabel.Text = "";
+            mealDayLabel.Text = "Tiền ăn 1 ngày:";
             mealDayLabel.Location = new System.Drawing.Point(10, detailY);
             mealDayLabel.Width = 400;
             mealDayLabel.Height = 18;
@@ -987,7 +1038,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label dayRateLabel = new Label();
-            dayRateLabel.Text = "";
+            dayRateLabel.Text = "Tổng lương 1 ngày công:";
             dayRateLabel.Location = new System.Drawing.Point(10, detailY);
             dayRateLabel.Width = 400;
             dayRateLabel.Height = 18;
@@ -996,7 +1047,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label grossLabel = new Label();
-            grossLabel.Text = "";
+            grossLabel.Text = "Lương Brutto:";
             grossLabel.Location = new System.Drawing.Point(10, detailY);
             grossLabel.Width = 400;
             grossLabel.Height = 18;
@@ -1006,7 +1057,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label insuranceDeductLabel = new Label();
-            insuranceDeductLabel.Text = "";
+            insuranceDeductLabel.Text = "Khấu Trừ Bảo Hiểm:";
             insuranceDeductLabel.Location = new System.Drawing.Point(10, detailY);
             insuranceDeductLabel.Width = 400;
             insuranceDeductLabel.Height = 18;
@@ -1015,7 +1066,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label taxThresholdResultLabel = new Label();
-            taxThresholdResultLabel.Text = "";
+            taxThresholdResultLabel.Text = "Mốc thuế áp dụng:";
             taxThresholdResultLabel.Location = new System.Drawing.Point(10, detailY);
             taxThresholdResultLabel.Width = 400;
             taxThresholdResultLabel.Height = 18;
@@ -1024,7 +1075,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label taxDeductLabel = new Label();
-            taxDeductLabel.Text = "";
+            taxDeductLabel.Text = "Khấu Trừ Thuế:";
             taxDeductLabel.Location = new System.Drawing.Point(10, detailY);
             taxDeductLabel.Width = 400;
             taxDeductLabel.Height = 18;
@@ -1034,7 +1085,7 @@ namespace SalaryCalculator
 
             detailY += detailSpacing;
             Label netLabel = new Label();
-            netLabel.Text = "";
+            netLabel.Text = "Lương Net (Lương Thực Nhận):";
             netLabel.Font = new System.Drawing.Font("Arial", detailFontBold, System.Drawing.FontStyle.Bold);
             netLabel.ForeColor = System.Drawing.Color.DarkGreen;
             netLabel.Location = new System.Drawing.Point(10, detailY);
@@ -1053,7 +1104,7 @@ namespace SalaryCalculator
             detailTitleLabel.ForeColor = System.Drawing.Color.DarkBlue;
 
             Label detailLabel = new Label();
-            detailLabel.Text = "";
+            detailLabel.Text = "...";
             detailLabel.Location = new System.Drawing.Point(430, 52);
             detailLabel.Width = 410;
             // Increase height so detailed breakdown lines are not clipped by other panels
@@ -1446,25 +1497,6 @@ namespace SalaryCalculator
         {
             try
             {
-                // Clear previous results before calculating new ones
-                try
-                {
-                    var resultLabels = new[] 
-                    { 
-                        "empNameLabel", "dayRate8hLabel", "mealDayLabel", "dayRateLabel", "grossLabel", 
-                        "insuranceDeductLabel", "taxThresholdResultLabel", "taxDeductLabel", "netLabel", "detailLabel"
-                    };
-                    foreach (var labelName in resultLabels)
-                    {
-                        var foundLabels = this.Controls.Find(labelName, true);
-                        if (foundLabels.Length > 0 && foundLabels[0] is Label label)
-                        {
-                            label.Text = "";
-                        }
-                    }
-                }
-                catch { }
-
                 // Reset custom tax rate flag to always auto-calculate based on salary brackets
                 isCustomTaxRate = false;
                 
@@ -1531,8 +1563,7 @@ namespace SalaryCalculator
                 decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
 
                 // Calculate hourly rate based on BASIC SALARY only (for OT calculation)
-                // Round to 3 decimal places for exact calculation
-                decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
+                decimal hourlyRate = basicDailySalary / 8;
 
                 // Calculate deductions - Bảo hiểm chỉ đóng 10.5% lương cơ bản
                 decimal insuranceDeduction = basicSalary * 0.105m;
@@ -1542,9 +1573,9 @@ namespace SalaryCalculator
 
                 // Calculate gross salary components:
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
-                decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
-                decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
-                decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
+                decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
+                decimal overtime3xSalary = overtime3xHours * hourlyRate * 3;
+                decimal overtime15xSalary = overtime15xHours * hourlyRate * 1.5m;
 
                 // Calculate Incentive
                 decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
@@ -1598,12 +1629,10 @@ namespace SalaryCalculator
                     }
                 }
 
-                // Round tax down (Floor) for calculation, but round up for display
-                decimal taxDeduction = taxBase > 0 ? Math.Floor(taxBase * taxRate) : 0;
-                decimal taxDeductionDisplay = taxBase > 0 ? Math.Round(taxBase * taxRate, 0, MidpointRounding.AwayFromZero) : 0;
+                decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
 
-                // Calculate net salary = Gross - Insurance - Tax
-                decimal netSalary = grossSalary - insuranceDeduction - taxDeduction;
+                // Calculate net salary
+                decimal netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
 
                 // Save calculation to user data
                 int month = int.Parse(monthTextBox.Text);
@@ -1618,7 +1647,7 @@ namespace SalaryCalculator
                 overtime3xResultLabel.Text = $"→ {overtime3xSalary:C0} VND";
                 overtime15xResultLabel.Text = $"→ {overtime15xSalary:C0} VND";
 
-                // Get label references for typing effect
+                // Display results
                 Label empNameLabel = this.Controls.Find("empNameLabel", true)[0] as Label;
                 Label grossLabel = this.Controls.Find("grossLabel", true)[0] as Label;
                 Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
@@ -1629,6 +1658,17 @@ namespace SalaryCalculator
                 Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
                 Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
                 Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
+
+                empNameLabel.Text = $"Nhân Viên: {employeeName}";
+                dayRate8hLabel.Text = $"Lương cơ bản 1 ngày: {basicDailySalary:C0} VND";
+                mealDayLabel.Text = $"Tiền ăn 1 ngày: {mealDailySalary:C0} VND";
+                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
+                grossLabel.Text = $"Lương Brutto: {grossSalary:C0} VND";
+                insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
+                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeduction > 0 ? taxDeduction.ToString("C0") + " VND" : "0 VND")}";
+                taxThresholdResultLabel.Text = $"Mốc thuế áp dụng: {taxThreshold:C0} VND";
+                netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
+                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
 
                 // Show detail breakdown
                 string bonusInfo = "";
@@ -1656,67 +1696,16 @@ namespace SalaryCalculator
                     $"  • OT x2 ({overtime2xHours:F1} tiếng × {hourlyRate:C0} × 2): {overtime2xSalary:C0} VND\n" +
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
-                
-                // Apply typing effect to result labels with staggered timing
-                var typingTimer = new System.Windows.Forms.Timer();
-                var labels = new[] { empNameLabel, dayRate8hLabel, mealDayLabel, dayRateLabel, grossLabel, insuranceDeductLabel, taxThresholdResultLabel, taxDeductLabel, netLabel };
-                var labelTexts = new[] 
-                { 
-                    $"Nhân Viên: {employeeName}",
-                    $"Lương cơ bản 1 ngày: {basicDailySalary:C0} VND",
-                    $"Tiền ăn 1 ngày: {mealDailySalary:C0} VND",
-                    $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND",
-                    $"Lương Brutto: {grossSalary:C0} VND",
-                    $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND",
-                    $"Mốc thuế áp dụng: {taxThreshold:C0} VND",
-                    $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("C0") + " VND" : "0 VND")}",
-                    $"Lương Net (Thực Nhận): {netSalary:C0} VND"
-                };
-                
-                int labelIndex = 0;
-                typingTimer.Interval = 200; // Stagger each label by 200ms (faster)
-                typingTimer.Tick += (s, e) =>
+                detailLabel.Text = detail;
+                // Play embedded applause.wav if available (only if net salary > 10 million)
+                if (netSalary > 10000000)
                 {
-                    if (labelIndex < labels.Length)
+                    try
                     {
-                        string currentText = labelTexts[labelIndex];
-                        AnimateTypingEffect(labels[labelIndex], currentText, 5); // 5ms per character (faster)
-                        
-                        // If this is the last label (netLabel), set timer to show detail after it completes
-                        if (labelIndex == labels.Length - 1)
-                        {
-                            var showDetailTimer = new System.Windows.Forms.Timer();
-                            showDetailTimer.Interval = (int)(currentText.Length * 10 + 100); // Wait for typing to complete + buffer
-                            showDetailTimer.Tick += (st, se) =>
-                            {
-                                showDetailTimer.Stop();
-                                try { showDetailTimer.Dispose(); } catch { }
-                                
-                                // Display detail label all at once
-                                detailLabel.Text = detail;
-                                
-                                // Play applause sound when net salary exceeds 15 million
-                                if (netSalary > 15000000)
-                                {
-                                    try
-                                    {
-                                        PlayApplauseEmbedded();
-                                    }
-                                    catch { }
-                                }
-                            };
-                            showDetailTimer.Start();
-                        }
-                        
-                        labelIndex++;
+                        PlayApplauseEmbedded();
                     }
-                    else
-                    {
-                        typingTimer.Stop();
-                        try { typingTimer.Dispose(); } catch { }
-                    }
-                };
-                typingTimer.Start();
+                    catch { }
+                }
             }
             catch (Exception ex)
             {
@@ -1785,30 +1774,6 @@ namespace SalaryCalculator
             editForm.ShowDialog();
         }
 
-        // Typing effect animation for label text
-        private void AnimateTypingEffect(Label label, string fullText, int delayPerChar = 15)
-        {
-            label.Text = "";
-            var typingTimer = new System.Windows.Forms.Timer();
-            int charIndex = 0;
-            
-            typingTimer.Interval = delayPerChar;
-            typingTimer.Tick += (s, e) =>
-            {
-                if (charIndex < fullText.Length)
-                {
-                    label.Text += fullText[charIndex];
-                    charIndex++;
-                }
-                else
-                {
-                    typingTimer.Stop();
-                    try { typingTimer.Dispose(); } catch { }
-                }
-            };
-            typingTimer.Start();
-        }
-
         // Compute net salary using the same logic as CalculateSalary but return the net value (no UI changes)
         private decimal ComputeNetSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
                                       TextBox overtime2xTextBox, TextBox overtime3xTextBox, TextBox otDays12TextBox, TextBox otDays8TextBox, TextBox overtime15xTextBox, TextBox insuranceTextBox, TextBox taxTextBox,
@@ -1847,16 +1812,15 @@ namespace SalaryCalculator
                 decimal basicDailySalary = basicSalary / workingDays;
                 decimal mealDailySalary = mealAllowancePerDay / workingDays;
                 decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
-                // Round to 3 decimal places for exact calculation
-                decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
+                decimal hourlyRate = basicDailySalary / 8;
 
                 decimal insuranceDeduction = basicSalary * 0.105m;
                 decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
-                decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
-                decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
-                decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
+                decimal overtime2xSalary = overtime2xHours * hourlyRate * 2;
+                decimal overtime3xSalary = overtime3xHours * hourlyRate * 3;
+                decimal overtime15xSalary = overtime15xHours * hourlyRate * 1.5m;
 
                 decimal totalIncentive = attendanceIncentive + (recognizeCount * 50000) + otherBonus;
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
@@ -1872,8 +1836,8 @@ namespace SalaryCalculator
                 else if (taxBase > 60000000 && taxBase <= 100000000) taxRate = 0.30m;
                 else taxRate = 0.30m;
 
-                decimal taxDeduction = taxBase > 0 ? Math.Floor(taxBase * taxRate) : 0;
-                decimal netSalary = grossSalary - insuranceDeduction - taxDeduction;
+                decimal taxDeduction = taxBase > 0 ? taxBase * taxRate : 0;
+                decimal netSalary = Math.Round(netSalaryBeforeTax - taxDeduction, 0, MidpointRounding.AwayFromZero);
                 return netSalary;
             }
             catch
@@ -1907,17 +1871,11 @@ namespace SalaryCalculator
             {
                 bool played = false;
                 var asm = System.Reflection.Assembly.GetExecutingAssembly();
-                var resourceCandidates = new[]
+                string resourceName = asm.GetName().Name + ".Assets.audio.applause.wav";
+                using (var rs = asm.GetManifestResourceStream(resourceName))
                 {
-                    asm.GetName().Name + ".Assets.audio.clap.wav",   // new file
-                    asm.GetName().Name + ".Assets.audio.applause.wav" // legacy name
-                };
-
-                foreach (var resName in resourceCandidates)
-                {
-                    using (var rs = asm.GetManifestResourceStream(resName))
+                    if (rs != null)
                     {
-                        if (rs == null) continue;
                         try
                         {
                             var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "applause_" + System.Guid.NewGuid().ToString() + ".wav");
@@ -1928,37 +1886,26 @@ namespace SalaryCalculator
                                 sp.Play();
                                 System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
                                 played = true;
-                                break;
                             }
                             catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
                         }
                         catch { played = false; }
                     }
-                    if (played) break;
                 }
 
                 if (!played)
                 {
                     var appDir = AppDomain.CurrentDomain.BaseDirectory;
-                    var fileCandidates = new[]
+                    var path = System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav");
+                    try
                     {
-                        System.IO.Path.Combine(appDir, "Assets", "audio", "clap.wav"),
-                        System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav")
-                    };
-
-                    foreach (var path in fileCandidates)
-                    {
-                        try
+                        if (System.IO.File.Exists(path))
                         {
-                            if (System.IO.File.Exists(path))
-                            {
-                                using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
-                                played = true;
-                                break;
-                            }
+                            using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
+                            played = true;
                         }
-                        catch { }
                     }
+                    catch { }
                 }
             }
             catch { }

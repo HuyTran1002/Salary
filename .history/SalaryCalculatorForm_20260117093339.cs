@@ -1446,25 +1446,6 @@ namespace SalaryCalculator
         {
             try
             {
-                // Clear previous results before calculating new ones
-                try
-                {
-                    var resultLabels = new[] 
-                    { 
-                        "empNameLabel", "dayRate8hLabel", "mealDayLabel", "dayRateLabel", "grossLabel", 
-                        "insuranceDeductLabel", "taxThresholdResultLabel", "taxDeductLabel", "netLabel", "detailLabel"
-                    };
-                    foreach (var labelName in resultLabels)
-                    {
-                        var foundLabels = this.Controls.Find(labelName, true);
-                        if (foundLabels.Length > 0 && foundLabels[0] is Label label)
-                        {
-                            label.Text = "";
-                        }
-                    }
-                }
-                catch { }
-
                 // Reset custom tax rate flag to always auto-calculate based on salary brackets
                 isCustomTaxRate = false;
                 
@@ -1618,7 +1599,7 @@ namespace SalaryCalculator
                 overtime3xResultLabel.Text = $"→ {overtime3xSalary:C0} VND";
                 overtime15xResultLabel.Text = $"→ {overtime15xSalary:C0} VND";
 
-                // Get label references for typing effect
+                // Display results
                 Label empNameLabel = this.Controls.Find("empNameLabel", true)[0] as Label;
                 Label grossLabel = this.Controls.Find("grossLabel", true)[0] as Label;
                 Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
@@ -1629,6 +1610,17 @@ namespace SalaryCalculator
                 Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
                 Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
                 Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
+
+                empNameLabel.Text = $"Nhân Viên: {employeeName}";
+                dayRate8hLabel.Text = $"Lương cơ bản 1 ngày: {basicDailySalary:C0} VND";
+                mealDayLabel.Text = $"Tiền ăn 1 ngày: {mealDailySalary:C0} VND";
+                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
+                grossLabel.Text = $"Lương Brutto: {grossSalary:C0} VND";
+                insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND";
+                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("C0") + " VND" : "0 VND")}";
+                taxThresholdResultLabel.Text = $"Mốc thuế áp dụng: {taxThreshold:C0} VND";
+                netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
+                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
 
                 // Show detail breakdown
                 string bonusInfo = "";
@@ -1656,6 +1648,7 @@ namespace SalaryCalculator
                     $"  • OT x2 ({overtime2xHours:F1} tiếng × {hourlyRate:C0} × 2): {overtime2xSalary:C0} VND\n" +
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
+                detailLabel.Text = detail;
                 
                 // Apply typing effect to result labels with staggered timing
                 var typingTimer = new System.Windows.Forms.Timer();
@@ -1674,49 +1667,33 @@ namespace SalaryCalculator
                 };
                 
                 int labelIndex = 0;
-                typingTimer.Interval = 200; // Stagger each label by 200ms (faster)
+                typingTimer.Interval = 300; // Stagger each label by 300ms
                 typingTimer.Tick += (s, e) =>
                 {
                     if (labelIndex < labels.Length)
                     {
-                        string currentText = labelTexts[labelIndex];
-                        AnimateTypingEffect(labels[labelIndex], currentText, 5); // 5ms per character (faster)
-                        
-                        // If this is the last label (netLabel), set timer to show detail after it completes
-                        if (labelIndex == labels.Length - 1)
-                        {
-                            var showDetailTimer = new System.Windows.Forms.Timer();
-                            showDetailTimer.Interval = (int)(currentText.Length * 10 + 100); // Wait for typing to complete + buffer
-                            showDetailTimer.Tick += (st, se) =>
-                            {
-                                showDetailTimer.Stop();
-                                try { showDetailTimer.Dispose(); } catch { }
-                                
-                                // Display detail label all at once
-                                detailLabel.Text = detail;
-                                
-                                // Play applause sound when net salary exceeds 15 million
-                                if (netSalary > 15000000)
-                                {
-                                    try
-                                    {
-                                        PlayApplauseEmbedded();
-                                    }
-                                    catch { }
-                                }
-                            };
-                            showDetailTimer.Start();
-                        }
-                        
+                        AnimateTypingEffect(labels[labelIndex], labelTexts[labelIndex], 10);
                         labelIndex++;
                     }
                     else
                     {
                         typingTimer.Stop();
                         try { typingTimer.Dispose(); } catch { }
+                        
+                        // Start detail label typing effect after main labels complete
+                        AnimateTypingEffect(detailLabel, detail, 5);
                     }
                 };
                 typingTimer.Start();
+                // Play applause sound when net salary exceeds 15 million
+                if (netSalary > 15000000)
+                {
+                    try
+                    {
+                        PlayApplauseEmbedded();
+                    }
+                    catch { }
+                }
             }
             catch (Exception ex)
             {

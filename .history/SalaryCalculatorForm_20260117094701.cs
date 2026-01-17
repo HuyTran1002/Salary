@@ -1674,13 +1674,13 @@ namespace SalaryCalculator
                 };
                 
                 int labelIndex = 0;
-                typingTimer.Interval = 200; // Stagger each label by 200ms (faster)
+                typingTimer.Interval = 300; // Stagger each label by 300ms
                 typingTimer.Tick += (s, e) =>
                 {
                     if (labelIndex < labels.Length)
                     {
                         string currentText = labelTexts[labelIndex];
-                        AnimateTypingEffect(labels[labelIndex], currentText, 5); // 5ms per character (faster)
+                        AnimateTypingEffect(labels[labelIndex], currentText, 10);
                         
                         // If this is the last label (netLabel), set timer to show detail after it completes
                         if (labelIndex == labels.Length - 1)

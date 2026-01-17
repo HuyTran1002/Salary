@@ -1674,46 +1674,58 @@ namespace SalaryCalculator
                 };
                 
                 int labelIndex = 0;
-                typingTimer.Interval = 200; // Stagger each label by 200ms (faster)
+                typingTimer.Interval = 300; // Stagger each label by 300ms
                 typingTimer.Tick += (s, e) =>
                 {
                     if (labelIndex < labels.Length)
                     {
-                        string currentText = labelTexts[labelIndex];
-                        AnimateTypingEffect(labels[labelIndex], currentText, 5); // 5ms per character (faster)
-                        
-                        // If this is the last label (netLabel), set timer to show detail after it completes
-                        if (labelIndex == labels.Length - 1)
-                        {
-                            var showDetailTimer = new System.Windows.Forms.Timer();
-                            showDetailTimer.Interval = (int)(currentText.Length * 10 + 100); // Wait for typing to complete + buffer
-                            showDetailTimer.Tick += (st, se) =>
-                            {
-                                showDetailTimer.Stop();
-                                try { showDetailTimer.Dispose(); } catch { }
-                                
-                                // Display detail label all at once
-                                detailLabel.Text = detail;
-                                
-                                // Play applause sound when net salary exceeds 15 million
-                                if (netSalary > 15000000)
-                                {
-                                    try
-                                    {
-                                        PlayApplauseEmbedded();
-                                    }
-                                    catch { }
-                                }
-                            };
-                            showDetailTimer.Start();
-                        }
-                        
+                        AnimateTypingEffect(labels[labelIndex], labelTexts[labelIndex], 10);
                         labelIndex++;
                     }
                     else
                     {
                         typingTimer.Stop();
                         try { typingTimer.Dispose(); } catch { }
+                        
+                        // Start detail label typing effect after main labels complete
+                        // Use a new timer to wait for detail label typing to complete
+                        var detailTypingTimer = new System.Windows.Forms.Timer();
+                        detailTypingTimer.Interval = 50;
+                        bool detailTypingStarted = false;
+                        int detailTypingWaitCounter = 0;
+                        
+                        detailTypingTimer.Tick += (ts, te) =>
+                        {
+                            if (!detailTypingStarted)
+                            {
+                                AnimateTypingEffect(detailLabel, detail, 5);
+                                detailTypingStarted = true;
+                                detailTypingWaitCounter = 0;
+                            }
+                            else
+                            {
+                                // Wait for detail typing to complete (approximately detail.Length * 5ms + buffer)
+                                detailTypingWaitCounter++;
+                                int estimatedDuration = detail.Length * 5 / 50 + 5; // Convert to 50ms intervals
+                                
+                                if (detailTypingWaitCounter >= estimatedDuration)
+                                {
+                                    detailTypingTimer.Stop();
+                                    try { detailTypingTimer.Dispose(); } catch { }
+                                    
+                                    // Play applause sound when net salary exceeds 15 million
+                                    if (netSalary > 15000000)
+                                    {
+                                        try
+                                        {
+                                            PlayApplauseEmbedded();
+                                        }
+                                        catch { }
+                                    }
+                                }
+                            }
+                        };
+                        detailTypingTimer.Start();
                     }
                 };
                 typingTimer.Start();
