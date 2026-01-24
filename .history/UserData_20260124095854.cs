@@ -205,24 +205,22 @@ namespace SalaryCalculator
                 if (user == null)
                     return false;
 
-                // Luôn lưu lịch sử lương cho bất kỳ tháng nào
-                string key = $"{month:D2}-{year}";
-                if (user.SalaryHistory == null)
-                    user.SalaryHistory = new Dictionary<string, decimal>();
-                user.SalaryHistory[key] = netSalary;
-
-                // Chỉ cập nhật LastCalculation nếu là tháng/năm hiện tại (cho bảng xếp hạng)
+                // Chỉ lưu lịch sử và ghi file nếu là tháng/năm hiện tại
                 if (month == DateTime.Now.Month && year == DateTime.Now.Year)
                 {
+                    string key = $"{month:D2}-{year}";
+                    if (user.SalaryHistory == null)
+                        user.SalaryHistory = new Dictionary<string, decimal>();
+                    user.SalaryHistory[key] = netSalary;
                     user.LastCalculatedMonth = month;
                     user.LastCalculatedYear = year;
                     user.LastNetSalary = netSalary;
-                }
 
-                string json = JsonSerializer.Serialize(user);
-                string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
-                
+                    string json = JsonSerializer.Serialize(user);
+                    string userFile = Path.Combine(DataFolder, $"{username}.json");
+                    File.WriteAllText(userFile, json);
+                }
+                // Nếu là tháng khác thì không lưu
                 return true;
             }
             catch

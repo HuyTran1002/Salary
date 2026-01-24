@@ -159,6 +159,7 @@ namespace SalaryCalculator
             allowanceTextBox.Height = 24;
             allowanceTextBox.Name = "allowanceTextBox";
             allowanceTextBox.Visible = false;
+            allowanceTextBox.Text = NumberFormatter.FormatNumberDisplay("0");
             NumberFormatter.FormatNumberInput(allowanceTextBox);
             this.Controls.Add(allowanceTextBox);
 
@@ -175,6 +176,7 @@ namespace SalaryCalculator
             attendanceTextBox.Width = contentWidth;
             attendanceTextBox.Height = 24;
             attendanceTextBox.Name = "attendanceTextBox";
+            attendanceTextBox.Text = NumberFormatter.FormatNumberDisplay("710000");
             attendanceTextBox.Visible = false;
             NumberFormatter.FormatNumberInput(attendanceTextBox);
             this.Controls.Add(attendanceTextBox);
@@ -262,8 +264,8 @@ namespace SalaryCalculator
             toggleBtn.ForeColor = Color.White;
             toggleBtn.Name = "toggleBtn";
             toggleBtn.Click += (s, e) => {
-                ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, allowanceTextBox, attendanceTextBox,
-                    fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, allowanceLabel, attendanceLabel, loginBtn, toggleBtn);
+                ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, attendanceTextBox,
+                    fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, attendanceLabel, loginBtn, toggleBtn);
                 // Show/hide tax threshold controls theo isRegistering
                 taxThresholdLabel.Visible = isRegistering;
                 taxThresholdTextBox.Visible = isRegistering;
@@ -290,15 +292,13 @@ namespace SalaryCalculator
             salaryTextBox.Visible = isRegistering;
             mealLabel.Visible = isRegistering;
             mealTextBox.Visible = isRegistering;
-            allowanceLabel.Visible = isRegistering;
-            allowanceTextBox.Visible = isRegistering;
             attendanceLabel.Visible = isRegistering;
             attendanceTextBox.Visible = isRegistering;
             // taxThresholdLabel.Visible và taxThresholdTextBox.Visible được điều khiển ở ngoài toggleBtn.Click
 
             if (isRegistering)
             {
-                this.Height = 630;
+                this.Height = 580;
                 loginBtn.Text = "✔️ Đăng Ký";
                 toggleBtn.Text = "🔐 Quay lại Đăng Nhập";
                 loginBtn.BackColor = Color.FromArgb(255, 90, 0);
@@ -308,7 +308,7 @@ namespace SalaryCalculator
                 int actionGapLocal = 20;
                 int totalActionWidthLocal = calcWidthLocal + actionGapLocal + toggleWidthLocal;
                 int actionStartXRegister = (formWidthLocal - totalActionWidthLocal) / 2 - 8;
-                int actionYRegister = 550;
+                int actionYRegister = 500;
                 loginBtn.Location = new Point(actionStartXRegister, actionYRegister);
                 toggleBtn.Location = new Point(actionStartXRegister + calcWidthLocal + actionGapLocal, actionYRegister);
                 this.CenterToScreen();
@@ -334,12 +334,11 @@ namespace SalaryCalculator
                 ageTextBox.Clear();
                 salaryTextBox.Clear();
                 mealTextBox.Clear();
-                allowanceTextBox.Clear();
-                attendanceTextBox.Clear();
+                attendanceTextBox.Text = NumberFormatter.FormatNumberDisplay("710000");
             }
         }
 
-        private void HandleLogin(string username, string fullName, string phone, string age, string salary, string meal, string allowance, string attendance)
+        private void HandleLogin(string username, string fullName, string phone, string age, string salary, string meal, string attendance)
         {
             if (string.IsNullOrEmpty(username))
             {
@@ -350,26 +349,19 @@ namespace SalaryCalculator
             if (isRegistering)
             {
                 // Register mode
-                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age))
+                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age) || 
+                    string.IsNullOrEmpty(salary) || string.IsNullOrEmpty(meal) || string.IsNullOrEmpty(attendance))
                 {
-                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, SĐT, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng điền đầy đủ thông tin!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-
-                // Default empty fields to "0"
-                if (string.IsNullOrWhiteSpace(salary)) salary = "0";
-                if (string.IsNullOrWhiteSpace(meal)) meal = "0";
-                if (string.IsNullOrWhiteSpace(allowance)) allowance = "0";
-                if (string.IsNullOrWhiteSpace(attendance)) attendance = "0";
 
                 // Validate tax threshold
                 decimal taxThreshold = 0;
                 Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
                 if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
                 {
-                    string taxText = taxThresholdTextBox.Text.Replace(",", "");
-                    if (string.IsNullOrWhiteSpace(taxText)) taxText = "0";
-                    decimal.TryParse(taxText, out taxThreshold);
+                    decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out taxThreshold);
                 }
                 if (taxThreshold <= 0)
                 {
@@ -387,10 +379,9 @@ namespace SalaryCalculator
 
                 if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) || 
                     !decimal.TryParse(meal, out decimal mealAllowance) || 
-                    !decimal.TryParse(allowance, out decimal allowanceValue) ||
                     !decimal.TryParse(attendance, out decimal attendanceIncentive))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, phụ cấp và tiền chuyên cần phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn và tiền chuyên cần phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
@@ -401,7 +392,7 @@ namespace SalaryCalculator
                 }
 
                 int taxThresholdInt = (int)taxThreshold;
-                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, allowanceValue, attendanceIncentive, 0, taxThreshold))
+                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0, taxThreshold))
                 {
                     // Bỏ popup chào mừng, vào thẳng form tính lương
                     OpenCalculatorForm(username);
@@ -467,15 +458,13 @@ namespace SalaryCalculator
             var salaryTextBox = Find("salaryTextBox");
             var mealLabel = Find("mealLabel");
             var mealTextBox = Find("mealTextBox");
-            var allowanceLabel = Find("allowanceLabel");
-            var allowanceTextBox = Find("allowanceTextBox");
             var attendanceLabel = Find("attendanceLabel");
             var attendanceTextBox = Find("attendanceTextBox") as TextBox;
             var loginBtn = Find("loginBtn");
             var toggleBtn = Find("toggleBtn");
 
             // Ẩn các trường đăng ký
-            foreach (var c in new[] { fullNameLabel, fullNameTextBox, phoneLabel, phoneTextBox, ageLabel, ageTextBox, salaryLabel, salaryTextBox, mealLabel, mealTextBox, allowanceLabel, allowanceTextBox, attendanceLabel, attendanceTextBox })
+            foreach (var c in new[] { fullNameLabel, fullNameTextBox, phoneLabel, phoneTextBox, ageLabel, ageTextBox, salaryLabel, salaryTextBox, mealLabel, mealTextBox, attendanceLabel, attendanceTextBox })
             {
                 if (c != null) c.Visible = false;
             }
@@ -504,6 +493,9 @@ namespace SalaryCalculator
 
             if (loginBtn != null) loginBtn.Location = new System.Drawing.Point(actionStartXLoginLocal, actionYLoginLocal);
             if (toggleBtn != null) toggleBtn.Location = new System.Drawing.Point(actionStartXLoginLocal + calcWidthLocal + actionGapLocal, actionYLoginLocal);
+
+            // Đặt lại mặc định tiền chuyên cần
+            if (attendanceTextBox != null) attendanceTextBox.Text = NumberFormatter.FormatNumberDisplay("710000");
         }
     }
 }

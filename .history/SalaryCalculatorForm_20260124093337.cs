@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Media;
 using SalaryCalculator;
-using System.Globalization;
 
 namespace SalaryCalculator
 {
@@ -18,21 +17,6 @@ namespace SalaryCalculator
             private bool isCustomTaxRate = false;  // Flag để theo dõi người dùng nhập % thủ công
             private const decimal BaseTaxThreshold = 16230000m; // Mốc lương tính thuế cơ bản mặc định
             private const decimal FixedThresholdAddon = 730000m; // Khoản cố định cộng vào mốc thuế
-            private Timer marqueeTimer = null; // Timer for scrolling marquee
-            private Label marqueeLabel = null; // Marquee label for top rankings
-            private int marqueeX = 0; // Current X position of marquee text
-            private string marqueeText = ""; // Current marquee text content
-            private int marqueeColorIndex = 0; // Current color index for rainbow effect
-            private Color[] marqueeColors = new Color[] 
-            {
-                Color.FromArgb(255, 200, 200), // Light Red
-                Color.FromArgb(255, 220, 180), // Light Orange
-                Color.FromArgb(255, 255, 200), // Light Yellow
-                Color.FromArgb(200, 255, 200), // Light Green
-                Color.FromArgb(200, 240, 255), // Light Blue
-                Color.FromArgb(220, 200, 255), // Light Indigo
-                Color.FromArgb(255, 200, 255)  // Light Violet
-            };
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -358,7 +342,7 @@ namespace SalaryCalculator
             leftPanel.Width = 420;
             rightPanel.Width = 420;
             leftPanel.Height = 360;
-            rightPanel.Height = 340; // increase to fit allowance + bonus inputs
+            rightPanel.Height = 290;
             int columnsTotalWidth = leftPanel.Width + rightPanel.Width + 25;
             int columnsStartX = (mainPanel.Width - columnsTotalWidth) / 2;
             leftPanel.Location = new System.Drawing.Point(columnsStartX, 5);
@@ -568,22 +552,12 @@ namespace SalaryCalculator
 
             TextBox insuranceTextBox = new TextBox();
             insuranceTextBox.Location = new System.Drawing.Point(130, leftY + 1);
-            insuranceTextBox.Width = 245; // leave room for edit button
+            insuranceTextBox.Width = 275;
             insuranceTextBox.Height = 20;
             insuranceTextBox.Name = "insuranceTextBox";
             insuranceTextBox.Font = new System.Drawing.Font("Arial", 8);
             insuranceTextBox.Text = "10.5";
-
-            // Edit insurance percent button
-            Button editInsuranceBtn = new Button();
-            editInsuranceBtn.Text = "✏️";
-            editInsuranceBtn.Location = new System.Drawing.Point(380, leftY - 2);
-            editInsuranceBtn.Width = 28;
-            editInsuranceBtn.Height = 22;
-            editInsuranceBtn.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
-            editInsuranceBtn.BackColor = System.Drawing.Color.LightBlue;
-            editInsuranceBtn.Name = "editInsuranceBtn";
-            editInsuranceBtn.Click += (s, e) => OpenInsuranceEditForm(insuranceTextBox);
+            NumberFormatter.FormatNumberInput(insuranceTextBox);
 
             leftY += 28;
 
@@ -618,8 +592,6 @@ namespace SalaryCalculator
             taxThresholdTextBox.Name = "taxThresholdTextBox";
             taxThresholdTextBox.Font = new System.Drawing.Font("Arial", 8);
             taxThresholdTextBox.Text = "";
-            taxThresholdTextBox.ReadOnly = true;
-            taxThresholdTextBox.BackColor = System.Drawing.Color.LightGray;
             NumberFormatter.FormatNumberInput(taxThresholdTextBox);
             taxThresholdTextBox.ReadOnly = true;
             taxThresholdTextBox.BackColor = System.Drawing.Color.LightGray;
@@ -861,8 +833,6 @@ namespace SalaryCalculator
             allowanceTextBox.Name = "allowanceTextBox";
             allowanceTextBox.Font = new System.Drawing.Font("Arial", 8);
             allowanceTextBox.Text = "0";
-            allowanceTextBox.ReadOnly = true;
-            allowanceTextBox.BackColor = System.Drawing.Color.LightGray;
             NumberFormatter.FormatNumberInput(allowanceTextBox);
 
             rightY += 28;
@@ -901,7 +871,7 @@ namespace SalaryCalculator
                 workingDaysLabel, workingDaysTextBox,
                 daysOffLabel, daysOffTextBox,
                 divider1,
-                insuranceLabel, insuranceTextBox, editInsuranceBtn,
+                insuranceLabel, insuranceTextBox,
                 taxLabel, taxTextBox, taxThresholdLabel, taxThresholdTextBox
             });
 
@@ -937,77 +907,6 @@ namespace SalaryCalculator
             int actionGap = 25;
             int totalActionWidth = calcWidth + actionGap + logoutWidth;
             int actionStartX = (mainPanel.Width - totalActionWidth) / 2;
-
-            // Scrolling marquee label for top 5 rankings
-            marqueeLabel = new Label();
-            marqueeLabel.AutoSize = false;
-            marqueeLabel.Width = mainPanel.Width;
-            marqueeLabel.Height = 16;
-            marqueeLabel.Location = new Point(0, actionY);
-            marqueeLabel.Font = new Font("Segoe UI Emoji", 8, FontStyle.Bold);
-            marqueeLabel.ForeColor = Color.FromArgb(255, 90, 0);
-            marqueeLabel.BackColor = Color.FromArgb(255, 250, 240);
-            marqueeLabel.TextAlign = ContentAlignment.MiddleLeft;
-            marqueeLabel.Text = ""; // Empty, we'll draw manually
-            mainPanel.Controls.Add(marqueeLabel);
-
-            // Store the marquee text
-            marqueeText = GetTop5RankingText();
-
-            // Initialize marquee scrolling
-            marqueeX = marqueeLabel.Width;
-            marqueeTimer = new Timer();
-            marqueeTimer.Interval = 50; // Update every 50ms for smooth scrolling
-            int tickCount = 0;
-            marqueeTimer.Tick += (s, e) =>
-            {
-                // Check if label is disposed
-                if (marqueeLabel == null || marqueeLabel.IsDisposed || !marqueeLabel.IsHandleCreated)
-                {
-                    return;
-                }
-                
-                marqueeX -= 4; // Move 4 pixels left per tick (faster)
-                using (Graphics g = marqueeLabel.CreateGraphics())
-                {
-                    SizeF textSize = g.MeasureString(marqueeText, marqueeLabel.Font);
-                    if (marqueeX < -textSize.Width)
-                    {
-                        marqueeX = marqueeLabel.Width; // Reset to right side
-                    }
-                }
-                
-                // Change background color every 10 ticks (500ms) for rainbow effect
-                tickCount++;
-                if (tickCount >= 10)
-                {
-                    tickCount = 0;
-                    marqueeColorIndex = (marqueeColorIndex + 1) % marqueeColors.Length;
-                    marqueeLabel.BackColor = marqueeColors[marqueeColorIndex];
-                }
-                
-                marqueeLabel.Invalidate();
-            };
-            marqueeLabel.Paint += (s, e) =>
-            {
-                e.Graphics.Clear(marqueeLabel.BackColor);
-                e.Graphics.DrawString(marqueeText, marqueeLabel.Font, new SolidBrush(marqueeLabel.ForeColor), marqueeX, 2);
-            };
-            marqueeTimer.Start();
-
-            // Add form closing handler to cleanup timer
-            this.FormClosing += (s, e) =>
-            {
-                if (marqueeTimer != null)
-                {
-                    marqueeTimer.Stop();
-                    marqueeTimer.Dispose();
-                    marqueeTimer = null;
-                }
-            };
-
-            // Adjust actionY to account for marquee
-            actionY += marqueeLabel.Height + 5;
 
             Button calculateBtn = new Button();
             calculateBtn.Text = "⚡ TÍNH LƯƠNG";
@@ -1215,28 +1114,6 @@ namespace SalaryCalculator
 
             // Apply e-commerce theme tweaks
             try { Theme.ApplyEcommerceTheme(this); } catch { }
-            // Re-apply gray backgrounds for readonly fields after theme styling
-            try { ApplyReadonlyTextboxStyles(); } catch { }
-        }
-
-        private void ApplyReadonlyTextboxStyles()
-        {
-            string[] readonlyNames = new[]
-            {
-                "nameTextBox", "phoneTextBox", "ageTextBox",
-                "salaryTextBox", "mealTextBox", "workingDaysTextBox",
-                "attendanceTextBox", "allowanceTextBox", "taxThresholdTextBox"
-            };
-
-            foreach (var name in readonlyNames)
-            {
-                var found = this.Controls.Find(name, true);
-                if (found.Length > 0 && found[0] is TextBox tb)
-                {
-                    tb.ReadOnly = true;
-                    tb.BackColor = System.Drawing.Color.LightGray;
-                }
-            }
         }
 
         private void LoadUserData(TextBox nameTextBox, TextBox salaryTextBox, TextBox mealTextBox)
@@ -1274,13 +1151,6 @@ namespace SalaryCalculator
                     allowanceTextBox.Text = NumberFormatter.FormatNumberDisplay(user.Allowance.ToString());
                 }
                 
-                // Insurance percent
-                Control[] insuranceFound = this.Controls.Find("insuranceTextBox", true);
-                if (insuranceFound.Length > 0 && insuranceFound[0] is TextBox insuranceTextBox)
-                {
-                    insuranceTextBox.Text = user.InsurancePercent.ToString();
-                }
-                
                 // Don't auto-load recognize count - let user input monthly
                 // Load tax threshold
                 Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
@@ -1288,30 +1158,6 @@ namespace SalaryCalculator
                 {
                     decimal thresholdToShow = user.TaxThreshold > 0 ? user.TaxThreshold : BaseTaxThreshold;
                     taxThresholdTextBox.Text = NumberFormatter.FormatNumberDisplay(thresholdToShow);
-                    taxThresholdTextBox.ReadOnly = true;
-                    taxThresholdTextBox.BackColor = System.Drawing.Color.LightGray;
-                }
-
-                // Load OT meal editable amounts to buttons and labels
-                var editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
-                var meal12DisplayLabelRef = this.Controls.Find("meal12DisplayLabel", true).FirstOrDefault() as Label;
-                if (editMeal12Btn != null)
-                {
-                    editMeal12Btn.Tag = user.OtMeal12Amount;
-                    if (meal12DisplayLabelRef != null)
-                    {
-                        meal12DisplayLabelRef.Text = $"× {(user.OtMeal12Amount/1000m):F1}k";
-                    }
-                }
-                var editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
-                var meal8DisplayLabelRef = this.Controls.Find("meal8DisplayLabel", true).FirstOrDefault() as Label;
-                if (editMeal8Btn != null)
-                {
-                    editMeal8Btn.Tag = user.OtMeal8Amount;
-                    if (meal8DisplayLabelRef != null)
-                    {
-                        meal8DisplayLabelRef.Text = $"× {(user.OtMeal8Amount/1000m):F1}k";
-                    }
                 }
             }
         }
@@ -1399,7 +1245,7 @@ namespace SalaryCalculator
 
             // Meal Allowance
             Label mealLabel = new Label();
-            mealLabel.Text = "Tiền ăn/tháng:";
+            mealLabel.Text = "Tiền ăn/ngày:";
             mealLabel.Location = new System.Drawing.Point(30, startY + gapY * 4);
             mealLabel.Width = 120;
             editForm.Controls.Add(mealLabel);
@@ -1496,12 +1342,12 @@ namespace SalaryCalculator
             editForm.ShowDialog();
         }
 
-        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string allowance, string attendance)
+        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string attendance)
         {
             try
             {
                 // Overload: attendance, taxThreshold
-                return UpdateUserData(fullName, phone, age, salary, meal, allowance, attendance, "0");
+                return UpdateUserData(fullName, phone, age, salary, meal, attendance, "0");
             }
             catch
             {
@@ -1511,29 +1357,22 @@ namespace SalaryCalculator
 
         }
 
-        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string allowance, string attendance, string taxThreshold)
+        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string attendance, string taxThreshold)
         {
             try
             {
-                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age))
+                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age) || 
+                    string.IsNullOrEmpty(salary) || string.IsNullOrEmpty(meal) || string.IsNullOrEmpty(attendance) || string.IsNullOrEmpty(taxThreshold))
                 {
-                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, SĐT, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng điền đầy đủ thông tin!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
 
-                // Default empty fields to "0"
-                if (string.IsNullOrWhiteSpace(salary)) salary = "0";
-                if (string.IsNullOrWhiteSpace(meal)) meal = "0";
-                if (string.IsNullOrWhiteSpace(allowance)) allowance = "0";
-                if (string.IsNullOrWhiteSpace(attendance)) attendance = "0";
-                if (string.IsNullOrWhiteSpace(taxThreshold)) taxThreshold = "0";
-
                 if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) || 
                     !decimal.TryParse(meal, out decimal mealAllowance) ||
-                    !decimal.TryParse(allowance, out decimal allowanceValue) ||
                     !decimal.TryParse(attendance, out decimal attendanceIncentive) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, phụ cấp, tiền chuyên cần và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chuyên cần và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
@@ -1543,7 +1382,7 @@ namespace SalaryCalculator
                     return false;
                 }
 
-                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, allowanceValue, attendanceIncentive, 0, taxThresholdValue);
+                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, attendanceIncentive, 0, taxThresholdValue);
             }
             catch
             {
@@ -1733,14 +1572,8 @@ namespace SalaryCalculator
                 // Round to 3 decimal places for exact calculation
                 decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
 
-                // Calculate deductions - Bảo hiểm dựa trên % nhập, mặc định 10.5%
-                decimal insurancePercent = 10.5m;
-                if (insuranceTextBox != null)
-                {
-                    insurancePercent = ParsePercent(insuranceTextBox.Text, 10.5m);
-                }
-                if (insurancePercent < 0) insurancePercent = 0;
-                decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
+                // Calculate deductions - Bảo hiểm chỉ đóng 10.5% lương cơ bản
+                decimal insuranceDeduction = basicSalary * 0.105m;
 
                 // Dynamic tax threshold = base (user input) + 730,000 + phần chênh lệch OT x2/x3 + khấu trừ BH
                 decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
@@ -1876,7 +1709,7 @@ namespace SalaryCalculator
                     $"Tiền ăn 1 ngày: {mealDailySalary:C0} VND",
                     $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND",
                     $"Lương Brutto: {grossSalary:C0} VND",
-                    $"Khấu Trừ Bảo Hiểm ({insurancePercent}% lương cơ bản): {insuranceDeduction:C0} VND",
+                    $"Khấu Trừ Bảo Hiểm (10.5% lương cơ bản): {insuranceDeduction:C0} VND",
                     $"Mốc thuế áp dụng: {taxThreshold:C0} VND",
                     $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("C0") + " VND" : "0 VND")}",
                     $"Lương Net (Thực Nhận): {netSalary:C0} VND"
@@ -1903,13 +1736,6 @@ namespace SalaryCalculator
                                 
                                 // Display detail label all at once
                                 detailLabel.Text = detail;
-                                
-                                // Update marquee with latest rankings
-                                if (marqueeLabel != null)
-                                {
-                                    marqueeText = GetTop5RankingText();
-                                    marqueeX = marqueeLabel.Width; // Reset position
-                                }
                                 
                                 // Play applause sound when net salary exceeds 15 million
                                 if (netSalary > 15000000)
@@ -1980,30 +1806,15 @@ namespace SalaryCalculator
             saveBtn.ForeColor = System.Drawing.Color.White;
             saveBtn.Click += (s, e) =>
             {
-                // Remove thousand separators before parsing
-                string cleanText = amountBox.Text.Replace(",", "");
-                if (decimal.TryParse(cleanText, out decimal amount))
+                if (decimal.TryParse(amountBox.Text, out decimal amount))
                 {
                     button.Tag = amount;
                     // Update display label with k format
                     if (displayLabel != null)
                     {
                         decimal k = amount / 1000;
-                        // Use F1 to show exact value without rounding (e.g., 12.5k instead of 13k)
-                        displayLabel.Text = $"× {k:F1}k";
+                        displayLabel.Text = $"× {k:F0}k";
                     }
-                    try
-                    {
-                        if (button.Name == "editMeal12Btn")
-                        {
-                            userDataManager.UpdateOtMeal12Amount(currentUsername, amount);
-                        }
-                        else if (button.Name == "editMeal8Btn")
-                        {
-                            userDataManager.UpdateOtMeal8Amount(currentUsername, amount);
-                        }
-                    }
-                    catch { }
                     editForm.Close();
                 }
                 else
@@ -2014,71 +1825,6 @@ namespace SalaryCalculator
             editForm.Controls.Add(saveBtn);
 
             editForm.ShowDialog();
-        }
-
-        private void OpenInsuranceEditForm(TextBox targetTextBox)
-        {
-            Form editForm = new Form();
-            editForm.Text = "Chỉnh Sửa % Bảo Hiểm";
-            editForm.Width = 350;
-            editForm.Height = 150;
-            editForm.StartPosition = FormStartPosition.CenterParent;
-            editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-            editForm.MaximizeBox = false;
-            editForm.MinimizeBox = false;
-            editForm.BackColor = System.Drawing.Color.White;
-
-            Label label = new Label();
-            label.Text = "Phần trăm (%):";
-            label.Location = new System.Drawing.Point(30, 30);
-            label.Width = 120;
-            editForm.Controls.Add(label);
-
-            TextBox percentBox = new TextBox();
-            percentBox.Location = new System.Drawing.Point(160, 27);
-            percentBox.Width = 150;
-            percentBox.Height = 20;
-            percentBox.Font = new System.Drawing.Font("Arial", 9);
-            percentBox.TextAlign = HorizontalAlignment.Left;
-            percentBox.BorderStyle = BorderStyle.Fixed3D;
-            percentBox.BackColor = System.Drawing.Color.White;
-            percentBox.Text = targetTextBox.Text;
-            editForm.Controls.Add(percentBox);
-
-            Button saveBtn = new Button();
-            saveBtn.Text = "💾 Lưu";
-            saveBtn.Location = new System.Drawing.Point(80, 80);
-            saveBtn.Width = 100;
-            saveBtn.Height = 35;
-            saveBtn.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-            saveBtn.BackColor = System.Drawing.Color.Green;
-            saveBtn.ForeColor = System.Drawing.Color.White;
-            saveBtn.Click += (s, e) =>
-            {
-                decimal percent = ParsePercent(percentBox.Text, 10.5m);
-                if (percent < 0) percent = 0;
-                targetTextBox.Text = percent.ToString(CultureInfo.InvariantCulture);
-                try { userDataManager.UpdateInsurancePercent(currentUsername, percent); } catch { }
-                editForm.Close();
-            };
-            editForm.Controls.Add(saveBtn);
-
-            editForm.ShowDialog();
-        }
-
-        private decimal ParsePercent(string text, decimal defaultValue)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return defaultValue;
-            // Try current culture first
-            if (decimal.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out decimal val)) return val;
-            // Try invariant with '.' normalized
-            string dotNormalized = text.Replace(',', '.');
-            if (decimal.TryParse(dotNormalized, NumberStyles.Float, CultureInfo.InvariantCulture, out val)) return val;
-            // Try Vietnamese culture with ',' normalized
-            string commaNormalized = text.Replace('.', ',');
-            var vi = CultureInfo.GetCultureInfo("vi-VN");
-            if (decimal.TryParse(commaNormalized, NumberStyles.Float, vi, out val)) return val;
-            return defaultValue;
         }
 
         // Typing effect animation for label text
@@ -2147,13 +1893,7 @@ namespace SalaryCalculator
                 // Round to 3 decimal places for exact calculation
                 decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
 
-                decimal insurancePercent = 10.5m;
-                if (insuranceTextBox != null)
-                {
-                    insurancePercent = ParsePercent(insuranceTextBox.Text, 10.5m);
-                }
-                if (insurancePercent < 0) insurancePercent = 0;
-                decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
+                decimal insuranceDeduction = basicSalary * 0.105m;
                 decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
@@ -2265,62 +2005,6 @@ namespace SalaryCalculator
                 }
             }
             catch { }
-        }
-
-        private string GetTop5RankingText()
-        {
-            try
-            {
-                int currentMonth = DateTime.Now.Month;
-                int currentYear = DateTime.Now.Year;
-                
-                var users = userDataManager.GetAllUsers();
-                var topUsers = users
-                    .Where(u => u.LastCalculatedMonth == currentMonth && u.LastCalculatedYear == currentYear && u.LastNetSalary > 0)
-                    .OrderByDescending(u => u.LastNetSalary)
-                    .Take(5)
-                    .ToList();
-                
-                if (topUsers.Count == 0)
-                {
-                    return "     🏆 BẢNG XẾP HẠNG LƯƠNG THÁNG " + currentMonth.ToString("D2") + "/" + currentYear + " - Chưa có dữ liệu     ";
-                }
-                
-                var rankings = new List<string>();
-                for (int i = 0; i < topUsers.Count; i++)
-                {
-                    string medal = "";
-                    string topLabel = "";
-                    if (i == 0)
-                    {
-                        medal = "🏆";
-                        topLabel = "Top1";
-                    }
-                    else if (i == 1)
-                    {
-                        medal = "🥈";
-                        topLabel = "Top2";
-                    }
-                    else if (i == 2)
-                    {
-                        medal = "🥉";
-                        topLabel = "Top3";
-                    }
-                    else
-                    {
-                        medal = "";
-                        topLabel = $"Top{i + 1}";
-                    }
-                    
-                    rankings.Add($"{medal} {topLabel}: {topUsers[i].FullName} ({topUsers[i].LastNetSalary:N0} VND)");
-                }
-                
-                return "     " + string.Join("     |     ", rankings) + "     ";
-            }
-            catch
-            {
-                return "     🏆 BẢNG XẾP HẠNG LƯƠNG     ";
-            }
         }
 
     }

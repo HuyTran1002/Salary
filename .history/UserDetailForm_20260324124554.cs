@@ -73,9 +73,9 @@ namespace SalaryCalculator
             infoTable.Controls.Add(new Label { Text = "Tiền ăn:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 5);
             infoTable.Controls.Add(new Label { Text = user.MealAllowance.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 5);
             infoTable.Controls.Add(new Label { Text = "Phụ cấp:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 6);
-            infoTable.Controls.Add(new Label { Text = user.Allowance.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 6);
+            infoTable.Controls.Add(new Label { Text = user.Allowance.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 6);
             infoTable.Controls.Add(new Label { Text = "Tiền chuyên cần:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 7);
-            infoTable.Controls.Add(new Label { Text = user.AttendanceIncentive.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 7);
+            infoTable.Controls.Add(new Label { Text = user.AttendanceIncentive.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 7);
 
             infoGroup.Controls.Add(infoTable);
             mainPanel.Controls.Add(infoGroup, 0, 1);

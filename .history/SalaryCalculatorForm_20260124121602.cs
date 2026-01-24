@@ -21,18 +21,6 @@ namespace SalaryCalculator
             private Timer marqueeTimer = null; // Timer for scrolling marquee
             private Label marqueeLabel = null; // Marquee label for top rankings
             private int marqueeX = 0; // Current X position of marquee text
-            private string marqueeText = ""; // Current marquee text content
-            private int marqueeColorIndex = 0; // Current color index for rainbow effect
-            private Color[] marqueeColors = new Color[] 
-            {
-                Color.FromArgb(255, 200, 200), // Light Red
-                Color.FromArgb(255, 220, 180), // Light Orange
-                Color.FromArgb(255, 255, 200), // Light Yellow
-                Color.FromArgb(200, 255, 200), // Light Green
-                Color.FromArgb(200, 240, 255), // Light Blue
-                Color.FromArgb(220, 200, 255), // Light Indigo
-                Color.FromArgb(255, 200, 255)  // Light Violet
-            };
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -944,67 +932,35 @@ namespace SalaryCalculator
             marqueeLabel.Width = mainPanel.Width;
             marqueeLabel.Height = 16;
             marqueeLabel.Location = new Point(0, actionY);
-            marqueeLabel.Font = new Font("Segoe UI Emoji", 8, FontStyle.Bold);
+            marqueeLabel.Font = new Font("Arial", 8, FontStyle.Bold);
             marqueeLabel.ForeColor = Color.FromArgb(255, 90, 0);
             marqueeLabel.BackColor = Color.FromArgb(255, 250, 240);
             marqueeLabel.TextAlign = ContentAlignment.MiddleLeft;
-            marqueeLabel.Text = ""; // Empty, we'll draw manually
+            marqueeLabel.Text = GetTop5RankingText();
             mainPanel.Controls.Add(marqueeLabel);
-
-            // Store the marquee text
-            marqueeText = GetTop5RankingText();
 
             // Initialize marquee scrolling
             marqueeX = marqueeLabel.Width;
             marqueeTimer = new Timer();
             marqueeTimer.Interval = 50; // Update every 50ms for smooth scrolling
-            int tickCount = 0;
             marqueeTimer.Tick += (s, e) =>
             {
-                // Check if label is disposed
-                if (marqueeLabel == null || marqueeLabel.IsDisposed || !marqueeLabel.IsHandleCreated)
-                {
-                    return;
-                }
-                
-                marqueeX -= 4; // Move 4 pixels left per tick (faster)
+                marqueeX -= 2; // Move 2 pixels left per tick
                 using (Graphics g = marqueeLabel.CreateGraphics())
                 {
-                    SizeF textSize = g.MeasureString(marqueeText, marqueeLabel.Font);
+                    SizeF textSize = g.MeasureString(marqueeLabel.Text, marqueeLabel.Font);
                     if (marqueeX < -textSize.Width)
                     {
                         marqueeX = marqueeLabel.Width; // Reset to right side
                     }
                 }
-                
-                // Change background color every 10 ticks (500ms) for rainbow effect
-                tickCount++;
-                if (tickCount >= 10)
-                {
-                    tickCount = 0;
-                    marqueeColorIndex = (marqueeColorIndex + 1) % marqueeColors.Length;
-                    marqueeLabel.BackColor = marqueeColors[marqueeColorIndex];
-                }
-                
                 marqueeLabel.Invalidate();
             };
             marqueeLabel.Paint += (s, e) =>
             {
-                e.Graphics.Clear(marqueeLabel.BackColor);
-                e.Graphics.DrawString(marqueeText, marqueeLabel.Font, new SolidBrush(marqueeLabel.ForeColor), marqueeX, 2);
+                e.Graphics.DrawString(marqueeLabel.Text, marqueeLabel.Font, new SolidBrush(marqueeLabel.ForeColor), marqueeX, 2);
             };
             marqueeTimer.Start();
-
-            // Add form closing handler to cleanup timer
-            this.FormClosing += (s, e) =>
-            {
-                if (marqueeTimer != null)
-                {
-                    marqueeTimer.Stop();
-                    marqueeTimer.Dispose();
-                    marqueeTimer = null;
-                }
-            };
 
             // Adjust actionY to account for marquee
             actionY += marqueeLabel.Height + 5;
@@ -1904,13 +1860,6 @@ namespace SalaryCalculator
                                 // Display detail label all at once
                                 detailLabel.Text = detail;
                                 
-                                // Update marquee with latest rankings
-                                if (marqueeLabel != null)
-                                {
-                                    marqueeText = GetTop5RankingText();
-                                    marqueeX = marqueeLabel.Width; // Reset position
-                                }
-                                
                                 // Play applause sound when net salary exceeds 15 million
                                 if (netSalary > 15000000)
                                 {
@@ -2265,62 +2214,6 @@ namespace SalaryCalculator
                 }
             }
             catch { }
-        }
-
-        private string GetTop5RankingText()
-        {
-            try
-            {
-                int currentMonth = DateTime.Now.Month;
-                int currentYear = DateTime.Now.Year;
-                
-                var users = userDataManager.GetAllUsers();
-                var topUsers = users
-                    .Where(u => u.LastCalculatedMonth == currentMonth && u.LastCalculatedYear == currentYear && u.LastNetSalary > 0)
-                    .OrderByDescending(u => u.LastNetSalary)
-                    .Take(5)
-                    .ToList();
-                
-                if (topUsers.Count == 0)
-                {
-                    return "     🏆 BẢNG XẾP HẠNG LƯƠNG THÁNG " + currentMonth.ToString("D2") + "/" + currentYear + " - Chưa có dữ liệu     ";
-                }
-                
-                var rankings = new List<string>();
-                for (int i = 0; i < topUsers.Count; i++)
-                {
-                    string medal = "";
-                    string topLabel = "";
-                    if (i == 0)
-                    {
-                        medal = "🏆";
-                        topLabel = "Top1";
-                    }
-                    else if (i == 1)
-                    {
-                        medal = "🥈";
-                        topLabel = "Top2";
-                    }
-                    else if (i == 2)
-                    {
-                        medal = "🥉";
-                        topLabel = "Top3";
-                    }
-                    else
-                    {
-                        medal = "";
-                        topLabel = $"Top{i + 1}";
-                    }
-                    
-                    rankings.Add($"{medal} {topLabel}: {topUsers[i].FullName} ({topUsers[i].LastNetSalary:N0} VND)");
-                }
-                
-                return "     " + string.Join("     |     ", rankings) + "     ";
-            }
-            catch
-            {
-                return "     🏆 BẢNG XẾP HẠNG LƯƠNG     ";
-            }
         }
 
     }

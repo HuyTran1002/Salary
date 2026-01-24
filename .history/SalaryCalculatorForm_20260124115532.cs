@@ -18,21 +18,6 @@ namespace SalaryCalculator
             private bool isCustomTaxRate = false;  // Flag để theo dõi người dùng nhập % thủ công
             private const decimal BaseTaxThreshold = 16230000m; // Mốc lương tính thuế cơ bản mặc định
             private const decimal FixedThresholdAddon = 730000m; // Khoản cố định cộng vào mốc thuế
-            private Timer marqueeTimer = null; // Timer for scrolling marquee
-            private Label marqueeLabel = null; // Marquee label for top rankings
-            private int marqueeX = 0; // Current X position of marquee text
-            private string marqueeText = ""; // Current marquee text content
-            private int marqueeColorIndex = 0; // Current color index for rainbow effect
-            private Color[] marqueeColors = new Color[] 
-            {
-                Color.FromArgb(255, 200, 200), // Light Red
-                Color.FromArgb(255, 220, 180), // Light Orange
-                Color.FromArgb(255, 255, 200), // Light Yellow
-                Color.FromArgb(200, 255, 200), // Light Green
-                Color.FromArgb(200, 240, 255), // Light Blue
-                Color.FromArgb(220, 200, 255), // Light Indigo
-                Color.FromArgb(255, 200, 255)  // Light Violet
-            };
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -938,77 +923,6 @@ namespace SalaryCalculator
             int totalActionWidth = calcWidth + actionGap + logoutWidth;
             int actionStartX = (mainPanel.Width - totalActionWidth) / 2;
 
-            // Scrolling marquee label for top 5 rankings
-            marqueeLabel = new Label();
-            marqueeLabel.AutoSize = false;
-            marqueeLabel.Width = mainPanel.Width;
-            marqueeLabel.Height = 16;
-            marqueeLabel.Location = new Point(0, actionY);
-            marqueeLabel.Font = new Font("Segoe UI Emoji", 8, FontStyle.Bold);
-            marqueeLabel.ForeColor = Color.FromArgb(255, 90, 0);
-            marqueeLabel.BackColor = Color.FromArgb(255, 250, 240);
-            marqueeLabel.TextAlign = ContentAlignment.MiddleLeft;
-            marqueeLabel.Text = ""; // Empty, we'll draw manually
-            mainPanel.Controls.Add(marqueeLabel);
-
-            // Store the marquee text
-            marqueeText = GetTop5RankingText();
-
-            // Initialize marquee scrolling
-            marqueeX = marqueeLabel.Width;
-            marqueeTimer = new Timer();
-            marqueeTimer.Interval = 50; // Update every 50ms for smooth scrolling
-            int tickCount = 0;
-            marqueeTimer.Tick += (s, e) =>
-            {
-                // Check if label is disposed
-                if (marqueeLabel == null || marqueeLabel.IsDisposed || !marqueeLabel.IsHandleCreated)
-                {
-                    return;
-                }
-                
-                marqueeX -= 4; // Move 4 pixels left per tick (faster)
-                using (Graphics g = marqueeLabel.CreateGraphics())
-                {
-                    SizeF textSize = g.MeasureString(marqueeText, marqueeLabel.Font);
-                    if (marqueeX < -textSize.Width)
-                    {
-                        marqueeX = marqueeLabel.Width; // Reset to right side
-                    }
-                }
-                
-                // Change background color every 10 ticks (500ms) for rainbow effect
-                tickCount++;
-                if (tickCount >= 10)
-                {
-                    tickCount = 0;
-                    marqueeColorIndex = (marqueeColorIndex + 1) % marqueeColors.Length;
-                    marqueeLabel.BackColor = marqueeColors[marqueeColorIndex];
-                }
-                
-                marqueeLabel.Invalidate();
-            };
-            marqueeLabel.Paint += (s, e) =>
-            {
-                e.Graphics.Clear(marqueeLabel.BackColor);
-                e.Graphics.DrawString(marqueeText, marqueeLabel.Font, new SolidBrush(marqueeLabel.ForeColor), marqueeX, 2);
-            };
-            marqueeTimer.Start();
-
-            // Add form closing handler to cleanup timer
-            this.FormClosing += (s, e) =>
-            {
-                if (marqueeTimer != null)
-                {
-                    marqueeTimer.Stop();
-                    marqueeTimer.Dispose();
-                    marqueeTimer = null;
-                }
-            };
-
-            // Adjust actionY to account for marquee
-            actionY += marqueeLabel.Height + 5;
-
             Button calculateBtn = new Button();
             calculateBtn.Text = "⚡ TÍNH LƯƠNG";
             calculateBtn.Location = new System.Drawing.Point(actionStartX, actionY);
@@ -1300,7 +1214,7 @@ namespace SalaryCalculator
                     editMeal12Btn.Tag = user.OtMeal12Amount;
                     if (meal12DisplayLabelRef != null)
                     {
-                        meal12DisplayLabelRef.Text = $"× {(user.OtMeal12Amount/1000m):F1}k";
+                        meal12DisplayLabelRef.Text = $"× {(user.OtMeal12Amount/1000m):F0}k";
                     }
                 }
                 var editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
@@ -1310,7 +1224,7 @@ namespace SalaryCalculator
                     editMeal8Btn.Tag = user.OtMeal8Amount;
                     if (meal8DisplayLabelRef != null)
                     {
-                        meal8DisplayLabelRef.Text = $"× {(user.OtMeal8Amount/1000m):F1}k";
+                        meal8DisplayLabelRef.Text = $"× {(user.OtMeal8Amount/1000m):F0}k";
                     }
                 }
             }
@@ -1515,18 +1429,12 @@ namespace SalaryCalculator
         {
             try
             {
-                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age))
+                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age) || 
+                    string.IsNullOrEmpty(salary) || string.IsNullOrEmpty(meal) || string.IsNullOrEmpty(allowance) || string.IsNullOrEmpty(attendance) || string.IsNullOrEmpty(taxThreshold))
                 {
-                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, SĐT, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng điền đầy đủ thông tin!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
-
-                // Default empty fields to "0"
-                if (string.IsNullOrWhiteSpace(salary)) salary = "0";
-                if (string.IsNullOrWhiteSpace(meal)) meal = "0";
-                if (string.IsNullOrWhiteSpace(allowance)) allowance = "0";
-                if (string.IsNullOrWhiteSpace(attendance)) attendance = "0";
-                if (string.IsNullOrWhiteSpace(taxThreshold)) taxThreshold = "0";
 
                 if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) || 
                     !decimal.TryParse(meal, out decimal mealAllowance) ||
@@ -1904,13 +1812,6 @@ namespace SalaryCalculator
                                 // Display detail label all at once
                                 detailLabel.Text = detail;
                                 
-                                // Update marquee with latest rankings
-                                if (marqueeLabel != null)
-                                {
-                                    marqueeText = GetTop5RankingText();
-                                    marqueeX = marqueeLabel.Width; // Reset position
-                                }
-                                
                                 // Play applause sound when net salary exceeds 15 million
                                 if (netSalary > 15000000)
                                 {
@@ -1989,8 +1890,7 @@ namespace SalaryCalculator
                     if (displayLabel != null)
                     {
                         decimal k = amount / 1000;
-                        // Use F1 to show exact value without rounding (e.g., 12.5k instead of 13k)
-                        displayLabel.Text = $"× {k:F1}k";
+                        displayLabel.Text = $"× {k:F0}k";
                     }
                     try
                     {
@@ -2265,62 +2165,6 @@ namespace SalaryCalculator
                 }
             }
             catch { }
-        }
-
-        private string GetTop5RankingText()
-        {
-            try
-            {
-                int currentMonth = DateTime.Now.Month;
-                int currentYear = DateTime.Now.Year;
-                
-                var users = userDataManager.GetAllUsers();
-                var topUsers = users
-                    .Where(u => u.LastCalculatedMonth == currentMonth && u.LastCalculatedYear == currentYear && u.LastNetSalary > 0)
-                    .OrderByDescending(u => u.LastNetSalary)
-                    .Take(5)
-                    .ToList();
-                
-                if (topUsers.Count == 0)
-                {
-                    return "     🏆 BẢNG XẾP HẠNG LƯƠNG THÁNG " + currentMonth.ToString("D2") + "/" + currentYear + " - Chưa có dữ liệu     ";
-                }
-                
-                var rankings = new List<string>();
-                for (int i = 0; i < topUsers.Count; i++)
-                {
-                    string medal = "";
-                    string topLabel = "";
-                    if (i == 0)
-                    {
-                        medal = "🏆";
-                        topLabel = "Top1";
-                    }
-                    else if (i == 1)
-                    {
-                        medal = "🥈";
-                        topLabel = "Top2";
-                    }
-                    else if (i == 2)
-                    {
-                        medal = "🥉";
-                        topLabel = "Top3";
-                    }
-                    else
-                    {
-                        medal = "";
-                        topLabel = $"Top{i + 1}";
-                    }
-                    
-                    rankings.Add($"{medal} {topLabel}: {topUsers[i].FullName} ({topUsers[i].LastNetSalary:N0} VND)");
-                }
-                
-                return "     " + string.Join("     |     ", rankings) + "     ";
-            }
-            catch
-            {
-                return "     🏆 BẢNG XẾP HẠNG LƯƠNG     ";
-            }
         }
 
     }

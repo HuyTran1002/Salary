@@ -22,17 +22,6 @@ namespace SalaryCalculator
             private Label marqueeLabel = null; // Marquee label for top rankings
             private int marqueeX = 0; // Current X position of marquee text
             private string marqueeText = ""; // Current marquee text content
-            private int marqueeColorIndex = 0; // Current color index for rainbow effect
-            private Color[] marqueeColors = new Color[] 
-            {
-                Color.FromArgb(255, 200, 200), // Light Red
-                Color.FromArgb(255, 220, 180), // Light Orange
-                Color.FromArgb(255, 255, 200), // Light Yellow
-                Color.FromArgb(200, 255, 200), // Light Green
-                Color.FromArgb(200, 240, 255), // Light Blue
-                Color.FromArgb(220, 200, 255), // Light Indigo
-                Color.FromArgb(255, 200, 255)  // Light Violet
-            };
 
         public SalaryCalculatorForm(string username = "")
         {
@@ -958,7 +947,6 @@ namespace SalaryCalculator
             marqueeX = marqueeLabel.Width;
             marqueeTimer = new Timer();
             marqueeTimer.Interval = 50; // Update every 50ms for smooth scrolling
-            int tickCount = 0;
             marqueeTimer.Tick += (s, e) =>
             {
                 // Check if label is disposed
@@ -976,16 +964,6 @@ namespace SalaryCalculator
                         marqueeX = marqueeLabel.Width; // Reset to right side
                     }
                 }
-                
-                // Change background color every 10 ticks (500ms) for rainbow effect
-                tickCount++;
-                if (tickCount >= 10)
-                {
-                    tickCount = 0;
-                    marqueeColorIndex = (marqueeColorIndex + 1) % marqueeColors.Length;
-                    marqueeLabel.BackColor = marqueeColors[marqueeColorIndex];
-                }
-                
                 marqueeLabel.Invalidate();
             };
             marqueeLabel.Paint += (s, e) =>

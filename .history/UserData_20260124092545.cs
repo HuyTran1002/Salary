@@ -18,10 +18,6 @@ namespace SalaryCalculator
         public decimal AttendanceIncentive { get; set; }
         public int RecognizeCount { get; set; }
         public decimal TaxThreshold { get; set; }
-        // Persisted settings
-        public decimal InsurancePercent { get; set; } = 10.5m;
-        public decimal OtMeal12Amount { get; set; } = 30000m;
-        public decimal OtMeal8Amount { get; set; } = 20000m;
         // Lưu lịch sử lương theo tháng/năm
         public Dictionary<string, decimal> SalaryHistory { get; set; } = new Dictionary<string, decimal>();
         // Dùng cho bảng xếp hạng tháng hiện tại
@@ -45,19 +41,19 @@ namespace SalaryCalculator
         {
             try
             {
-                // Upsert: preserve existing persisted settings (insurance/OT meal) and history if user exists
-                var existing = Login(username);
-                UserInfo user = existing ?? new UserInfo();
-                user.Username = username;
-                user.FullName = fullName;
-                user.Phone = phone;
-                user.Age = age;
-                user.BasicSalary = basicSalary;
-                user.MealAllowance = mealAllowance;
-                user.Allowance = allowance;
-                user.AttendanceIncentive = attendanceIncentive;
-                user.RecognizeCount = recognizeCount;
-                user.TaxThreshold = taxThreshold;
+                var user = new UserInfo
+                {
+                    Username = username,
+                    FullName = fullName,
+                    Phone = phone,
+                    Age = age,
+                    BasicSalary = basicSalary,
+                    MealAllowance = mealAllowance,
+                    Allowance = allowance,
+                    AttendanceIncentive = attendanceIncentive,
+                    RecognizeCount = recognizeCount,
+                    TaxThreshold = taxThreshold
+                };
 
                 string json = JsonSerializer.Serialize(user);
                 string userFile = Path.Combine(DataFolder, $"{username}.json");
@@ -68,54 +64,6 @@ namespace SalaryCalculator
             {
                 return false;
             }
-        }
-
-        public bool UpdateInsurancePercent(string username, decimal percent)
-        {
-            try
-            {
-                var user = Login(username);
-                if (user == null) return false;
-                if (percent < 0) percent = 0;
-                user.InsurancePercent = percent;
-                string json = JsonSerializer.Serialize(user);
-                string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
-                return true;
-            }
-            catch { return false; }
-        }
-
-        public bool UpdateOtMeal12Amount(string username, decimal amount)
-        {
-            try
-            {
-                var user = Login(username);
-                if (user == null) return false;
-                if (amount < 0) amount = 0;
-                user.OtMeal12Amount = amount;
-                string json = JsonSerializer.Serialize(user);
-                string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
-                return true;
-            }
-            catch { return false; }
-        }
-
-        public bool UpdateOtMeal8Amount(string username, decimal amount)
-        {
-            try
-            {
-                var user = Login(username);
-                if (user == null) return false;
-                if (amount < 0) amount = 0;
-                user.OtMeal8Amount = amount;
-                string json = JsonSerializer.Serialize(user);
-                string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
-                return true;
-            }
-            catch { return false; }
         }
 
         public bool IsNewUser(string username)
@@ -205,24 +153,22 @@ namespace SalaryCalculator
                 if (user == null)
                     return false;
 
-                // Luôn lưu lịch sử lương cho bất kỳ tháng nào
-                string key = $"{month:D2}-{year}";
-                if (user.SalaryHistory == null)
-                    user.SalaryHistory = new Dictionary<string, decimal>();
-                user.SalaryHistory[key] = netSalary;
-
-                // Chỉ cập nhật LastCalculation nếu là tháng/năm hiện tại (cho bảng xếp hạng)
+                // Chỉ lưu lịch sử và ghi file nếu là tháng/năm hiện tại
                 if (month == DateTime.Now.Month && year == DateTime.Now.Year)
                 {
+                    string key = $"{month:D2}-{year}";
+                    if (user.SalaryHistory == null)
+                        user.SalaryHistory = new Dictionary<string, decimal>();
+                    user.SalaryHistory[key] = netSalary;
                     user.LastCalculatedMonth = month;
                     user.LastCalculatedYear = year;
                     user.LastNetSalary = netSalary;
-                }
 
-                string json = JsonSerializer.Serialize(user);
-                string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
-                
+                    string json = JsonSerializer.Serialize(user);
+                    string userFile = Path.Combine(DataFolder, $"{username}.json");
+                    File.WriteAllText(userFile, json);
+                }
+                // Nếu là tháng khác thì không lưu
                 return true;
             }
             catch

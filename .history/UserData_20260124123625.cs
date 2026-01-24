@@ -221,8 +221,9 @@ namespace SalaryCalculator
 
                 string json = JsonSerializer.Serialize(user);
                 string userFile = Path.Combine(DataFolder, $"{username}.json");
-                File.WriteAllText(userFile, json);
-                
+                    File.WriteAllText(userFile, json);
+                }
+                // Nếu là tháng khác thì không lưu
                 return true;
             }
             catch

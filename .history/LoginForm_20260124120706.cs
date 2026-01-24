@@ -350,26 +350,19 @@ namespace SalaryCalculator
             if (isRegistering)
             {
                 // Register mode
-                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age))
+                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age) || 
+                    string.IsNullOrEmpty(salary) || string.IsNullOrEmpty(meal) || string.IsNullOrEmpty(allowance) || string.IsNullOrEmpty(attendance))
                 {
-                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, SĐT, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng điền đầy đủ thông tin!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-
-                // Default empty fields to "0"
-                if (string.IsNullOrWhiteSpace(salary)) salary = "0";
-                if (string.IsNullOrWhiteSpace(meal)) meal = "0";
-                if (string.IsNullOrWhiteSpace(allowance)) allowance = "0";
-                if (string.IsNullOrWhiteSpace(attendance)) attendance = "0";
 
                 // Validate tax threshold
                 decimal taxThreshold = 0;
                 Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
                 if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
                 {
-                    string taxText = taxThresholdTextBox.Text.Replace(",", "");
-                    if (string.IsNullOrWhiteSpace(taxText)) taxText = "0";
-                    decimal.TryParse(taxText, out taxThreshold);
+                    decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out taxThreshold);
                 }
                 if (taxThreshold <= 0)
                 {

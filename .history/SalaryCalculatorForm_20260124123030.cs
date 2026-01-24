@@ -958,7 +958,6 @@ namespace SalaryCalculator
             marqueeX = marqueeLabel.Width;
             marqueeTimer = new Timer();
             marqueeTimer.Interval = 50; // Update every 50ms for smooth scrolling
-            int tickCount = 0;
             marqueeTimer.Tick += (s, e) =>
             {
                 // Check if label is disposed
@@ -976,16 +975,6 @@ namespace SalaryCalculator
                         marqueeX = marqueeLabel.Width; // Reset to right side
                     }
                 }
-                
-                // Change background color every 10 ticks (500ms) for rainbow effect
-                tickCount++;
-                if (tickCount >= 10)
-                {
-                    tickCount = 0;
-                    marqueeColorIndex = (marqueeColorIndex + 1) % marqueeColors.Length;
-                    marqueeLabel.BackColor = marqueeColors[marqueeColorIndex];
-                }
-                
                 marqueeLabel.Invalidate();
             };
             marqueeLabel.Paint += (s, e) =>
