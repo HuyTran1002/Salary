@@ -536,9 +536,9 @@ namespace SalaryCalculator
             leftY += 28;
 
             Label alDaysOffLabel = new Label();
-            alDaysOffLabel.Text = "Nghỉ AL (ngày):";
+            alDaysOffLabel.Text = "Nghỉ AL/PH (ngày):";
             alDaysOffLabel.Location = new System.Drawing.Point(10, leftY);
-            alDaysOffLabel.Width = 110;
+            alDaysOffLabel.Width = 120;
             alDaysOffLabel.Height = 18;
 
             TextBox alDaysOffTextBox = new TextBox();
