@@ -13,6 +13,17 @@ namespace SalaryCalculator
         public LoginForm()
         {
             InitializeComponent();
+            this.Shown += (s, e) => CheckForUpdate();
+        }
+
+        private async void CheckForUpdate()
+        {
+            var result = await UpdateChecker.CheckForUpdateAsync();
+            if (result.hasUpdate)
+            {
+                string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
+                UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
+            }
         }
 
         private void InitializeComponent()
@@ -41,10 +52,12 @@ namespace SalaryCalculator
             TextBox salaryTextBox = new TextBox();
             Label mealLabel = new Label();
             TextBox mealTextBox = new TextBox();
-            Label allowanceLabel = new Label();
-            TextBox allowanceTextBox = new TextBox();
-            Label attendanceLabel = new Label();
-            TextBox attendanceTextBox = new TextBox();
+            Label attendancePerDayLabel = new Label();
+            TextBox attendancePerDayTextBox = new TextBox();
+            Label travelPerDayLabel = new Label();
+            TextBox travelPerDayTextBox = new TextBox();
+            Label housingAllowanceLabel = new Label();
+            TextBox housingAllowanceTextBox = new TextBox();
             Label phoneLabel = new Label();
             TextBox phoneTextBox = new TextBox();
             Label ageLabel = new Label();
@@ -77,6 +90,9 @@ namespace SalaryCalculator
 
             formInputsY += 25;
 
+            // Declare register-only bonus variables for use in KeyDown handler
+            TextBox certTextBox = new TextBox();
+
             // Username
             usernameLabel.Text = "Tên đăng nhập:";
             usernameLabel.Location = new Point(contentStartX, formInputsY);
@@ -90,7 +106,11 @@ namespace SalaryCalculator
             usernameTextBox.Width = contentWidth;
             usernameTextBox.Height = 24;
             usernameTextBox.Name = "usernameTextBox";
-            usernameTextBox.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, allowanceTextBox.Text, attendanceTextBox.Text); };
+            usernameTextBox.KeyDown += (s, e) => {
+                if (e.KeyCode == Keys.Enter) {
+                    HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
+                }
+            };
             this.Controls.Add(usernameTextBox);
 
             formInputsY += 30;
@@ -145,50 +165,88 @@ namespace SalaryCalculator
             NumberFormatter.FormatNumberInput(mealTextBox);
             this.Controls.Add(mealTextBox);
 
-            // Allowance (hidden by default)
-            allowanceLabel.Text = "Tiền phụ cấp:";
-            allowanceLabel.Location = new Point(contentStartX, formInputsY + 156);
-            allowanceLabel.Width = 150;
-            allowanceLabel.Height = 18;
-            allowanceLabel.Name = "allowanceLabel";
-            allowanceLabel.Visible = false;
-            this.Controls.Add(allowanceLabel);
+            // Attendance per day (hidden by default)
+            attendancePerDayLabel.Text = "Tiền chuyên cần/ngày:";
+            attendancePerDayLabel.Location = new Point(contentStartX, formInputsY + 156);
+            attendancePerDayLabel.Width = 180;
+            attendancePerDayLabel.Height = 18;
+            attendancePerDayLabel.Name = "attendancePerDayLabel";
+            attendancePerDayLabel.Visible = false;
+            this.Controls.Add(attendancePerDayLabel);
 
-            allowanceTextBox.Location = new Point(contentStartX, formInputsY + 178);
-            allowanceTextBox.Width = contentWidth;
-            allowanceTextBox.Height = 24;
-            allowanceTextBox.Name = "allowanceTextBox";
-            allowanceTextBox.Visible = false;
-            NumberFormatter.FormatNumberInput(allowanceTextBox);
-            this.Controls.Add(allowanceTextBox);
+            attendancePerDayTextBox.Location = new Point(contentStartX, formInputsY + 178);
+            attendancePerDayTextBox.Width = contentWidth;
+            attendancePerDayTextBox.Height = 24;
+            attendancePerDayTextBox.Name = "attendancePerDayTextBox";
+            attendancePerDayTextBox.Visible = false;
+            attendancePerDayTextBox.Text = "8500";
+            NumberFormatter.FormatNumberInput(attendancePerDayTextBox);
+            this.Controls.Add(attendancePerDayTextBox);
 
-            // Attendance Incentive (hidden by default)
-            attendanceLabel.Text = "Tiền chuyên cần:";
-            attendanceLabel.Location = new Point(contentStartX, formInputsY + 208);
-            attendanceLabel.Width = 150;
-            attendanceLabel.Height = 18;
-            attendanceLabel.Name = "attendanceLabel";
-            attendanceLabel.Visible = false;
-            this.Controls.Add(attendanceLabel);
+            // Travel per day (hidden by default)
+            travelPerDayLabel.Text = "Tiền đi lại/ngày:";
+            travelPerDayLabel.Location = new Point(contentStartX, formInputsY + 208);
+            travelPerDayLabel.Width = 180;
+            travelPerDayLabel.Height = 18;
+            travelPerDayLabel.Name = "travelPerDayLabel";
+            travelPerDayLabel.Visible = false;
+            this.Controls.Add(travelPerDayLabel);
 
-            attendanceTextBox.Location = new Point(contentStartX, formInputsY + 230);
-            attendanceTextBox.Width = contentWidth;
-            attendanceTextBox.Height = 24;
-            attendanceTextBox.Name = "attendanceTextBox";
-            attendanceTextBox.Visible = false;
-            NumberFormatter.FormatNumberInput(attendanceTextBox);
-            this.Controls.Add(attendanceTextBox);
+            travelPerDayTextBox.Location = new Point(contentStartX, formInputsY + 230);
+            travelPerDayTextBox.Width = contentWidth;
+            travelPerDayTextBox.Height = 24;
+            travelPerDayTextBox.Name = "travelPerDayTextBox";
+            travelPerDayTextBox.Visible = false;
+            travelPerDayTextBox.Text = "8500";
+            NumberFormatter.FormatNumberInput(travelPerDayTextBox);
+            this.Controls.Add(travelPerDayTextBox);
+
+            // Housing allowance (hidden by default)
+            housingAllowanceLabel.Text = "Tiền nhà ở:";
+            housingAllowanceLabel.Location = new Point(contentStartX, formInputsY + 260);
+            housingAllowanceLabel.Width = 180;
+            housingAllowanceLabel.Height = 18;
+            housingAllowanceLabel.Name = "housingAllowanceLabel";
+            housingAllowanceLabel.Visible = false;
+            this.Controls.Add(housingAllowanceLabel);
+
+            housingAllowanceTextBox.Location = new Point(contentStartX, formInputsY + 282);
+            housingAllowanceTextBox.Width = contentWidth;
+            housingAllowanceTextBox.Height = 24;
+            housingAllowanceTextBox.Name = "housingAllowanceTextBox";
+            housingAllowanceTextBox.Visible = false;
+            housingAllowanceTextBox.Text = "100000";
+            NumberFormatter.FormatNumberInput(housingAllowanceTextBox);
+            this.Controls.Add(housingAllowanceTextBox);
+
+            // Certificate Bonus (hidden by default)
+            Label certLabel = new Label();
+            certLabel.Text = "Tiền chứng chỉ:";
+            certLabel.Location = new Point(contentStartX, formInputsY + 312);
+            certLabel.Width = 150;
+            certLabel.Height = 18;
+            certLabel.Name = "certLabel";
+            certLabel.Visible = false;
+            this.Controls.Add(certLabel);
+
+            certTextBox.Location = new Point(contentStartX, formInputsY + 334);
+            certTextBox.Width = contentWidth;
+            certTextBox.Height = 24;
+            certTextBox.Name = "certTextBox";
+            certTextBox.Visible = false;
+            NumberFormatter.FormatNumberInput(certTextBox);
+            this.Controls.Add(certTextBox);
 
             // Phone/Zalo (hidden by default)
             phoneLabel.Text = "Số điện thoại/Zalo:";
-            phoneLabel.Location = new Point(contentStartX, formInputsY + 260);
+            phoneLabel.Location = new Point(contentStartX, formInputsY + 364);
             phoneLabel.Width = 150;
             phoneLabel.Height = 18;
             phoneLabel.Name = "phoneLabel";
             phoneLabel.Visible = false;
             this.Controls.Add(phoneLabel);
 
-            phoneTextBox.Location = new Point(contentStartX, formInputsY + 282);
+            phoneTextBox.Location = new Point(contentStartX, formInputsY + 386);
             phoneTextBox.Width = contentWidth;
             phoneTextBox.Height = 24;
             phoneTextBox.Name = "phoneTextBox";
@@ -197,14 +255,14 @@ namespace SalaryCalculator
 
             // Age (hidden by default)
             ageLabel.Text = "Tuổi:";
-            ageLabel.Location = new Point(contentStartX, formInputsY + 312);
+            ageLabel.Location = new Point(contentStartX, formInputsY + 416);
             ageLabel.Width = 150;
             ageLabel.Height = 18;
             ageLabel.Name = "ageLabel";
             ageLabel.Visible = false;
             this.Controls.Add(ageLabel);
 
-            ageTextBox.Location = new Point(contentStartX, formInputsY + 334);
+            ageTextBox.Location = new Point(contentStartX, formInputsY + 438);
             ageTextBox.Width = contentWidth;
             ageTextBox.Height = 24;
             ageTextBox.Name = "ageTextBox";
@@ -214,14 +272,14 @@ namespace SalaryCalculator
 
             // Tax Threshold (hidden by default)
             taxThresholdLabel.Text = "Mốc lương tính thuế:";
-            taxThresholdLabel.Location = new Point(contentStartX, formInputsY + 364);
+            taxThresholdLabel.Location = new Point(contentStartX, formInputsY + 468);
             taxThresholdLabel.Width = 150;
             taxThresholdLabel.Height = 18;
             taxThresholdLabel.Name = "taxThresholdLabel";
             taxThresholdLabel.Visible = false;
             this.Controls.Add(taxThresholdLabel);
 
-            taxThresholdTextBox.Location = new Point(contentStartX, formInputsY + 386);
+            taxThresholdTextBox.Location = new Point(contentStartX, formInputsY + 490);
             taxThresholdTextBox.Width = contentWidth;
             taxThresholdTextBox.Height = 24;
             taxThresholdTextBox.Name = "taxThresholdTextBox";
@@ -249,7 +307,9 @@ namespace SalaryCalculator
             loginBtn.BackColor = Color.FromArgb(255, 90, 0);
             loginBtn.ForeColor = Color.White;
             loginBtn.Name = "loginBtn";
-            loginBtn.Click += (s, e) => HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, allowanceTextBox.Text, attendanceTextBox.Text);
+            loginBtn.Click += (s, e) => {
+                HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
+            };
             this.Controls.Add(loginBtn);
 
             // Register Toggle Button - positioned at bottom of form (fixed position)
@@ -262,8 +322,8 @@ namespace SalaryCalculator
             toggleBtn.ForeColor = Color.White;
             toggleBtn.Name = "toggleBtn";
             toggleBtn.Click += (s, e) => {
-                ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, allowanceTextBox, attendanceTextBox,
-                    fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, allowanceLabel, attendanceLabel, loginBtn, toggleBtn);
+                ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, certTextBox, attendancePerDayTextBox, travelPerDayTextBox, housingAllowanceTextBox,
+                    fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, certLabel, attendancePerDayLabel, travelPerDayLabel, housingAllowanceLabel, loginBtn, toggleBtn);
                 // Show/hide tax threshold controls theo isRegistering
                 taxThresholdLabel.Visible = isRegistering;
                 taxThresholdTextBox.Visible = isRegistering;
@@ -273,10 +333,10 @@ namespace SalaryCalculator
             try { Theme.ApplyEcommerceTheme(this); } catch { }
         }
 
-        private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox phoneTextBox, TextBox ageTextBox, TextBox salaryTextBox, 
-                   TextBox mealTextBox, TextBox allowanceTextBox, TextBox attendanceTextBox,
-                   Label fullNameLabel, Label phoneLabel, Label ageLabel, Label salaryLabel, Label mealLabel, Label allowanceLabel, Label attendanceLabel,
-                           Button loginBtn, Button toggleBtn)
+        private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox phoneTextBox, TextBox ageTextBox, TextBox salaryTextBox,
+             TextBox mealTextBox, TextBox certTextBox, TextBox attendancePerDayTextBox, TextBox travelPerDayTextBox, TextBox housingAllowanceTextBox,
+             Label fullNameLabel, Label phoneLabel, Label ageLabel, Label salaryLabel, Label mealLabel, Label certLabel, Label attendancePerDayLabel, Label travelPerDayLabel, Label housingAllowanceLabel,
+               Button loginBtn, Button toggleBtn)
         {
             isRegistering = !isRegistering;
 
@@ -290,15 +350,19 @@ namespace SalaryCalculator
             salaryTextBox.Visible = isRegistering;
             mealLabel.Visible = isRegistering;
             mealTextBox.Visible = isRegistering;
-            allowanceLabel.Visible = isRegistering;
-            allowanceTextBox.Visible = isRegistering;
-            attendanceLabel.Visible = isRegistering;
-            attendanceTextBox.Visible = isRegistering;
+            attendancePerDayLabel.Visible = isRegistering;
+            attendancePerDayTextBox.Visible = isRegistering;
+            travelPerDayLabel.Visible = isRegistering;
+            travelPerDayTextBox.Visible = isRegistering;
+            housingAllowanceLabel.Visible = isRegistering;
+            housingAllowanceTextBox.Visible = isRegistering;
+            certLabel.Visible = isRegistering;
+            certTextBox.Visible = isRegistering;
             // taxThresholdLabel.Visible và taxThresholdTextBox.Visible được điều khiển ở ngoài toggleBtn.Click
 
             if (isRegistering)
             {
-                this.Height = 630;
+                this.Height = 760;
                 loginBtn.Text = "✔️ Đăng Ký";
                 toggleBtn.Text = "🔐 Quay lại Đăng Nhập";
                 loginBtn.BackColor = Color.FromArgb(255, 90, 0);
@@ -308,7 +372,7 @@ namespace SalaryCalculator
                 int actionGapLocal = 20;
                 int totalActionWidthLocal = calcWidthLocal + actionGapLocal + toggleWidthLocal;
                 int actionStartXRegister = (formWidthLocal - totalActionWidthLocal) / 2 - 8;
-                int actionYRegister = 550;
+                int actionYRegister = 680;
                 loginBtn.Location = new Point(actionStartXRegister, actionYRegister);
                 toggleBtn.Location = new Point(actionStartXRegister + calcWidthLocal + actionGapLocal, actionYRegister);
                 this.CenterToScreen();
@@ -334,12 +398,14 @@ namespace SalaryCalculator
                 ageTextBox.Clear();
                 salaryTextBox.Clear();
                 mealTextBox.Clear();
-                allowanceTextBox.Clear();
-                attendanceTextBox.Clear();
+                certTextBox.Clear();
+                attendancePerDayTextBox.Text = "8500";
+                travelPerDayTextBox.Text = "8500";
+                housingAllowanceTextBox.Text = "100000";
             }
         }
 
-        private void HandleLogin(string username, string fullName, string phone, string age, string salary, string meal, string allowance, string attendance)
+        private void HandleLogin(string username, string fullName, string phone, string age, string salary, string meal, string cert, string attendancePerDay, string travelPerDay, string housingAllowance)
         {
             if (string.IsNullOrEmpty(username))
             {
@@ -359,8 +425,10 @@ namespace SalaryCalculator
                 // Default empty fields to "0"
                 if (string.IsNullOrWhiteSpace(salary)) salary = "0";
                 if (string.IsNullOrWhiteSpace(meal)) meal = "0";
-                if (string.IsNullOrWhiteSpace(allowance)) allowance = "0";
-                if (string.IsNullOrWhiteSpace(attendance)) attendance = "0";
+                if (string.IsNullOrWhiteSpace(cert)) cert = "0";
+                if (string.IsNullOrWhiteSpace(attendancePerDay)) attendancePerDay = "8500";
+                if (string.IsNullOrWhiteSpace(travelPerDay)) travelPerDay = "8500";
+                if (string.IsNullOrWhiteSpace(housingAllowance)) housingAllowance = "100000";
 
                 // Validate tax threshold
                 decimal taxThreshold = 0;
@@ -385,12 +453,20 @@ namespace SalaryCalculator
                     return;
                 }
 
-                if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) || 
-                    !decimal.TryParse(meal, out decimal mealAllowance) || 
-                    !decimal.TryParse(allowance, out decimal allowanceValue) ||
-                    !decimal.TryParse(attendance, out decimal attendanceIncentive))
+                if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) ||
+                    !decimal.TryParse(meal, out decimal mealAllowance) ||
+                    !decimal.TryParse(cert, out decimal certBonus) ||
+                    !decimal.TryParse(attendancePerDay, out decimal attendancePerDayValue) ||
+                    !decimal.TryParse(travelPerDay, out decimal travelPerDayValue) ||
+                    !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, phụ cấp và tiền chuyên cần phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/ngày, đi lại/ngày và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (attendancePerDayValue < 0 || travelPerDayValue < 0 || housingAllowanceValue < 0)
+                {
+                    MessageBox.Show("Tiền chuyên cần/ngày, tiền đi lại/ngày và tiền nhà ở không được âm!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -401,7 +477,7 @@ namespace SalaryCalculator
                 }
 
                 int taxThresholdInt = (int)taxThreshold;
-                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, allowanceValue, attendanceIncentive, 0, taxThreshold))
+                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThreshold, "", certBonus, attendancePerDayValue, travelPerDayValue, housingAllowanceValue))
                 {
                     // Bỏ popup chào mừng, vào thẳng form tính lương
                     OpenCalculatorForm(username);
@@ -467,15 +543,17 @@ namespace SalaryCalculator
             var salaryTextBox = Find("salaryTextBox");
             var mealLabel = Find("mealLabel");
             var mealTextBox = Find("mealTextBox");
-            var allowanceLabel = Find("allowanceLabel");
-            var allowanceTextBox = Find("allowanceTextBox");
-            var attendanceLabel = Find("attendanceLabel");
-            var attendanceTextBox = Find("attendanceTextBox") as TextBox;
+            var attendancePerDayLabel = Find("attendancePerDayLabel");
+            var attendancePerDayTextBox = Find("attendancePerDayTextBox") as TextBox;
+            var travelPerDayLabel = Find("travelPerDayLabel");
+            var travelPerDayTextBox = Find("travelPerDayTextBox") as TextBox;
+            var housingAllowanceLabel = Find("housingAllowanceLabel");
+            var housingAllowanceTextBox = Find("housingAllowanceTextBox") as TextBox;
             var loginBtn = Find("loginBtn");
             var toggleBtn = Find("toggleBtn");
 
             // Ẩn các trường đăng ký
-            foreach (var c in new[] { fullNameLabel, fullNameTextBox, phoneLabel, phoneTextBox, ageLabel, ageTextBox, salaryLabel, salaryTextBox, mealLabel, mealTextBox, allowanceLabel, allowanceTextBox, attendanceLabel, attendanceTextBox })
+            foreach (var c in new[] { fullNameLabel, fullNameTextBox, phoneLabel, phoneTextBox, ageLabel, ageTextBox, salaryLabel, salaryTextBox, mealLabel, mealTextBox, attendancePerDayLabel, attendancePerDayTextBox, travelPerDayLabel, travelPerDayTextBox, housingAllowanceLabel, housingAllowanceTextBox })
             {
                 if (c != null) c.Visible = false;
             }

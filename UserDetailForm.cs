@@ -13,7 +13,7 @@ namespace SalaryCalculator
         {
             this.Text = $"Chi tiết nhân viên: {user.FullName}";
             this.Width = 520;
-            this.Height = 600;
+            this.Height = 620;
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -44,38 +44,63 @@ namespace SalaryCalculator
             infoGroup.Text = "Thông tin cá nhân";
             infoGroup.Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold);
             infoGroup.Dock = DockStyle.Top;
-            infoGroup.Height = 250;
+            infoGroup.Height = 280;
             infoGroup.BackColor = System.Drawing.Color.White;
 
             var infoTable = new TableLayoutPanel();
             infoTable.Dock = DockStyle.Fill;
-            infoTable.AutoSize = true;
-            infoTable.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            infoTable.AutoSize = false;
             infoTable.ColumnCount = 2;
-            infoTable.RowCount = 9;
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
+            infoTable.RowCount = 10;
+            infoTable.Padding = new Padding(10, 8, 10, 8);
+            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
+            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
             infoTable.RowStyles.Clear();
-            for (int i = 0; i < 9; i++)
-                infoTable.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            for (int i = 0; i < 10; i++)
+                infoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 25));
 
-            Padding cellPadding = new Padding(0, 2, 0, 2);
-            infoTable.Controls.Add(new Label { Text = "Tên đăng nhập:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 0);
-            infoTable.Controls.Add(new Label { Text = user.Username, Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 0);
-            infoTable.Controls.Add(new Label { Text = "Họ tên:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 1);
-            infoTable.Controls.Add(new Label { Text = user.FullName, Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 1);
-            infoTable.Controls.Add(new Label { Text = "Số điện thoại:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 2);
-            infoTable.Controls.Add(new Label { Text = user.Phone, Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 2);
-            infoTable.Controls.Add(new Label { Text = "Tuổi:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 3);
-            infoTable.Controls.Add(new Label { Text = user.Age.ToString(), Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 3);
-            infoTable.Controls.Add(new Label { Text = "Lương cơ bản:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 4);
-            infoTable.Controls.Add(new Label { Text = user.BasicSalary.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 4);
-            infoTable.Controls.Add(new Label { Text = "Tiền ăn:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 5);
-            infoTable.Controls.Add(new Label { Text = user.MealAllowance.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 5);
-            infoTable.Controls.Add(new Label { Text = "Phụ cấp:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 6);
-            infoTable.Controls.Add(new Label { Text = user.Allowance.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 6);
-            infoTable.Controls.Add(new Label { Text = "Tiền chuyên cần:", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Padding = cellPadding }, 0, 7);
-            infoTable.Controls.Add(new Label { Text = user.AttendanceIncentive.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 10), AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Padding = cellPadding }, 1, 7);
+            Label CreateLeftLabel(string text)
+            {
+                return new Label
+                {
+                    Text = text,
+                    Dock = DockStyle.Fill,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleRight,
+                    Font = new System.Drawing.Font("Segoe UI", 10),
+                    AutoSize = false,
+                    Margin = new Padding(0, 2, 8, 2)
+                };
+            }
+
+            Label CreateRightLabel(string text, bool bold = false)
+            {
+                return new Label
+                {
+                    Text = text,
+                    Dock = DockStyle.Fill,
+                    TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+                    Font = bold ? new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold) : new System.Drawing.Font("Segoe UI", 10),
+                    AutoSize = false,
+                    Margin = new Padding(8, 2, 0, 2)
+                };
+            }
+
+            void AddInfoRow(int row, string labelText, string valueText, bool boldValue = false)
+            {
+                infoTable.Controls.Add(CreateLeftLabel(labelText), 0, row);
+                infoTable.Controls.Add(CreateRightLabel(valueText, boldValue), 1, row);
+            }
+
+            AddInfoRow(0, "Tên đăng nhập:", user.Username, true);
+            AddInfoRow(1, "Họ tên:", user.FullName, true);
+            AddInfoRow(2, "Số điện thoại:", user.Phone);
+            AddInfoRow(3, "Tuổi:", user.Age.ToString());
+            AddInfoRow(4, "Lương cơ bản:", user.BasicSalary.ToString("N0") + " VND");
+            AddInfoRow(5, "Tiền ăn:", user.MealAllowance.ToString("N0") + " VND");
+            AddInfoRow(6, "Tiền chuyên cần/ngày:", user.AttendancePerDay.ToString("N0") + " VND");
+            AddInfoRow(7, "Tiền đi lại/ngày:", user.TravelAllowance.ToString("N0") + " VND");
+            AddInfoRow(8, "Tiền nhà ở:", user.HousingAllowance.ToString("N0") + " VND");
+            AddInfoRow(9, "Thưởng cert:", user.CertificateBonus.ToString("N0") + " VND");
 
             infoGroup.Controls.Add(infoTable);
             mainPanel.Controls.Add(infoGroup, 0, 1);

@@ -18,6 +18,15 @@ namespace SalaryCalculator
         public decimal AttendanceIncentive { get; set; }
         public int RecognizeCount { get; set; }
         public decimal TaxThreshold { get; set; }
+        // New incentive components
+        public decimal TravelAllowance { get; set; } = 8500m;
+        public decimal AttendancePerDay { get; set; } = 8500m;
+        public decimal HousingAllowance { get; set; } = 100000m;
+        public string RatingBonus { get; set; } = "";
+        public decimal CertificateBonus { get; set; } = 0;
+        public decimal RankingABonusAmount { get; set; } = 300000m;
+        public decimal RankingBBonusAmount { get; set; } = 275000m;
+        public decimal RankingCBonusAmount { get; set; } = 250000m;
         // Persisted settings
         public decimal InsurancePercent { get; set; } = 10.5m;
         public decimal OtMeal12Amount { get; set; } = 30000m;
@@ -41,7 +50,7 @@ namespace SalaryCalculator
                 Directory.CreateDirectory(DataFolder);
         }
 
-        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0)
+        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 8500m, decimal travelAllowancePerDay = 8500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
         {
             try
             {
@@ -58,6 +67,14 @@ namespace SalaryCalculator
                 user.AttendanceIncentive = attendanceIncentive;
                 user.RecognizeCount = recognizeCount;
                 user.TaxThreshold = taxThreshold;
+                user.RatingBonus = ratingBonus;
+                user.CertificateBonus = certificateBonus;
+                user.AttendancePerDay = attendancePerDay < 0 ? 0 : attendancePerDay;
+                user.TravelAllowance = travelAllowancePerDay < 0 ? 0 : travelAllowancePerDay;
+                user.HousingAllowance = housingAllowance < 0 ? 0 : housingAllowance;
+                if (rankingABonusAmount.HasValue) user.RankingABonusAmount = rankingABonusAmount.Value < 0 ? 0 : rankingABonusAmount.Value;
+                if (rankingBBonusAmount.HasValue) user.RankingBBonusAmount = rankingBBonusAmount.Value < 0 ? 0 : rankingBBonusAmount.Value;
+                if (rankingCBonusAmount.HasValue) user.RankingCBonusAmount = rankingCBonusAmount.Value < 0 ? 0 : rankingCBonusAmount.Value;
 
                 string json = JsonSerializer.Serialize(user);
                 string userFile = Path.Combine(DataFolder, $"{username}.json");
@@ -110,6 +127,26 @@ namespace SalaryCalculator
                 if (user == null) return false;
                 if (amount < 0) amount = 0;
                 user.OtMeal8Amount = amount;
+                string json = JsonSerializer.Serialize(user);
+                string userFile = Path.Combine(DataFolder, $"{username}.json");
+                File.WriteAllText(userFile, json);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool UpdateRankingBonusAmounts(string username, decimal amountA, decimal amountB, decimal amountC)
+        {
+            try
+            {
+                var user = Login(username);
+                if (user == null) return false;
+                if (amountA < 0) amountA = 0;
+                if (amountB < 0) amountB = 0;
+                if (amountC < 0) amountC = 0;
+                user.RankingABonusAmount = amountA;
+                user.RankingBBonusAmount = amountB;
+                user.RankingCBonusAmount = amountC;
                 string json = JsonSerializer.Serialize(user);
                 string userFile = Path.Combine(DataFolder, $"{username}.json");
                 File.WriteAllText(userFile, json);

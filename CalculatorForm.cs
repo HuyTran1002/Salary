@@ -736,6 +736,15 @@ namespace SalaryCalculator
                 key = "/";
             else if (e.KeyCode == Keys.Decimal || e.KeyCode == Keys.OemPeriod)
                 key = ".";
+            // Đồng bộ phím mũi tên bàn phím với nút mũi tên trên form
+            else if (e.KeyCode == Keys.Up)
+                key = "UP";
+            else if (e.KeyCode == Keys.Down)
+                key = "DOWN";
+            else if (e.KeyCode == Keys.Left)
+                key = "LEFT";
+            else if (e.KeyCode == Keys.Right)
+                key = "RIGHT";
             // Backspace = xóa
             else if (e.KeyCode == Keys.Back)
             {
@@ -811,6 +820,28 @@ namespace SalaryCalculator
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            // Handle arrow keys at command level so behavior is consistent regardless of focused control
+            if (keyData == Keys.Up)
+            {
+                ClickButtonByTag("UP");
+                return true;
+            }
+            if (keyData == Keys.Down)
+            {
+                ClickButtonByTag("DOWN");
+                return true;
+            }
+            if (keyData == Keys.Left)
+            {
+                ClickButtonByTag("LEFT");
+                return true;
+            }
+            if (keyData == Keys.Right)
+            {
+                ClickButtonByTag("RIGHT");
+                return true;
+            }
+
             // Make Enter key work like "=" button
             if (keyData == Keys.Return)
             {

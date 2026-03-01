@@ -40,19 +40,6 @@ namespace SalaryCalculator
             isCustomTaxRate = false;  // Reset lại trạng thái % thuế mỗi khi đăng nhập lại
             InitializeComponent();
             // Để LoginForm kiểm soát quay lại khi form này đóng
-
-            // Kiểm tra cập nhật tự động khi khởi động form
-            CheckForUpdate();
-        }
-
-        private async void CheckForUpdate()
-        {
-            var result = await UpdateChecker.CheckForUpdateAsync();
-            if (result.hasUpdate)
-            {
-                string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
-                UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
-            }
         }
 
         private void InitializeComponent()
@@ -292,8 +279,7 @@ namespace SalaryCalculator
 
             // Giao diện tính lương cho user thường
             this.Text = "Tính Lương - Salary Calculator";
-            this.Width = 900;
-            this.Height = 740;
+            this.ClientSize = new Size(900, 900);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Font = new System.Drawing.Font("Arial", 9);
             this.AutoScroll = false;
@@ -312,7 +298,7 @@ namespace SalaryCalculator
             // Small Calculator Launcher Button (bottom-right inside mainPanel)
             Button calculatorLauncher = new Button();
             // Use a calculator-like glyph; fallback to text if emoji not available
-            calculatorLauncher.Text = "🔢";
+            calculatorLauncher.Text = "🧮";
             calculatorLauncher.Width = 44;
             calculatorLauncher.Height = 28;
             calculatorLauncher.Font = new System.Drawing.Font("Segoe UI Emoji", 12);
@@ -347,9 +333,9 @@ namespace SalaryCalculator
 
             // Main Panel with Auto Scroll
             Panel mainPanel = new Panel();
-            mainPanel.Location = new System.Drawing.Point((this.Width - 885) / 2 - 8, 32);
+            mainPanel.Location = new System.Drawing.Point((this.ClientSize.Width - 885) / 2, titleLabelUser.Height + 4);
             mainPanel.Width = 885;
-            mainPanel.Height = 740; // increase height to show all content without scrolling
+            mainPanel.Height = this.ClientSize.Height - mainPanel.Top - 8;
             mainPanel.AutoScroll = false; // disable scroll as requested
 
             // Left/Right Column Panels (balanced and centered)
@@ -357,8 +343,8 @@ namespace SalaryCalculator
             Panel rightPanel = new Panel();
             leftPanel.Width = 420;
             rightPanel.Width = 420;
-            leftPanel.Height = 360;
-            rightPanel.Height = 340; // increase to fit allowance + bonus inputs
+            leftPanel.Height = 380;
+            rightPanel.Height = 380;
             int columnsTotalWidth = leftPanel.Width + rightPanel.Width + 25;
             int columnsStartX = (mainPanel.Width - columnsTotalWidth) / 2;
             leftPanel.Location = new System.Drawing.Point(columnsStartX, 5);
@@ -532,21 +518,37 @@ namespace SalaryCalculator
 
             leftY += 28;
 
-            Label daysOffLabel = new Label();
-            daysOffLabel.Text = "Số Ngày Nghỉ:";
-            daysOffLabel.Location = new System.Drawing.Point(10, leftY);
-            daysOffLabel.Width = 110;
-            daysOffLabel.Height = 18;
+            Label slDaysOffLabel = new Label();
+            slDaysOffLabel.Text = "Nghỉ SL (ngày):";
+            slDaysOffLabel.Location = new System.Drawing.Point(10, leftY);
+            slDaysOffLabel.Width = 110;
+            slDaysOffLabel.Height = 18;
 
-            TextBox daysOffTextBox = new TextBox();
-            daysOffTextBox.Location = new System.Drawing.Point(130, leftY + 1);
-            daysOffTextBox.Width = 275;
-            daysOffTextBox.Height = 20;
-            daysOffTextBox.Name = "daysOffTextBox";
-            daysOffTextBox.Font = new System.Drawing.Font("Arial", 8);
-            daysOffTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(daysOffTextBox);
-            daysOffTextBox.Leave += (s, e) => UpdateDailyRate(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox);
+            TextBox slDaysOffTextBox = new TextBox();
+            slDaysOffTextBox.Location = new System.Drawing.Point(130, leftY + 1);
+            slDaysOffTextBox.Width = 275;
+            slDaysOffTextBox.Height = 20;
+            slDaysOffTextBox.Name = "slDaysOffTextBox";
+            slDaysOffTextBox.Font = new System.Drawing.Font("Arial", 8);
+            slDaysOffTextBox.Text = "0";
+            NumberFormatter.FormatNumberInput(slDaysOffTextBox);
+
+            leftY += 28;
+
+            Label alDaysOffLabel = new Label();
+            alDaysOffLabel.Text = "Nghỉ AL (ngày):";
+            alDaysOffLabel.Location = new System.Drawing.Point(10, leftY);
+            alDaysOffLabel.Width = 110;
+            alDaysOffLabel.Height = 18;
+
+            TextBox alDaysOffTextBox = new TextBox();
+            alDaysOffTextBox.Location = new System.Drawing.Point(130, leftY + 1);
+            alDaysOffTextBox.Width = 275;
+            alDaysOffTextBox.Height = 20;
+            alDaysOffTextBox.Name = "alDaysOffTextBox";
+            alDaysOffTextBox.Font = new System.Drawing.Font("Arial", 8);
+            alDaysOffTextBox.Text = "0";
+            NumberFormatter.FormatNumberInput(alDaysOffTextBox);
 
             leftY += 28;
 
@@ -819,9 +821,9 @@ namespace SalaryCalculator
 
             rightY += sectionGap;
 
-            // SECTION 3: TIỀN INCENTIVE (Incentive Money)
+            // SECTION 3: TIỀN PHỤ CẤP
             Label incentiveTitle = new Label();
-            incentiveTitle.Text = "TIỀN INCENTIVE";
+            incentiveTitle.Text = "TIỀN PHỤ CẤP";
             incentiveTitle.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
             incentiveTitle.Location = new System.Drawing.Point(10, rightY);
             incentiveTitle.Width = 400;
@@ -830,40 +832,23 @@ namespace SalaryCalculator
 
             rightY += 25;
 
-            Label attendanceLabel = new Label();
-            attendanceLabel.Text = "Tiền Chuyên Cần:";
-            attendanceLabel.Location = new System.Drawing.Point(10, rightY);
-            attendanceLabel.Width = 110;
-            attendanceLabel.Height = 18;
-
-            TextBox attendanceTextBox = new TextBox();
-            attendanceTextBox.Location = new System.Drawing.Point(125, rightY);
-            attendanceTextBox.Width = 220;
-            attendanceTextBox.Height = 20;
-            attendanceTextBox.Name = "attendanceTextBox";
-            attendanceTextBox.Font = new System.Drawing.Font("Arial", 8);
-            attendanceTextBox.ReadOnly = true;
-            attendanceTextBox.BackColor = System.Drawing.Color.LightGray;
-            attendanceTextBox.Text = "0";
-
-            rightY += 28;
-
+            // Single total allowance (sum of all incentive components)
             Label allowanceLabel = new Label();
             allowanceLabel.Text = "Tiền Phụ Cấp:";
             allowanceLabel.Location = new System.Drawing.Point(10, rightY);
             allowanceLabel.Width = 110;
             allowanceLabel.Height = 18;
+            allowanceLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
 
             TextBox allowanceTextBox = new TextBox();
             allowanceTextBox.Location = new System.Drawing.Point(125, rightY);
             allowanceTextBox.Width = 220;
             allowanceTextBox.Height = 20;
             allowanceTextBox.Name = "allowanceTextBox";
-            allowanceTextBox.Font = new System.Drawing.Font("Arial", 8);
-            allowanceTextBox.Text = "0";
+            allowanceTextBox.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
             allowanceTextBox.ReadOnly = true;
-            allowanceTextBox.BackColor = System.Drawing.Color.LightGray;
-            NumberFormatter.FormatNumberInput(allowanceTextBox);
+            allowanceTextBox.BackColor = System.Drawing.Color.FromArgb(220, 220, 255);
+            allowanceTextBox.Text = "Tự động tính và hiển thị";
 
             rightY += 28;
 
@@ -884,6 +869,49 @@ namespace SalaryCalculator
             otherBonusTextBox.ReadOnly = false;
             otherBonusTextBox.BackColor = System.Drawing.Color.White;
 
+            rightY += rowGap;
+
+            Label rankingPickLabel = new Label();
+            rankingPickLabel.Text = "Xếp Loại:";
+            rankingPickLabel.Location = new System.Drawing.Point(10, rightY);
+            rankingPickLabel.Width = 110;
+            rankingPickLabel.Height = 18;
+
+            CheckBox rankingACheckBox = new CheckBox();
+            rankingACheckBox.Text = "A (300k)";
+            rankingACheckBox.Location = new System.Drawing.Point(125, rightY - 1);
+            rankingACheckBox.Width = 75;
+            rankingACheckBox.Height = 20;
+            rankingACheckBox.Name = "rankingACheckBox";
+
+            CheckBox rankingBCheckBox = new CheckBox();
+            rankingBCheckBox.Text = "B (275k)";
+            rankingBCheckBox.Location = new System.Drawing.Point(205, rightY - 1);
+            rankingBCheckBox.Width = 75;
+            rankingBCheckBox.Height = 20;
+            rankingBCheckBox.Name = "rankingBCheckBox";
+
+            CheckBox rankingCCheckBox = new CheckBox();
+            rankingCCheckBox.Text = "C (250k)";
+            rankingCCheckBox.Location = new System.Drawing.Point(285, rightY - 1);
+            rankingCCheckBox.Width = 75;
+            rankingCCheckBox.Height = 20;
+            rankingCCheckBox.Name = "rankingCCheckBox";
+
+            Button editRankingBtn = new Button();
+            editRankingBtn.Text = "✏️";
+            editRankingBtn.Location = new System.Drawing.Point(365, rightY - 2);
+            editRankingBtn.Width = 28;
+            editRankingBtn.Height = 22;
+            editRankingBtn.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
+            editRankingBtn.BackColor = System.Drawing.Color.LightBlue;
+            editRankingBtn.Name = "editRankingBtn";
+            editRankingBtn.Tag = "300000|275000|250000";
+
+            rankingACheckBox.CheckedChanged += (s, e) => { if (rankingACheckBox.Checked) { rankingBCheckBox.Checked = false; rankingCCheckBox.Checked = false; } };
+            rankingBCheckBox.CheckedChanged += (s, e) => { if (rankingBCheckBox.Checked) { rankingACheckBox.Checked = false; rankingCCheckBox.Checked = false; } };
+            rankingCCheckBox.CheckedChanged += (s, e) => { if (rankingCCheckBox.Checked) { rankingACheckBox.Checked = false; rankingBCheckBox.Checked = false; } };
+
             // Placeholder TextBox for recognize (hidden but kept for compatibility)
             TextBox recognizeTextBox = new TextBox();
             recognizeTextBox.Name = "recognizeTextBox";
@@ -899,7 +927,8 @@ namespace SalaryCalculator
                 salaryLabel, salaryTextBox,
                 mealLabel, mealTextBox,
                 workingDaysLabel, workingDaysTextBox,
-                daysOffLabel, daysOffTextBox,
+                slDaysOffLabel, slDaysOffTextBox,
+                alDaysOffLabel, alDaysOffTextBox,
                 divider1,
                 insuranceLabel, insuranceTextBox, editInsuranceBtn,
                 taxLabel, taxTextBox, taxThresholdLabel, taxThresholdTextBox
@@ -917,9 +946,9 @@ namespace SalaryCalculator
                 otDays8Label, otDays8TextBox, meal8DisplayLabel, editMeal8Btn,
                 divider3,
                 incentiveTitle,
-                attendanceLabel, attendanceTextBox,
                 allowanceLabel, allowanceTextBox,
                 otherBonusLabel, otherBonusTextBox,
+                rankingPickLabel, rankingACheckBox, rankingBCheckBox, rankingCCheckBox, editRankingBtn,
                 recognizeTextBox
             });
 
@@ -942,9 +971,10 @@ namespace SalaryCalculator
             marqueeLabel = new Label();
             marqueeLabel.AutoSize = false;
             marqueeLabel.Width = mainPanel.Width;
-            marqueeLabel.Height = 16;
-            marqueeLabel.Location = new Point(0, actionY);
-            marqueeLabel.Font = new Font("Segoe UI Emoji", 8, FontStyle.Bold);
+            marqueeLabel.Height = 26;
+            int marqueeY = panelsBottom - 38;
+            marqueeLabel.Location = new Point(0, marqueeY);
+            marqueeLabel.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             marqueeLabel.ForeColor = Color.FromArgb(255, 90, 0);
             marqueeLabel.BackColor = Color.FromArgb(255, 250, 240);
             marqueeLabel.TextAlign = ContentAlignment.MiddleLeft;
@@ -953,11 +983,12 @@ namespace SalaryCalculator
 
             // Store the marquee text
             marqueeText = GetTop5RankingText();
+            int marqueeHorizontalPadding = 24;
 
             // Initialize marquee scrolling
-            marqueeX = marqueeLabel.Width;
+            marqueeX = marqueeLabel.Width + marqueeHorizontalPadding;
             marqueeTimer = new Timer();
-            marqueeTimer.Interval = 50; // Update every 50ms for smooth scrolling
+            marqueeTimer.Interval = 45; // smoother scrolling
             int tickCount = 0;
             marqueeTimer.Tick += (s, e) =>
             {
@@ -967,14 +998,11 @@ namespace SalaryCalculator
                     return;
                 }
                 
-                marqueeX -= 4; // Move 4 pixels left per tick (faster)
-                using (Graphics g = marqueeLabel.CreateGraphics())
+                marqueeX -= 3; // Move 3 pixels left per tick for better readability
+                Size textSize = TextRenderer.MeasureText(marqueeText, marqueeLabel.Font, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding);
+                if (marqueeX < -(textSize.Width + marqueeHorizontalPadding))
                 {
-                    SizeF textSize = g.MeasureString(marqueeText, marqueeLabel.Font);
-                    if (marqueeX < -textSize.Width)
-                    {
-                        marqueeX = marqueeLabel.Width; // Reset to right side
-                    }
+                    marqueeX = marqueeLabel.Width + marqueeHorizontalPadding; // Reset to right side with padding
                 }
                 
                 // Change background color every 10 ticks (500ms) for rainbow effect
@@ -991,7 +1019,9 @@ namespace SalaryCalculator
             marqueeLabel.Paint += (s, e) =>
             {
                 e.Graphics.Clear(marqueeLabel.BackColor);
-                e.Graphics.DrawString(marqueeText, marqueeLabel.Font, new SolidBrush(marqueeLabel.ForeColor), marqueeX, 2);
+                var textRect = new Rectangle(marqueeX, 0, marqueeLabel.Width + marqueeHorizontalPadding * 2, marqueeLabel.Height);
+                TextRenderer.DrawText(e.Graphics, marqueeText, marqueeLabel.Font, textRect, marqueeLabel.ForeColor,
+                    TextFormatFlags.NoPadding | TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
             };
             marqueeTimer.Start();
 
@@ -1006,8 +1036,8 @@ namespace SalaryCalculator
                 }
             };
 
-            // Adjust actionY to account for marquee
-            actionY += marqueeLabel.Height + 5;
+            // Place action buttons under marquee (optimized vertical spacing)
+            actionY = marqueeLabel.Bottom + 8;
 
             Button calculateBtn = new Button();
             calculateBtn.Text = "⚡ TÍNH LƯƠNG";
@@ -1023,7 +1053,7 @@ namespace SalaryCalculator
                 calculateBtn.Enabled = false;
 
                 // Perform calculation
-                CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, allowanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                CalculateSalary(nameTextBox, monthTextBox, yearTextBox, salaryTextBox, mealTextBox, workingDaysTextBox, slDaysOffTextBox, alDaysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, allowanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
 
                 // Re-enable button after calculation
                 calculateBtn.Enabled = true;
@@ -1034,7 +1064,7 @@ namespace SalaryCalculator
             try
             {
                 // Position it to the right of logout button area; anchor keeps it at bottom-right
-                calculatorLauncher.Location = new Point(mainPanel.Width - calculatorLauncher.Width - 12, actionY + 2);
+                calculatorLauncher.Location = new Point(mainPanel.Width - calculatorLauncher.Width - 12, actionY + 22);
                 mainPanel.Controls.Add(calculatorLauncher);
             }
             catch { mainPanel.Controls.Add(calculatorLauncher); }
@@ -1057,41 +1087,43 @@ namespace SalaryCalculator
             // Result Panel
             Panel resultPanel = new Panel();
             int resultX = (mainPanel.Width - 855) / 2;
-            // Lift result panel a bit higher to avoid touching bottom edge
-            resultPanel.Location = new System.Drawing.Point(resultX, panelsBottom + 75);
+            int resultTop = Math.Max(calculateBtn.Bottom, logoutBtn.Bottom) + 6;
+            resultPanel.Location = new System.Drawing.Point(resultX, resultTop);
             resultPanel.Width = 855;
-            resultPanel.Height = 240;
+            resultPanel.Height = mainPanel.Height - resultTop - 6;
             resultPanel.Padding = new Padding(5);
             resultPanel.BorderStyle = BorderStyle.Fixed3D;
 
             Label resultTitleLabel = new Label();
             resultTitleLabel.Text = "KẾT QUẢ";
-            resultTitleLabel.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
+            resultTitleLabel.Name = "resultTitleLabel";
+            resultTitleLabel.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
             resultTitleLabel.Location = new System.Drawing.Point(10, 5);
             resultTitleLabel.Width = 200;
-            resultTitleLabel.Height = 20;
+            resultTitleLabel.Height = 22;
+            resultTitleLabel.Visible = false;
 
             // Left Column Results
             Label empNameLabel = new Label();
             empNameLabel.Text = "";
             empNameLabel.Location = new System.Drawing.Point(10, 40);
             empNameLabel.Width = 400;
-            empNameLabel.Height = 18;
+            empNameLabel.Height = 20;
             empNameLabel.Name = "empNameLabel";
-            empNameLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
+            empNameLabel.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
             empNameLabel.ForeColor = System.Drawing.Color.DarkBlue;
             int detailY = 40; // bắt đầu từ nhân viên
-            // spacing đều 19px, font 8.5pt cho tất cả, riêng Net và Brutto in đậm
-            int detailSpacing = 19;
-            float detailFont = 8.5f;
-            float detailFontBold = 8.5f;
+            // spacing đều 21px, font tăng +1 cho phần kết quả
+            int detailSpacing = 21;
+            float detailFont = 9.5f;
+            float detailFontBold = 9.5f;
 
             detailY += detailSpacing;
             Label dayRate8hLabel = new Label();
             dayRate8hLabel.Text = "";
             dayRate8hLabel.Location = new System.Drawing.Point(10, detailY);
             dayRate8hLabel.Width = 400;
-            dayRate8hLabel.Height = 18;
+            dayRate8hLabel.Height = 20;
             dayRate8hLabel.Name = "dayRate8hLabel";
             dayRate8hLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
@@ -1100,7 +1132,7 @@ namespace SalaryCalculator
             mealDayLabel.Text = "";
             mealDayLabel.Location = new System.Drawing.Point(10, detailY);
             mealDayLabel.Width = 400;
-            mealDayLabel.Height = 18;
+            mealDayLabel.Height = 20;
             mealDayLabel.Name = "mealDayLabel";
             mealDayLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
@@ -1109,7 +1141,7 @@ namespace SalaryCalculator
             dayRateLabel.Text = "";
             dayRateLabel.Location = new System.Drawing.Point(10, detailY);
             dayRateLabel.Width = 400;
-            dayRateLabel.Height = 18;
+            dayRateLabel.Height = 20;
             dayRateLabel.Name = "dayRateLabel";
             dayRateLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
@@ -1118,7 +1150,7 @@ namespace SalaryCalculator
             grossLabel.Text = "";
             grossLabel.Location = new System.Drawing.Point(10, detailY);
             grossLabel.Width = 400;
-            grossLabel.Height = 18;
+            grossLabel.Height = 20;
             grossLabel.Name = "grossLabel";
             grossLabel.Font = new System.Drawing.Font("Arial", detailFontBold, System.Drawing.FontStyle.Bold);
             grossLabel.ForeColor = System.Drawing.Color.DarkGreen;
@@ -1128,7 +1160,7 @@ namespace SalaryCalculator
             insuranceDeductLabel.Text = "";
             insuranceDeductLabel.Location = new System.Drawing.Point(10, detailY);
             insuranceDeductLabel.Width = 400;
-            insuranceDeductLabel.Height = 18;
+            insuranceDeductLabel.Height = 20;
             insuranceDeductLabel.Name = "insuranceDeductLabel";
             insuranceDeductLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
@@ -1137,7 +1169,7 @@ namespace SalaryCalculator
             taxThresholdResultLabel.Text = "";
             taxThresholdResultLabel.Location = new System.Drawing.Point(10, detailY);
             taxThresholdResultLabel.Width = 400;
-            taxThresholdResultLabel.Height = 18;
+            taxThresholdResultLabel.Height = 20;
             taxThresholdResultLabel.Name = "taxThresholdResultLabel";
             taxThresholdResultLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
@@ -1146,7 +1178,7 @@ namespace SalaryCalculator
             taxDeductLabel.Text = "";
             taxDeductLabel.Location = new System.Drawing.Point(10, detailY);
             taxDeductLabel.Width = 400;
-            taxDeductLabel.Height = 18;
+            taxDeductLabel.Height = 20;
             taxDeductLabel.Name = "taxDeductLabel";
             taxDeductLabel.Font = new System.Drawing.Font("Arial", detailFont);
 
@@ -1154,31 +1186,32 @@ namespace SalaryCalculator
             detailY += detailSpacing;
             Label netLabel = new Label();
             netLabel.Text = "";
-            netLabel.Font = new System.Drawing.Font("Arial", detailFontBold, System.Drawing.FontStyle.Bold);
+            netLabel.Font = new System.Drawing.Font("Arial", detailFontBold + 1f, System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic);
             netLabel.ForeColor = System.Drawing.Color.DarkGreen;
             netLabel.Location = new System.Drawing.Point(10, detailY);
             netLabel.Width = 400;
-            netLabel.Height = 18;
+            netLabel.Height = 20;
             netLabel.Name = "netLabel";
 
             detailY += detailSpacing;
             // Right Column - Detail breakdown
             Label detailTitleLabel = new Label();
             detailTitleLabel.Text = "CHI TIẾT:";
+            detailTitleLabel.Name = "detailTitleLabel";
             detailTitleLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
-            detailTitleLabel.Location = new System.Drawing.Point(430, 30);
+            detailTitleLabel.Location = new System.Drawing.Point(430, 5);
             detailTitleLabel.Width = 400;
-            detailTitleLabel.Height = 18;
+            detailTitleLabel.Height = 20;
             detailTitleLabel.ForeColor = System.Drawing.Color.DarkBlue;
+            detailTitleLabel.Visible = false;
 
             Label detailLabel = new Label();
             detailLabel.Text = "";
-            detailLabel.Location = new System.Drawing.Point(430, 52);
+            detailLabel.Location = new System.Drawing.Point(430, 30);
             detailLabel.Width = 410;
-            // Increase height so detailed breakdown lines are not clipped by other panels
-            detailLabel.Height = 180;
+            detailLabel.Height = resultPanel.Height - 34;
             detailLabel.Name = "detailLabel";
-            detailLabel.Font = new System.Drawing.Font("Arial", 8);
+            detailLabel.Font = new System.Drawing.Font("Arial", 8.5f);
             detailLabel.AutoSize = false;
 
             resultPanel.Controls.AddRange(new Control[] { 
@@ -1187,6 +1220,9 @@ namespace SalaryCalculator
             });
 
             mainPanel.Controls.Add(resultPanel);
+            marqueeLabel.BringToFront();
+            calculateBtn.BringToFront();
+            logoutBtn.BringToFront();
             this.Controls.Add(mainPanel);
 
             // Auto-load user data if logged in
@@ -1200,8 +1236,12 @@ namespace SalaryCalculator
             // Setup edit button handlers
             Button editMeal12BtnRef = rightPanel.Controls["editMeal12Btn"] as Button;
             Button editMeal8BtnRef = rightPanel.Controls["editMeal8Btn"] as Button;
+            Button editRankingBtnRef = rightPanel.Controls["editRankingBtn"] as Button;
             Label meal12DisplayLabelRef = rightPanel.Controls.Find("meal12DisplayLabel", false).FirstOrDefault() as Label;
             Label meal8DisplayLabelRef = rightPanel.Controls.Find("meal8DisplayLabel", false).FirstOrDefault() as Label;
+            CheckBox rankingARef = rightPanel.Controls.Find("rankingACheckBox", false).FirstOrDefault() as CheckBox;
+            CheckBox rankingBRef = rightPanel.Controls.Find("rankingBCheckBox", false).FirstOrDefault() as CheckBox;
+            CheckBox rankingCRef = rightPanel.Controls.Find("rankingCCheckBox", false).FirstOrDefault() as CheckBox;
             
             if (editMeal12BtnRef != null)
             {
@@ -1211,6 +1251,11 @@ namespace SalaryCalculator
             if (editMeal8BtnRef != null)
             {
                 editMeal8BtnRef.Click += (s, e) => OpenMealEditForm(editMeal8BtnRef, meal8DisplayLabelRef, "Tiền ăn OT +4h (mặc định 20,000 VND)");
+            }
+
+            if (editRankingBtnRef != null && rankingARef != null && rankingBRef != null && rankingCRef != null)
+            {
+                editRankingBtnRef.Click += (s, e) => OpenRankingEditForm(editRankingBtnRef, rankingARef, rankingBRef, rankingCRef);
             }
 
             // Apply e-commerce theme tweaks
@@ -1225,7 +1270,7 @@ namespace SalaryCalculator
             {
                 "nameTextBox", "phoneTextBox", "ageTextBox",
                 "salaryTextBox", "mealTextBox", "workingDaysTextBox",
-                "attendanceTextBox", "allowanceTextBox", "taxThresholdTextBox"
+                "allowanceTextBox", "taxThresholdTextBox"
             };
 
             foreach (var name in readonlyNames)
@@ -1262,18 +1307,28 @@ namespace SalaryCalculator
                 }
                 
                 // Load incentive data - find in form controls
-                Control[] found = this.Controls.Find("attendanceTextBox", true);
-                if (found.Length > 0 && found[0] is TextBox attendanceTextBox)
+                Control[] found = this.Controls.Find("allowanceTextBox", true);
+                if (found.Length > 0 && found[0] is TextBox allowanceTextBox)
                 {
-                    attendanceTextBox.Text = NumberFormatter.FormatNumberDisplay(user.AttendanceIncentive.ToString());
+                    allowanceTextBox.Text = "Tự động tính và hiển thị";
                 }
 
-                Control[] allowanceFound = this.Controls.Find("allowanceTextBox", true);
-                if (allowanceFound.Length > 0 && allowanceFound[0] is TextBox allowanceTextBox)
+                var rankingA = this.Controls.Find("rankingACheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingB = this.Controls.Find("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingC = this.Controls.Find("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
+                var editRankingBtn = this.Controls.Find("editRankingBtn", true).FirstOrDefault() as Button;
+                if (rankingA != null && rankingB != null && rankingC != null)
                 {
-                    allowanceTextBox.Text = NumberFormatter.FormatNumberDisplay(user.Allowance.ToString());
+                    rankingA.Checked = (user.RatingBonus == "A");
+                    rankingB.Checked = (user.RatingBonus == "B");
+                    rankingC.Checked = (user.RatingBonus == "C");
+                    ApplyRankingCheckboxTexts(rankingA, rankingB, rankingC, user.RankingABonusAmount, user.RankingBBonusAmount, user.RankingCBonusAmount);
+                    if (editRankingBtn != null)
+                    {
+                        editRankingBtn.Tag = $"{user.RankingABonusAmount}|{user.RankingBBonusAmount}|{user.RankingCBonusAmount}";
+                    }
                 }
-                
+
                 // Insurance percent
                 Control[] insuranceFound = this.Controls.Find("insuranceTextBox", true);
                 if (insuranceFound.Length > 0 && insuranceFound[0] is TextBox insuranceTextBox)
@@ -1335,7 +1390,7 @@ namespace SalaryCalculator
             Form editForm = new Form();
             editForm.Text = "Chỉnh Sửa Thông Tin Nhân Viên";
             editForm.Width = 450;
-            editForm.Height = 490;
+            editForm.Height = 570;
             editForm.StartPosition = FormStartPosition.CenterParent;
             editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
             editForm.MaximizeBox = false;
@@ -1343,7 +1398,7 @@ namespace SalaryCalculator
             try { Theme.ApplyEcommerceTheme(editForm); } catch { }
 
             // Full Name
-            int startY = 30, gapY = 50;
+            int startY = 26, gapY = 44;
             Label nameLabel = new Label();
             nameLabel.Text = "Tên đầy đủ:";
             nameLabel.Location = new System.Drawing.Point(30, startY);
@@ -1411,42 +1466,71 @@ namespace SalaryCalculator
             NumberFormatter.FormatNumberInput(mealEditBox);
             editForm.Controls.Add(mealEditBox);
 
-            // Attendance Incentive
-            Label allowanceLabel = new Label();
-            allowanceLabel.Text = "Tiền phụ cấp:";
-            allowanceLabel.Location = new System.Drawing.Point(30, startY + gapY * 5);
-            allowanceLabel.Width = 120;
-            editForm.Controls.Add(allowanceLabel);
+            // Attendance per day
+            Label attendancePerDayLabel = new Label();
+            attendancePerDayLabel.Text = "Chuyên cần/ngày:";
+            attendancePerDayLabel.Location = new System.Drawing.Point(30, startY + gapY * 5);
+            attendancePerDayLabel.Width = 120;
+            editForm.Controls.Add(attendancePerDayLabel);
 
-            TextBox allowanceEditBox = new TextBox();
-            allowanceEditBox.Location = new System.Drawing.Point(160, startY + gapY * 5 - 3);
-            allowanceEditBox.Width = 250;
-            allowanceEditBox.Text = NumberFormatter.FormatNumberDisplay(user.Allowance.ToString());
-            NumberFormatter.FormatNumberInput(allowanceEditBox);
-            editForm.Controls.Add(allowanceEditBox);
+            TextBox attendancePerDayEditBox = new TextBox();
+            attendancePerDayEditBox.Location = new System.Drawing.Point(160, startY + gapY * 5 - 3);
+            attendancePerDayEditBox.Width = 250;
+            attendancePerDayEditBox.Text = NumberFormatter.FormatNumberDisplay(user.AttendancePerDay.ToString());
+            NumberFormatter.FormatNumberInput(attendancePerDayEditBox);
+            editForm.Controls.Add(attendancePerDayEditBox);
 
-            Label attendanceLabel = new Label();
-            attendanceLabel.Text = "Tiền chuyên cần:";
-            attendanceLabel.Location = new System.Drawing.Point(30, startY + gapY * 6);
-            attendanceLabel.Width = 120;
-            editForm.Controls.Add(attendanceLabel);
+            // Travel per day
+            Label travelPerDayLabel = new Label();
+            travelPerDayLabel.Text = "Đi lại/ngày:";
+            travelPerDayLabel.Location = new System.Drawing.Point(30, startY + gapY * 6);
+            travelPerDayLabel.Width = 120;
+            editForm.Controls.Add(travelPerDayLabel);
 
-            TextBox attendanceEditBox = new TextBox();
-            attendanceEditBox.Location = new System.Drawing.Point(160, startY + gapY * 6 - 3);
-            attendanceEditBox.Width = 250;
-            attendanceEditBox.Text = NumberFormatter.FormatNumberDisplay(user.AttendanceIncentive.ToString());
-            NumberFormatter.FormatNumberInput(attendanceEditBox);
-            editForm.Controls.Add(attendanceEditBox);
+            TextBox travelPerDayEditBox = new TextBox();
+            travelPerDayEditBox.Location = new System.Drawing.Point(160, startY + gapY * 6 - 3);
+            travelPerDayEditBox.Width = 250;
+            travelPerDayEditBox.Text = NumberFormatter.FormatNumberDisplay(user.TravelAllowance.ToString());
+            NumberFormatter.FormatNumberInput(travelPerDayEditBox);
+            editForm.Controls.Add(travelPerDayEditBox);
+
+            // Housing Allowance
+            Label housingLabel = new Label();
+            housingLabel.Text = "Tiền nhà ở:";
+            housingLabel.Location = new System.Drawing.Point(30, startY + gapY * 7);
+            housingLabel.Width = 120;
+            editForm.Controls.Add(housingLabel);
+
+            TextBox housingEditBox = new TextBox();
+            housingEditBox.Location = new System.Drawing.Point(160, startY + gapY * 7 - 3);
+            housingEditBox.Width = 250;
+            housingEditBox.Text = NumberFormatter.FormatNumberDisplay(user.HousingAllowance.ToString());
+            NumberFormatter.FormatNumberInput(housingEditBox);
+            editForm.Controls.Add(housingEditBox);
+
+            // Certificate Bonus
+            Label certLabel = new Label();
+            certLabel.Text = "Tiền chứng chỉ:";
+            certLabel.Location = new System.Drawing.Point(30, startY + gapY * 8);
+            certLabel.Width = 120;
+            editForm.Controls.Add(certLabel);
+
+            TextBox certEditBox = new TextBox();
+            certEditBox.Location = new System.Drawing.Point(160, startY + gapY * 8 - 3);
+            certEditBox.Width = 250;
+            certEditBox.Text = NumberFormatter.FormatNumberDisplay(user.CertificateBonus.ToString());
+            NumberFormatter.FormatNumberInput(certEditBox);
+            editForm.Controls.Add(certEditBox);
 
             // Tax Threshold
             Label taxThresholdLabel = new Label();
             taxThresholdLabel.Text = "Mốc lương tính thuế:";
-            taxThresholdLabel.Location = new System.Drawing.Point(30, startY + gapY * 7);
+            taxThresholdLabel.Location = new System.Drawing.Point(30, startY + gapY * 9);
             taxThresholdLabel.Width = 120;
             editForm.Controls.Add(taxThresholdLabel);
 
             TextBox taxThresholdEditBox = new TextBox();
-            taxThresholdEditBox.Location = new System.Drawing.Point(160, startY + gapY * 7 - 3);
+            taxThresholdEditBox.Location = new System.Drawing.Point(160, startY + gapY * 9 - 3);
             taxThresholdEditBox.Width = 250;
             taxThresholdEditBox.Text = user.TaxThreshold > 0 ? NumberFormatter.FormatNumberDisplay(user.TaxThreshold) : "";
             NumberFormatter.FormatNumberInput(taxThresholdEditBox);
@@ -1461,7 +1545,7 @@ namespace SalaryCalculator
             saveBtn.BackColor = System.Drawing.Color.Green;
             saveBtn.ForeColor = System.Drawing.Color.White;
             // Căn giữa hai nút, cách đều hai bên
-            int btnY = startY + gapY * 8 - 20;
+            int btnY = startY + gapY * 10 - 16;
             int btnGap = 30;
             int formWidth = editForm.ClientSize.Width;
             int totalBtnWidth = saveBtn.Width + btnGap + 120;
@@ -1469,7 +1553,7 @@ namespace SalaryCalculator
             saveBtn.Location = new System.Drawing.Point(btnStartX, btnY);
             saveBtn.Click += (s, e) =>
             {
-                if (UpdateUserData(nameEditBox.Text, phoneEditBox.Text, ageEditBox.Text, salaryEditBox.Text, mealEditBox.Text, allowanceEditBox.Text, attendanceEditBox.Text, taxThresholdEditBox.Text))
+                if (UpdateUserData(nameEditBox.Text, phoneEditBox.Text, ageEditBox.Text, salaryEditBox.Text, mealEditBox.Text, certEditBox.Text, taxThresholdEditBox.Text, attendancePerDayEditBox.Text, travelPerDayEditBox.Text, housingEditBox.Text))
                 {
                     LoadUserData(nameTextBox, salaryTextBox, mealTextBox);
                     MessageBox.Show("Cập nhật thông tin thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1496,22 +1580,7 @@ namespace SalaryCalculator
             editForm.ShowDialog();
         }
 
-        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string allowance, string attendance)
-        {
-            try
-            {
-                // Overload: attendance, taxThreshold
-                return UpdateUserData(fullName, phone, age, salary, meal, allowance, attendance, "0");
-            }
-            catch
-            {
-                MessageBox.Show("Có lỗi xảy ra khi cập nhật thông tin!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-
-        }
-
-        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string allowance, string attendance, string taxThreshold)
+        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string certificate, string taxThreshold, string attendancePerDay, string travelPerDay, string housingAllowance)
         {
             try
             {
@@ -1524,16 +1593,24 @@ namespace SalaryCalculator
                 // Default empty fields to "0"
                 if (string.IsNullOrWhiteSpace(salary)) salary = "0";
                 if (string.IsNullOrWhiteSpace(meal)) meal = "0";
-                if (string.IsNullOrWhiteSpace(allowance)) allowance = "0";
-                if (string.IsNullOrWhiteSpace(attendance)) attendance = "0";
+                if (string.IsNullOrWhiteSpace(certificate)) certificate = "0";
                 if (string.IsNullOrWhiteSpace(taxThreshold)) taxThreshold = "0";
+                if (string.IsNullOrWhiteSpace(attendancePerDay)) attendancePerDay = "8500";
+                if (string.IsNullOrWhiteSpace(travelPerDay)) travelPerDay = "8500";
+                if (string.IsNullOrWhiteSpace(housingAllowance)) housingAllowance = "100000";
 
-                if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) || 
+                if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) ||
                     !decimal.TryParse(meal, out decimal mealAllowance) ||
-                    !decimal.TryParse(allowance, out decimal allowanceValue) ||
-                    !decimal.TryParse(attendance, out decimal attendanceIncentive) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue))
+                    !decimal.TryParse(certificate, out decimal certificateBonus) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue) ||
+                    !decimal.TryParse(attendancePerDay, out decimal attendancePerDayValue) || !decimal.TryParse(travelPerDay, out decimal travelPerDayValue) || !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, phụ cấp, tiền chuyên cần và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/ngày, đi lại/ngày, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+
+                if (attendancePerDayValue < 0 || travelPerDayValue < 0 || housingAllowanceValue < 0)
+                {
+                    MessageBox.Show("Tiền chuyên cần/ngày, tiền đi lại/ngày và tiền nhà ở không được âm!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
 
@@ -1543,7 +1620,7 @@ namespace SalaryCalculator
                     return false;
                 }
 
-                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, allowanceValue, attendanceIncentive, 0, taxThresholdValue);
+                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThresholdValue, "", certificateBonus, attendancePerDayValue, travelPerDayValue, housingAllowanceValue);
             }
             catch
             {
@@ -1583,7 +1660,7 @@ namespace SalaryCalculator
             }
         }
 
-        private void UpdateDailyRate(TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox)
+        private void UpdateDailyRate(TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox slDaysOffTextBox, TextBox alDaysOffTextBox)
         {
             try
             {
@@ -1638,15 +1715,26 @@ namespace SalaryCalculator
             return baseThreshold + FixedThresholdAddon + taxExemptOT + insuranceDeduction;
         }
 
-        private void CalculateSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
+        private void CalculateSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox slDaysOffTextBox, TextBox alDaysOffTextBox,
                           TextBox overtime2xTextBox, TextBox overtime3xTextBox, TextBox otDays12TextBox, TextBox otDays8TextBox, TextBox overtime15xTextBox, TextBox insuranceTextBox, TextBox taxTextBox,
-                          TextBox attendanceTextBox, TextBox allowanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
+                          TextBox allowanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
         {
             try
             {
                 // Clear previous results before calculating new ones
                 try
                 {
+                    var resultTitleFound = this.Controls.Find("resultTitleLabel", true);
+                    if (resultTitleFound.Length > 0 && resultTitleFound[0] is Label resultTitle)
+                    {
+                        resultTitle.Visible = false;
+                    }
+                    var detailTitleFound = this.Controls.Find("detailTitleLabel", true);
+                    if (detailTitleFound.Length > 0 && detailTitleFound[0] is Label detailTitle)
+                    {
+                        detailTitle.Visible = false;
+                    }
+
                     var resultLabels = new[] 
                     { 
                         "empNameLabel", "dayRate8hLabel", "mealDayLabel", "dayRateLabel", "grossLabel", 
@@ -1667,10 +1755,10 @@ namespace SalaryCalculator
                 isCustomTaxRate = false;
                 
                 // Ensure numeric fields are not empty to avoid parse errors
-                EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, daysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, attendanceTextBox, allowanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
+                EnsureNumericDefaults(salaryTextBox, mealTextBox, workingDaysTextBox, slDaysOffTextBox, alDaysOffTextBox, overtime2xTextBox, overtime3xTextBox, otDays12TextBox, otDays8TextBox, overtime15xTextBox, insuranceTextBox, taxTextBox, allowanceTextBox, recognizeTextBox, otherBonusTextBox, taxThresholdTextBox);
                 // Validate required info before calculation
                 if (string.IsNullOrEmpty(nameTextBox.Text) || string.IsNullOrEmpty(salaryTextBox.Text) || string.IsNullOrEmpty(mealTextBox.Text) ||
-                    string.IsNullOrEmpty(workingDaysTextBox.Text) || string.IsNullOrEmpty(attendanceTextBox.Text))
+                    string.IsNullOrEmpty(workingDaysTextBox.Text) || string.IsNullOrEmpty(allowanceTextBox.Text))
                 {
                     MessageBox.Show("Vui lòng điền đầy đủ thông tin nhân viên trước khi tính lương!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
@@ -1688,14 +1776,13 @@ namespace SalaryCalculator
                 decimal basicSalary = decimal.Parse(salaryTextBox.Text);
                 decimal mealAllowancePerDay = decimal.Parse(mealTextBox.Text);
                 decimal workingDays = decimal.Parse(workingDaysTextBox.Text);
-                decimal daysOff = decimal.Parse(daysOffTextBox.Text);
+                decimal slDaysOff = decimal.Parse(slDaysOffTextBox.Text);
+                decimal alDaysOff = decimal.Parse(alDaysOffTextBox.Text);
                 decimal overtime2xHours = decimal.Parse(overtime2xTextBox.Text);  // Làm thêm x2 lương
                 decimal overtime3xHours = decimal.Parse(overtime3xTextBox.Text);  // Làm thêm x3 lương
                 decimal otDays12 = decimal.Parse(otDays12TextBox.Text);  // Số ngày OT 8/12h
                 decimal otDays8 = decimal.Parse(otDays8TextBox.Text);    // Số ngày OT +4h
                 decimal overtime15xHours = decimal.Parse(overtime15xTextBox.Text); // Làm thêm x1.5 lương
-                decimal attendanceIncentive = decimal.Parse(attendanceTextBox.Text); // Tiền chuyên cần
-                decimal allowance = decimal.Parse(allowanceTextBox.Text); // Phụ cấp cố định
                 int recognizeCount = int.Parse(recognizeTextBox.Text); // Số lượng Recognize
                 decimal otherBonus = decimal.Parse(otherBonusTextBox.Text); // Tiền bonus khác
                 decimal baseTaxThresholdInput = BaseTaxThreshold;
@@ -1710,8 +1797,87 @@ namespace SalaryCalculator
                 decimal meal12Amount = editMeal12Btn != null && decimal.TryParse(editMeal12Btn.Tag.ToString(), out decimal m12) ? m12 : 30000;
                 decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
 
-                // Calculate actual working days after deducting days off
-                decimal actualWorkingDays = workingDays - daysOff;
+                if (slDaysOff < 0) slDaysOff = 0;
+                if (alDaysOff < 0) alDaysOff = 0;
+                if (slDaysOff + alDaysOff > workingDays)
+                {
+                    MessageBox.Show("Tổng ngày nghỉ SL + AL không được vượt quá số ngày công!", "Dữ liệu không hợp lệ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                decimal payableDays = workingDays - slDaysOff;
+                decimal allowanceEligibleDays = workingDays - slDaysOff - alDaysOff;
+                if (payableDays < 0) payableDays = 0;
+                if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
+
+                decimal travelPerDay = 8500m;
+                decimal attendancePerDay = 8500m;
+                decimal rankingAAmount = 300000m;
+                decimal rankingBAmount = 275000m;
+                decimal rankingCAmount = 250000m;
+                // Calculate new incentive components
+                decimal travelAllowance = 0m;
+                decimal attendanceIncentive = 0m;
+                decimal housingAllowance = 100000m;
+                decimal ratingBonus = 0m;
+                decimal certificateBonus = 0m;
+
+                // Get user data to retrieve rating and certificate
+                var user = userDataManager.Login(currentUsername);
+                string selectedRating = "";
+                var rankingA = this.Controls.Find("rankingACheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingB = this.Controls.Find("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingC = this.Controls.Find("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
+                if (rankingA?.Checked == true) selectedRating = "A";
+                else if (rankingB?.Checked == true) selectedRating = "B";
+                else if (rankingC?.Checked == true) selectedRating = "C";
+
+                var editRankingBtn = this.Controls.Find("editRankingBtn", true).FirstOrDefault() as Button;
+                if (editRankingBtn != null)
+                {
+                    var parts = (editRankingBtn.Tag?.ToString() ?? "").Split('|');
+                    if (parts.Length == 3)
+                    {
+                        decimal.TryParse(parts[0], out rankingAAmount);
+                        decimal.TryParse(parts[1], out rankingBAmount);
+                        decimal.TryParse(parts[2], out rankingCAmount);
+                    }
+                }
+
+                if (user != null)
+                {
+                    travelPerDay = user.TravelAllowance > 0 ? user.TravelAllowance : 8500m;
+                    attendancePerDay = user.AttendancePerDay > 0 ? user.AttendancePerDay : 8500m;
+                    housingAllowance = user.HousingAllowance > 0 ? user.HousingAllowance : 100000m;
+                    rankingAAmount = user.RankingABonusAmount > 0 ? user.RankingABonusAmount : rankingAAmount;
+                    rankingBAmount = user.RankingBBonusAmount > 0 ? user.RankingBBonusAmount : rankingBAmount;
+                    rankingCAmount = user.RankingCBonusAmount > 0 ? user.RankingCBonusAmount : rankingCAmount;
+
+                    if (string.IsNullOrWhiteSpace(selectedRating))
+                    {
+                        selectedRating = user.RatingBonus ?? "";
+                    }
+
+                    // Calculate rating bonus
+                    if (selectedRating == "A") ratingBonus = rankingAAmount;
+                    else if (selectedRating == "B") ratingBonus = rankingBAmount;
+                    else if (selectedRating == "C") ratingBonus = rankingCAmount;
+
+                    certificateBonus = user.CertificateBonus;
+                }
+
+                travelAllowance = travelPerDay * allowanceEligibleDays;
+                attendanceIncentive = attendancePerDay * allowanceEligibleDays;
+
+                // Display incentive components in textboxes
+                try
+                {
+                    var allowanceTB = this.Controls.Find("allowanceTextBox", true).FirstOrDefault() as TextBox;
+                    decimal allowanceDisplayTotal = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus;
+                    if (allowanceTB != null) allowanceTB.Text = allowanceDisplayTotal.ToString("N0");
+                }
+                catch { }
+
 
                 // Add bonus meal allowance based on OT days (using editable amounts)
                 decimal bonusMealAllowance = 0;
@@ -1746,13 +1912,16 @@ namespace SalaryCalculator
                 decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 // Calculate gross salary components:
-                decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
+                decimal baseRegularSalary = workingDays * dailySalaryForMeal;
+                decimal slSalaryDeduction = slDaysOff * dailySalaryForMeal;
+                decimal regularSalary = baseRegularSalary - slSalaryDeduction;
+                if (regularSalary < 0) regularSalary = 0;
                 decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
                 decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-                // Calculate Incentive
-                decimal totalIncentive = attendanceIncentive + allowance + (recognizeCount * 50000) + otherBonus;
+                // Calculate Incentive - New structure with 5 components + recognize + other bonus
+                decimal totalIncentive = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus + (recognizeCount * 50000) + otherBonus;
 
                 // Lương Brutto bao gồm tiền ăn bonus và incentive
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
@@ -1834,6 +2003,16 @@ namespace SalaryCalculator
                 Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
                 Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
                 Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
+                var resultTitleFoundAfterCalc = this.Controls.Find("resultTitleLabel", true);
+                if (resultTitleFoundAfterCalc.Length > 0 && resultTitleFoundAfterCalc[0] is Label resultTitleAfterCalc)
+                {
+                    resultTitleAfterCalc.Visible = true;
+                }
+                var detailTitleFoundAfterCalc = this.Controls.Find("detailTitleLabel", true);
+                if (detailTitleFoundAfterCalc.Length > 0 && detailTitleFoundAfterCalc[0] is Label detailTitleAfterCalc)
+                {
+                    detailTitleAfterCalc.Visible = true;
+                }
 
                 // Show detail breakdown
                 string bonusInfo = "";
@@ -1846,10 +2025,18 @@ namespace SalaryCalculator
                     bonusInfo += $"\n  • Tiền ăn OT +4h ({otDays8:F0} ngày × {meal8Amount:C0}): {otDays8 * meal8Amount:C0} VND";
                 }
 
-                string incentiveInfo = $"\n  • Tiền chuyên cần: {attendanceIncentive:C0} VND";
-                if (allowance > 0)
+                decimal allowanceTotal = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus;
+                string incentiveInfo = $"\n  • Tổng phụ cấp: {allowanceTotal:C0} VND" +
+                                        $"\n    - Tiền đi lại ({allowanceEligibleDays:F1} ngày × {travelPerDay:C0}): {travelAllowance:C0} VND" +
+                                        $"\n    - Tiền chuyên cần ({allowanceEligibleDays:F1} ngày × {attendancePerDay:C0}): {attendanceIncentive:C0} VND" +
+                                        $"\n    - Tiền nhà ở: {housingAllowance:C0} VND";
+                if (ratingBonus > 0)
                 {
-                    incentiveInfo += $"\n  • Tiền phụ cấp: {allowance:C0} VND";
+                    incentiveInfo += $"\n    - Tiền xếp loại ({selectedRating}): {ratingBonus:C0} VND";
+                }
+                if (certificateBonus > 0)
+                {
+                    incentiveInfo += $"\n    - Tiền chứng chỉ: {certificateBonus:C0} VND";
                 }
                 if (recognizeCount > 0)
                 {
@@ -1861,7 +2048,9 @@ namespace SalaryCalculator
                 }
 
                 string detail = $"Chi Tiết:\n" +
-                    $"  • Lương ngày công ({actualWorkingDays:F1} ngày × {dailySalaryForMeal:C0}): {regularSalary:C0} VND\n" +
+                    $"  • Lương ngày công gốc ({workingDays:F1} ngày × {dailySalaryForMeal:C0}): {baseRegularSalary:C0} VND\n" +
+                    $"  • Trừ nghỉ SL ({slDaysOff:F1} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
+                    $"  • Lương ngày công sau trừ SL: {regularSalary:C0} VND\n" +
                     $"  • OT x2 ({overtime2xHours:F1} tiếng × {hourlyRate:C0} × 2): {overtime2xSalary:C0} VND\n" +
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
@@ -1972,12 +2161,12 @@ namespace SalaryCalculator
 
             Button saveBtn = new Button();
             saveBtn.Text = "💾 Lưu";
-            saveBtn.Location = new System.Drawing.Point(80, 80);
             saveBtn.Width = 100;
             saveBtn.Height = 35;
             saveBtn.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
             saveBtn.BackColor = System.Drawing.Color.Green;
             saveBtn.ForeColor = System.Drawing.Color.White;
+            saveBtn.Location = new System.Drawing.Point((editForm.ClientSize.Width - saveBtn.Width) / 2, 80);
             saveBtn.Click += (s, e) =>
             {
                 // Remove thousand separators before parsing
@@ -2016,6 +2205,132 @@ namespace SalaryCalculator
             editForm.ShowDialog();
         }
 
+        private void ApplyRankingCheckboxTexts(CheckBox rankingA, CheckBox rankingB, CheckBox rankingC, decimal amountA, decimal amountB, decimal amountC)
+        {
+            decimal safeA = amountA > 0 ? amountA : 300000m;
+            decimal safeB = amountB > 0 ? amountB : 275000m;
+            decimal safeC = amountC > 0 ? amountC : 250000m;
+
+            if (rankingA != null) rankingA.Text = $"A ({safeA:C0} VND)";
+            if (rankingB != null) rankingB.Text = $"B ({safeB:C0} VND)";
+            if (rankingC != null) rankingC.Text = $"C ({safeC:C0} VND)";
+        }
+
+        private void OpenRankingEditForm(Button button, CheckBox rankingA, CheckBox rankingB, CheckBox rankingC)
+        {
+            decimal amountA = 300000m;
+            decimal amountB = 275000m;
+            decimal amountC = 250000m;
+
+            var parts = (button.Tag?.ToString() ?? "").Split('|');
+            if (parts.Length == 3)
+            {
+                decimal.TryParse(parts[0], out amountA);
+                decimal.TryParse(parts[1], out amountB);
+                decimal.TryParse(parts[2], out amountC);
+            }
+
+            if (amountA <= 0) amountA = 300000m;
+            if (amountB <= 0) amountB = 275000m;
+            if (amountC <= 0) amountC = 250000m;
+
+            Form editForm = new Form();
+            editForm.Text = "Chỉnh Sửa Tiền Ranking";
+            editForm.Width = 390;
+            editForm.Height = 230;
+            editForm.StartPosition = FormStartPosition.CenterParent;
+            editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+            editForm.MaximizeBox = false;
+            editForm.MinimizeBox = false;
+            editForm.BackColor = System.Drawing.Color.White;
+
+            Label labelA = new Label();
+            labelA.Text = "Ranking A (VND):";
+            labelA.Location = new System.Drawing.Point(30, 25);
+            labelA.Width = 130;
+            editForm.Controls.Add(labelA);
+
+            TextBox amountABox = new TextBox();
+            amountABox.Location = new System.Drawing.Point(170, 22);
+            amountABox.Width = 170;
+            amountABox.Height = 20;
+            amountABox.Font = new System.Drawing.Font("Arial", 9);
+            amountABox.BorderStyle = BorderStyle.Fixed3D;
+            amountABox.BackColor = System.Drawing.Color.White;
+            amountABox.Text = amountA.ToString("0");
+            NumberFormatter.FormatNumberInput(amountABox);
+            editForm.Controls.Add(amountABox);
+
+            Label labelB = new Label();
+            labelB.Text = "Ranking B (VND):";
+            labelB.Location = new System.Drawing.Point(30, 65);
+            labelB.Width = 130;
+            editForm.Controls.Add(labelB);
+
+            TextBox amountBBox = new TextBox();
+            amountBBox.Location = new System.Drawing.Point(170, 62);
+            amountBBox.Width = 170;
+            amountBBox.Height = 20;
+            amountBBox.Font = new System.Drawing.Font("Arial", 9);
+            amountBBox.BorderStyle = BorderStyle.Fixed3D;
+            amountBBox.BackColor = System.Drawing.Color.White;
+            amountBBox.Text = amountB.ToString("0");
+            NumberFormatter.FormatNumberInput(amountBBox);
+            editForm.Controls.Add(amountBBox);
+
+            Label labelC = new Label();
+            labelC.Text = "Ranking C (VND):";
+            labelC.Location = new System.Drawing.Point(30, 105);
+            labelC.Width = 130;
+            editForm.Controls.Add(labelC);
+
+            TextBox amountCBox = new TextBox();
+            amountCBox.Location = new System.Drawing.Point(170, 102);
+            amountCBox.Width = 170;
+            amountCBox.Height = 20;
+            amountCBox.Font = new System.Drawing.Font("Arial", 9);
+            amountCBox.BorderStyle = BorderStyle.Fixed3D;
+            amountCBox.BackColor = System.Drawing.Color.White;
+            amountCBox.Text = amountC.ToString("0");
+            NumberFormatter.FormatNumberInput(amountCBox);
+            editForm.Controls.Add(amountCBox);
+
+            Button saveBtn = new Button();
+            saveBtn.Text = "💾 Lưu";
+            saveBtn.Location = new System.Drawing.Point(130, 145);
+            saveBtn.Width = 120;
+            saveBtn.Height = 35;
+            saveBtn.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+            saveBtn.BackColor = System.Drawing.Color.Green;
+            saveBtn.ForeColor = System.Drawing.Color.White;
+            saveBtn.Click += (s, e) =>
+            {
+                string cleanA = amountABox.Text.Replace(",", "");
+                string cleanB = amountBBox.Text.Replace(",", "");
+                string cleanC = amountCBox.Text.Replace(",", "");
+
+                if (decimal.TryParse(cleanA, out decimal newA) &&
+                    decimal.TryParse(cleanB, out decimal newB) &&
+                    decimal.TryParse(cleanC, out decimal newC) &&
+                    newA >= 0 && newB >= 0 && newC >= 0)
+                {
+                    button.Tag = $"{newA}|{newB}|{newC}";
+                    ApplyRankingCheckboxTexts(rankingA, rankingB, rankingC, newA, newB, newC);
+
+                    try { userDataManager.UpdateRankingBonusAmounts(currentUsername, newA, newB, newC); } catch { }
+
+                    editForm.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Vui lòng nhập số tiền hợp lệ (>= 0)!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            editForm.Controls.Add(saveBtn);
+
+            editForm.ShowDialog();
+        }
+
         private void OpenInsuranceEditForm(TextBox targetTextBox)
         {
             Form editForm = new Form();
@@ -2047,12 +2362,12 @@ namespace SalaryCalculator
 
             Button saveBtn = new Button();
             saveBtn.Text = "💾 Lưu";
-            saveBtn.Location = new System.Drawing.Point(80, 80);
             saveBtn.Width = 100;
             saveBtn.Height = 35;
             saveBtn.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
             saveBtn.BackColor = System.Drawing.Color.Green;
             saveBtn.ForeColor = System.Drawing.Color.White;
+            saveBtn.Location = new System.Drawing.Point((editForm.ClientSize.Width - saveBtn.Width) / 2, 80);
             saveBtn.Click += (s, e) =>
             {
                 decimal percent = ParsePercent(percentBox.Text, 10.5m);
@@ -2106,23 +2421,22 @@ namespace SalaryCalculator
         }
 
         // Compute net salary using the same logic as CalculateSalary but return the net value (no UI changes)
-        private decimal ComputeNetSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox daysOffTextBox,
+        private decimal ComputeNetSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox slDaysOffTextBox, TextBox alDaysOffTextBox,
                           TextBox overtime2xTextBox, TextBox overtime3xTextBox, TextBox otDays12TextBox, TextBox otDays8TextBox, TextBox overtime15xTextBox, TextBox insuranceTextBox, TextBox taxTextBox,
-                          TextBox attendanceTextBox, TextBox allowanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
+                          TextBox allowanceTextBox, TextBox recognizeTextBox, TextBox otherBonusTextBox, TextBox taxThresholdTextBox)
         {
             try
             {
                 decimal basicSalary = decimal.Parse(salaryTextBox.Text);
                 decimal mealAllowancePerDay = decimal.Parse(mealTextBox.Text);
                 decimal workingDays = decimal.Parse(workingDaysTextBox.Text);
-                decimal daysOff = decimal.Parse(daysOffTextBox.Text);
+                decimal slDaysOff = decimal.Parse(slDaysOffTextBox.Text);
+                decimal alDaysOff = decimal.Parse(alDaysOffTextBox.Text);
                 decimal overtime2xHours = decimal.Parse(overtime2xTextBox.Text);
                 decimal overtime3xHours = decimal.Parse(overtime3xTextBox.Text);
                 decimal otDays12 = decimal.Parse(otDays12TextBox.Text);
                 decimal otDays8 = decimal.Parse(otDays8TextBox.Text);
                 decimal overtime15xHours = decimal.Parse(overtime15xTextBox.Text);
-                decimal attendanceIncentive = decimal.Parse(attendanceTextBox.Text);
-                decimal allowance = decimal.Parse(allowanceTextBox.Text);
                 int recognizeCount = int.Parse(recognizeTextBox.Text);
                 decimal otherBonus = decimal.Parse(otherBonusTextBox.Text);
                 decimal baseTaxThresholdInput = BaseTaxThreshold;
@@ -2136,7 +2450,44 @@ namespace SalaryCalculator
                 decimal meal12Amount = editMeal12Btn != null && decimal.TryParse(editMeal12Btn.Tag.ToString(), out decimal m12) ? m12 : 30000;
                 decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
 
-                decimal actualWorkingDays = workingDays - daysOff;
+                decimal payableDays = workingDays - slDaysOff;
+                decimal allowanceEligibleDays = workingDays - slDaysOff - alDaysOff;
+                if (payableDays < 0) payableDays = 0;
+                if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
+
+                decimal travelPerDay = 8500m;
+                decimal attendancePerDay = 8500m;
+                decimal rankingAAmount = 300000m;
+                decimal rankingBAmount = 275000m;
+                decimal rankingCAmount = 250000m;
+                // Calculate new incentive components
+                decimal travelAllowance = 0m;
+                decimal attendanceIncentive = 0m;
+                decimal housingAllowance = 100000m;
+                decimal ratingBonus = 0m;
+                decimal certificateBonus = 0m;
+
+                // Get user data to retrieve rating and certificate
+                var user = userDataManager.Login(currentUsername);
+                if (user != null)
+                {
+                    travelPerDay = user.TravelAllowance > 0 ? user.TravelAllowance : 8500m;
+                    attendancePerDay = user.AttendancePerDay > 0 ? user.AttendancePerDay : 8500m;
+                    housingAllowance = user.HousingAllowance > 0 ? user.HousingAllowance : 100000m;
+                    rankingAAmount = user.RankingABonusAmount > 0 ? user.RankingABonusAmount : rankingAAmount;
+                    rankingBAmount = user.RankingBBonusAmount > 0 ? user.RankingBBonusAmount : rankingBAmount;
+                    rankingCAmount = user.RankingCBonusAmount > 0 ? user.RankingCBonusAmount : rankingCAmount;
+                    // Calculate rating bonus
+                    if (user.RatingBonus == "A") ratingBonus = rankingAAmount;
+                    else if (user.RatingBonus == "B") ratingBonus = rankingBAmount;
+                    else if (user.RatingBonus == "C") ratingBonus = rankingCAmount;
+
+                    certificateBonus = user.CertificateBonus;
+                }
+
+                travelAllowance = travelPerDay * allowanceEligibleDays;
+                attendanceIncentive = attendancePerDay * allowanceEligibleDays;
+
                 decimal bonusMealAllowance = 0;
                 if (otDays12 > 0) bonusMealAllowance += otDays12 * meal12Amount;
                 if (otDays8 > 0) bonusMealAllowance += otDays8 * meal8Amount;
@@ -2156,12 +2507,12 @@ namespace SalaryCalculator
                 decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
                 decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
-                decimal regularSalary = actualWorkingDays * dailySalaryForMeal;
+                decimal regularSalary = payableDays * dailySalaryForMeal;
                 decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
                 decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-                decimal totalIncentive = attendanceIncentive + allowance + (recognizeCount * 50000) + otherBonus;
+                decimal totalIncentive = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus + (recognizeCount * 50000) + otherBonus;
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
                 decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
 
@@ -2283,43 +2634,38 @@ namespace SalaryCalculator
                 
                 if (topUsers.Count == 0)
                 {
-                    return "     🏆 BẢNG XẾP HẠNG LƯƠNG THÁNG " + currentMonth.ToString("D2") + "/" + currentYear + " - Chưa có dữ liệu     ";
+                    return "     BẢNG XẾP HẠNG LƯƠNG THÁNG " + currentMonth.ToString("D2") + "/" + currentYear + " - Chưa có dữ liệu     ";
                 }
                 
                 var rankings = new List<string>();
                 for (int i = 0; i < topUsers.Count; i++)
                 {
-                    string medal = "";
                     string topLabel = "";
                     if (i == 0)
                     {
-                        medal = "🏆";
                         topLabel = "Top1";
                     }
                     else if (i == 1)
                     {
-                        medal = "🥈";
                         topLabel = "Top2";
                     }
                     else if (i == 2)
                     {
-                        medal = "🥉";
                         topLabel = "Top3";
                     }
                     else
                     {
-                        medal = "";
                         topLabel = $"Top{i + 1}";
                     }
                     
-                    rankings.Add($"{medal} {topLabel}: {topUsers[i].FullName} ({topUsers[i].LastNetSalary:N0} VND)");
+                    rankings.Add($"{topLabel}: {topUsers[i].FullName} ({topUsers[i].LastNetSalary:N0} VND)");
                 }
                 
                 return "     " + string.Join("     |     ", rankings) + "     ";
             }
             catch
             {
-                return "     🏆 BẢNG XẾP HẠNG LƯƠNG     ";
+                return "     BẢNG XẾP HẠNG LƯƠNG     ";
             }
         }
 
