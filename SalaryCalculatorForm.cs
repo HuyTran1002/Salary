@@ -4,9 +4,9 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
 using System.IO;
-using System.Media;
 using SalaryCalculator;
 using System.Globalization;
+using System.Drawing.Drawing2D;
 
 namespace SalaryCalculator
 {
@@ -23,15 +23,243 @@ namespace SalaryCalculator
             private int marqueeX = 0; // Current X position of marquee text
             private string marqueeText = ""; // Current marquee text content
             private int marqueeColorIndex = 0; // Current color index for rainbow effect
+            private Timer stickFigureTimer = null;
+            private Panel stickFigureHostPanel = null;
+            private Panel stickFigureOverlayPanel = null;
+            private PointF stickFigurePosition = PointF.Empty;
+            private PointF stickFigureDestination = PointF.Empty;
+            private Control stickActiveTarget = null;
+            private int stickInteractionTicks = 0;
+            private float stickWalkPhase = 0f;
+            private float stickGesturePhase = 0f;
+            private float stickHandReach = 0f;
+            private string stickCurrentSpeech = "";
+            private int stickSpeechTicks = 0;
+            private float stickVelocityX = 0f;
+            private float stickVelocityY = 0f;
+            private bool stickOnGround = true;
+            private bool stickWantsClimb = false;
+            private PointF stickClimbTarget = PointF.Empty;
+            private int stickJumpCooldown = 0;
+            private int stickMoodTicks = 0;
+            private string stickMood = "Tinh nghịch";
+            private string stickAction = "Bò";
+            private float stickPrevStrideSign = 0f;
+            private float stickLeftFootPlantX = 0f;
+            private float stickRightFootPlantX = 0f;
+            private int stickParkourTicks = 0;
+            private int stickSpeechCooldown = 0;
+            private int stickSlipTicks = 0;
+            private int stickAnnoyedTicks = 0;
+            private int stickDisturbCooldown = 0;
+            private int stickWallClingTicks = 0;
+            private Rectangle stickLastDrawBounds = Rectangle.Empty;
+            private readonly Dictionary<string, int> stickVisitCounter = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            private readonly Random stickRandom = new Random();
+            private readonly string[] stickMessages = new[]
+            {
+                "Xin chào!",
+                "Ui xinh quá ✨",
+                "Để mình xem nào",
+                "Ô này quan trọng nè",
+                "Con số đẹp đó!",
+                "Tiếp tục nào 💙",
+                "Nhập đúng là ra kết quả chuẩn nè",
+                "Mình đang scan toàn bộ form nhé",
+                "Mục này ảnh hưởng net đó",
+                "Điền đủ ô đi, để mình tối ưu giúp",
+                "Tính nhanh gọn, khỏi đau đầu",
+                "Mình canh thuế giúp cho",
+                "Lương đẹp thì mood cũng đẹp",
+                "OT vừa phải thôi, giữ sức nha",
+                "Mình theo dõi chi tiết từng mục luôn"
+            };
+            private readonly string[] stickExtraMessages = new[]
+            {
+                "Hôm nay nhập số mượt ghê!",
+                "Mình đi tuần form một vòng đây",
+                "Nhịp này tính lương cực nhanh luôn",
+                "Bạn nhập chắc tay thật đó",
+                "Form này đang chạy rất ổn",
+                "Con số nào cũng có câu chuyện riêng",
+                "Mình thấy dữ liệu đang khá đẹp",
+                "Tiếp tục đi, gần ra kết quả rồi",
+                "Giữ nhịp nhập liệu này là chuẩn",
+                "Mình đang canh từng ô cho bạn",
+                "Hôm nay năng suất cao nha",
+                "Nét chữ số hôm nay rất tự tin",
+                "Đang vào guồng rồi nè",
+                "Nhập thêm chút nữa là đủ bộ",
+                "Nhìn số liệu thấy yên tâm quá",
+                "Bài toán này mình cân được",
+                "Nhịp làm việc này đáng khen",
+                "Cứ đều tay vậy là đẹp",
+                "Mục tiêu net đang ở phía trước",
+                "Bấm tính là có bất ngờ đó",
+                "Mình thích cách bạn điền rất rõ ràng",
+                "Data sạch thì kết quả sáng",
+                "Mọi thứ đang đúng quỹ đạo",
+                "Tinh thần làm lương lên cao nào",
+                "Mình vừa rà lại, ổn áp nhé",
+                "Bạn làm mình muốn chạy parkour luôn",
+                "Con số đang kể chuyện tăng trưởng",
+                "Đừng lo, mình giữ nhịp cho",
+                "Nhìn bảng này thấy chuyên nghiệp ghê",
+                "Tối ưu từng chút sẽ thành nhiều",
+                "Mỗi ô nhập đúng là bớt lỗi ngay",
+                "Tiến độ hôm nay rất xanh",
+                "Bạn điền nhanh mà vẫn chính xác",
+                "Tín hiệu tốt đang tăng dần",
+                "Mình theo sát nên bạn cứ yên tâm",
+                "Đang ở trạng thái tập trung cao",
+                "Chuẩn bị chạm mốc net đẹp rồi",
+                "Form này hợp tác tốt ghê",
+                "Mình thích những con số rõ ràng",
+                "Bình tĩnh là thắng bài toán này",
+                "Nhập liệu đẹp như code sạch vậy",
+                "Ô nào cũng quan trọng cả đó",
+                "Mình đang săn lỗi giúp bạn",
+                "Làm lương mà nhịp thế này là đỉnh",
+                "Sắp đủ dữ liệu để chốt rồi",
+                "Chút nữa xem net có cười không nha",
+                "Càng rõ ràng càng dễ tối ưu",
+                "Tiếp tục, bạn đang làm rất tốt",
+                "Mình thấy trend đang đi lên",
+                "Mốc lương tháng này khá hứa hẹn",
+                "Động lực hôm nay đầy pin",
+                "Cứ thế này thì kết quả sáng đẹp",
+                "Bạn nhập kỹ nên mình xử lý rất mượt",
+                "Một cú bấm tính là ra ngay",
+                "Bảng lương đang dần hoàn chỉnh",
+                "Hôm nay không bỏ sót chi tiết nào",
+                "Mình canh thuế và OT song song",
+                "Bạn điền tới đâu mình hiểu tới đó",
+                "Giữ phong độ, sắp chốt xong",
+                "Con số đang đứng đúng vị trí",
+                "Kết quả chuẩn bắt đầu từ dữ liệu chuẩn",
+                "Mình thích sự gọn gàng này",
+                "Nhịp làm việc cân bằng quá tốt",
+                "Bạn làm nhanh mà vẫn chắc",
+                "Dữ liệu có vẻ đáng tin cậy",
+                "Cú này net sẽ khá ổn nè",
+                "Mình chuẩn bị nhận xét sâu hơn nhé",
+                "Trạng thái: theo dõi thông minh",
+                "Không khí tính lương hôm nay xịn quá",
+                "Mọi đường dẫn đều về net",
+                "Cứ điền tiếp, đừng ngắt nhịp",
+                "Số liệu sạch là vua",
+                "Bạn nhập đúng là mình vui liền",
+                "Từng khoản đang khớp dần",
+                "Mình thấy tháng này có tín hiệu tốt",
+                "Ổn rồi, tiến thêm một bước nữa",
+                "Mình giữ cho kết quả không lệch",
+                "Năng lượng tích cực đang tăng",
+                "Bài này giải được rất êm",
+                "Bạn thao tác rất có nghề",
+                "Mọi thứ đang vào đúng chỗ",
+                "Mình thích form chạy mượt như này",
+                "Cứ đều đặn là ra thành quả",
+                "Đây là nhịp làm việc của người chuyên nghiệp",
+                "Bạn làm tốt lắm, tiếp tục nha",
+                "Đang gần đến đoạn hấp dẫn rồi",
+                "Kết quả đẹp thường đến từ sự tỉ mỉ",
+                "Sắp có câu trả lời cho tháng này",
+                "Mình vẫn canh từng tham số cho bạn",
+                "Bình tĩnh nhập, mình lo phần còn lại",
+                "Mình sẵn sàng đưa nhận xét lương",
+                "Con số hôm nay có thần thái ghê",
+                "Dữ liệu càng đầy đủ càng thông minh",
+                "Đang có đà tăng trưởng tốt",
+                "Bạn và mình phối hợp khá ăn ý",
+                "Mọi phép tính đang chạy ổn định",
+                "Độ chính xác đang ở mức cao",
+                "Chúng ta sắp chốt được bức tranh lương",
+                "Tiến lên, còn vài bước là xong",
+                "Mình ở đây để giữ mọi thứ chuẩn"
+            };
+            private readonly string[] stickSalaryComments = new[]
+            {
+                "Net tầm này khá ổn, đúng vùng mục tiêu 8-15 triệu rồi",
+                "Mức này cân bằng tốt giữa thu nhập và chi tiêu",
+                "Net đang trong dải an toàn, giữ nhịp đều là đẹp",
+                "Thu nhập này ổn để duy trì quỹ dự phòng mỗi tháng",
+                "Mức net này khá thực tế và bền vững",
+                "Lương tháng này nhìn ổn áp đó nha",
+                "Con số này phản ánh hiệu suất làm việc tốt",
+                "Tối ưu thêm thuế/phụ cấp là sẽ nhích thêm",
+                "Mức này đủ tốt để lên kế hoạch tài chính tháng",
+                "Net tầm này tự thưởng nhẹ là hợp lý",
+                "Con số này có đà tăng ổn định",
+                "Mức thu nhập này đang đi đúng hướng",
+                "Net như này là đáng ghi nhận rồi đó",
+                "Giữ phong độ này vài tháng là rất đẹp",
+                "Mức này phù hợp để tích lũy đều mỗi tháng",
+                "Thu nhập hiện tại khá chắc và thực dụng",
+                "Con số này cho thấy bạn đang tiến bộ",
+                "Lương tầm này ổn để cân bằng cuộc sống",
+                "Net này hợp lý, chỉ cần giữ sức bền",
+                "Mức này nếu giảm chi phí nhỏ sẽ càng thoải mái",
+                "Thu nhập đang ổn định, tiếp tục phát huy nha",
+                "Lương tháng này chất lượng, không bị hụt nhịp",
+                "Net trong khoảng này là khá tốt rồi",
+                "Mức này đủ để đặt mục tiêu tăng nhẹ tháng sau",
+                "Con số này đẹp theo kiểu bền vững",
+                "Thu nhập tầm này quản lý tốt là rất khỏe",
+                "Mức net hiện tại đang đúng kỳ vọng",
+                "Lương này nhìn gọn gàng và đáng tin cậy",
+                "Net đang ở vùng ổn, ưu tiên giữ đều",
+                "Mức này ổn để vừa chi tiêu vừa tiết kiệm"
+            };
+            private readonly string[] stickAnnoyedLines = new[]
+            {
+                "Ê nhẹ tay thôi nha 😤",
+                "Đang chạy mà bấm chi dữ vậy trời",
+                "Từ từ thôi, trượt tay rồi nè!",
+                "Ui, mém té luôn đó!",
+                "Đừng troll mình nữa nha 😑",
+                "Bấm kiểu này là mình cọc đó nha",
+                "Trời ơi, xém rớt luôn!",
+                "Cho mình làm việc yên ổn coi 😮‍💨"
+            };
+            private readonly string[] stickTaxTips = new[]
+            {
+                "Thuế cao thì ưu tiên khoản miễn/giảm hợp lệ nhé",
+                "Giữ hồ sơ rõ ràng để tính thuế chuẩn hơn",
+                "Kiểm tra mốc thuế trước khi chốt lương",
+                "Mức thuế này cần theo dõi sát đó"
+            };
+            private readonly string[] stickOtTips = new[]
+            {
+                "OT x3 tăng nhanh nhưng nhớ giữ sức nha",
+                "OT nhiều quá thì cân đối lại nghỉ ngơi",
+                "Có OT thì net thường nhích rõ rệt",
+                "Điền OT chính xác để tránh lệch kết quả"
+            };
+            private readonly string[] stickNetTips = new[]
+            {
+                "Net đẹp quá, đúng bài luôn ✨",
+                "Kết quả này khá ổn để chốt tháng",
+                "Mức net này đang trong vùng an toàn",
+                "Net tăng đều là tín hiệu tốt đó"
+            };
+            private readonly string[] stickAmbientLines = new[]
+            {
+                "Mình đang bám và quét form liên tục nè",
+                "Nhịp này mượt, để mình kiểm tra sâu hơn",
+                "Mình vừa rà thêm vài ô quan trọng rồi",
+                "Cứ nhập tiếp đi, mình đang theo rất sát",
+                "Đang bò tuần tra toàn form cho bạn đây",
+                "Mình sẽ ghé các ô cần chú ý ngay",
+                "Nhịp thao tác ổn lắm, giữ đều nha",
+                "Mình vẫn đang bám tường và quan sát số liệu"
+            };
             private Color[] marqueeColors = new Color[] 
             {
-                Color.FromArgb(255, 200, 200), // Light Red
-                Color.FromArgb(255, 220, 180), // Light Orange
-                Color.FromArgb(255, 255, 200), // Light Yellow
-                Color.FromArgb(200, 255, 200), // Light Green
-                Color.FromArgb(200, 240, 255), // Light Blue
-                Color.FromArgb(220, 200, 255), // Light Indigo
-                Color.FromArgb(255, 200, 255)  // Light Violet
+                Color.FromArgb(180, 220, 255),
+                Color.FromArgb(172, 242, 255),
+                Color.FromArgb(202, 216, 255),
+                Color.FromArgb(221, 207, 255),
+                Color.FromArgb(191, 234, 255)
             };
 
         public SalaryCalculatorForm(string username = "")
@@ -65,7 +293,7 @@ namespace SalaryCalculator
                 Label rankingTitle = new Label();
                 rankingTitle.Text = $"BẢNG XẾP HẠNG LƯƠNG THÁNG {month:D2}/{year}";
                 rankingTitle.Font = new System.Drawing.Font("Arial", 16, System.Drawing.FontStyle.Bold);
-                rankingTitle.ForeColor = System.Drawing.Color.DarkBlue;
+                rankingTitle.ForeColor = Color.FromArgb(214, 236, 255);
                 rankingTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
                 rankingTitle.Width = gridWidth;
                 rankingTitle.Height = 38;
@@ -78,8 +306,8 @@ namespace SalaryCalculator
                 rankingGrid.Width = gridWidth;
                 rankingGrid.Height = gridHeight;
                 rankingGrid.BorderStyle = BorderStyle.None;
-                rankingGrid.GridColor = Color.FromArgb(230, 230, 230);
-                rankingGrid.BackgroundColor = Color.White;
+                rankingGrid.GridColor = Color.FromArgb(189, 211, 245);
+                rankingGrid.BackgroundColor = Color.FromArgb(243, 249, 255);
                 rankingGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 rankingGrid.ColumnCount = 4;
                 rankingGrid.Columns[0].Name = "Hạng";
@@ -111,16 +339,16 @@ namespace SalaryCalculator
                 rankingGrid.ColumnHeadersHeight = 40; // fixed header height
                 rankingGrid.EnableHeadersVisualStyles = false;
                 // Header style (orange primary like ecommerce)
-                rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(255, 90, 0);
+                rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(68, 118, 255);
                 rankingGrid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
                 rankingGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
                 rankingGrid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 rankingGrid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                rankingGrid.RowsDefaultCellStyle.BackColor = Color.White;
-                rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = Color.White; // no zebra
-                rankingGrid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(255, 235, 205);
-                rankingGrid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(34, 34, 34);
-                rankingGrid.DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                rankingGrid.RowsDefaultCellStyle.BackColor = Color.FromArgb(248, 252, 255);
+                rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(237, 246, 255);
+                rankingGrid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(162, 196, 255);
+                rankingGrid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(24, 47, 89);
+                rankingGrid.DefaultCellStyle.ForeColor = Color.FromArgb(40, 62, 104);
                 rankingGrid.RowTemplate.Height = 36;
                 rankingGrid.RowTemplate.Resizable = DataGridViewTriState.False;
                 rankingGrid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
@@ -205,27 +433,27 @@ namespace SalaryCalculator
                     if (rank == 1)
                     {
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(255, 244, 230);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(208, 230, 255);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(24, 47, 89);
                     }
                     else if (rank == 2)
                     {
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(255, 249, 230);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(221, 224, 255);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 59, 99);
                     }
                     else if (rank == 3)
                     {
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 10.5f, System.Drawing.FontStyle.Bold);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(255, 252, 236);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(215, 240, 255);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(38, 64, 108);
                     }
                     else
                     {
-                        // Regular rows: consistent white background and dark text
+                        // Regular rows: dark background and clear light text
                         rankingGrid.Rows[rowIdx].DefaultCellStyle.Font = new System.Drawing.Font("Arial", 9.5f, System.Drawing.FontStyle.Regular);
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.White;
-                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.BackColor = Color.FromArgb(248, 252, 255);
+                        rankingGrid.Rows[rowIdx].DefaultCellStyle.ForeColor = Color.FromArgb(40, 62, 104);
                     }
                     rank++;
                 }
@@ -233,8 +461,7 @@ namespace SalaryCalculator
                 for (int i = sorted.Count + 1; i <= minRows; i++)
                 {
                     int idx = rankingGrid.Rows.Add(i.ToString(), "", "", "");
-                    // Make sure blank rows are white like the rest
-                    rankingGrid.Rows[idx].DefaultCellStyle.BackColor = Color.White;
+                    rankingGrid.Rows[idx].DefaultCellStyle.BackColor = Color.FromArgb(237, 246, 255);
                 }
                 // Thêm sự kiện click vào tên nhân viên để hiện chi tiết
                 rankingGrid.CellClick += (s, e) =>
@@ -256,19 +483,19 @@ namespace SalaryCalculator
                     }
                 };
                 this.Controls.Add(rankingGrid);
-                // Apply ecommerce theme so admin ranking uses the same design system
-                try { Theme.ApplyEcommerceTheme(this); } catch { }
+                // Apply infinity web theme for admin ranking as well
+                try { Theme.ApplyInfinityGlassTheme(this); } catch { }
 
                 // Theme.ApplyEcommerceTheme may apply a DataGridView style intended for other themes.
                 // Re-assert the ranking grid's white styling so numbers remain dark and readable.
                 try
                 {
-                    rankingGrid.BackgroundColor = Color.White;
-                    rankingGrid.RowsDefaultCellStyle.BackColor = Color.White;
-                    rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = Color.White;
-                    rankingGrid.DefaultCellStyle.BackColor = Color.White;
-                    rankingGrid.DefaultCellStyle.ForeColor = Color.FromArgb(34, 34, 34);
-                    rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(255, 90, 0);
+                    rankingGrid.BackgroundColor = Color.FromArgb(243, 249, 255);
+                    rankingGrid.RowsDefaultCellStyle.BackColor = Color.FromArgb(248, 252, 255);
+                    rankingGrid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(237, 246, 255);
+                    rankingGrid.DefaultCellStyle.BackColor = Color.FromArgb(248, 252, 255);
+                    rankingGrid.DefaultCellStyle.ForeColor = Color.FromArgb(40, 62, 104);
+                    rankingGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(106, 162, 255);
                     rankingGrid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
                     rankingGrid.EnableHeadersVisualStyles = false;
                 }
@@ -288,7 +515,7 @@ namespace SalaryCalculator
             Label titleLabelUser = new Label();
             titleLabelUser.Text = "TÍNH LƯƠNG NHÂN VIÊN";
             titleLabelUser.Font = new System.Drawing.Font("Arial", 14, System.Drawing.FontStyle.Bold);
-            titleLabelUser.ForeColor = System.Drawing.Color.DarkBlue;
+            titleLabelUser.ForeColor = Color.FromArgb(214, 236, 255);
             titleLabelUser.Dock = DockStyle.Top;
             titleLabelUser.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             titleLabelUser.Height = 32;
@@ -302,7 +529,7 @@ namespace SalaryCalculator
             calculatorLauncher.Width = 44;
             calculatorLauncher.Height = 28;
             calculatorLauncher.Font = new System.Drawing.Font("Segoe UI Emoji", 12);
-            calculatorLauncher.BackColor = Color.FromArgb(255, 90, 0);
+            calculatorLauncher.BackColor = Color.FromArgb(57, 122, 255);
             calculatorLauncher.ForeColor = Color.White;
             calculatorLauncher.FlatStyle = FlatStyle.Flat;
             calculatorLauncher.FlatAppearance.BorderSize = 0;
@@ -975,8 +1202,8 @@ namespace SalaryCalculator
             int marqueeY = panelsBottom - 38;
             marqueeLabel.Location = new Point(0, marqueeY);
             marqueeLabel.Font = new Font("Segoe UI", 9, FontStyle.Bold);
-            marqueeLabel.ForeColor = Color.FromArgb(255, 90, 0);
-            marqueeLabel.BackColor = Color.FromArgb(255, 250, 240);
+            marqueeLabel.ForeColor = Color.FromArgb(24, 47, 89);
+            marqueeLabel.BackColor = Color.FromArgb(180, 220, 255);
             marqueeLabel.TextAlign = ContentAlignment.MiddleLeft;
             marqueeLabel.Text = ""; // Empty, we'll draw manually
             mainPanel.Controls.Add(marqueeLabel);
@@ -988,7 +1215,7 @@ namespace SalaryCalculator
             // Initialize marquee scrolling
             marqueeX = marqueeLabel.Width + marqueeHorizontalPadding;
             marqueeTimer = new Timer();
-            marqueeTimer.Interval = 45; // smoother scrolling
+            marqueeTimer.Interval = 28; // smoother scrolling
             int tickCount = 0;
             marqueeTimer.Tick += (s, e) =>
             {
@@ -998,21 +1225,23 @@ namespace SalaryCalculator
                     return;
                 }
                 
-                marqueeX -= 3; // Move 3 pixels left per tick for better readability
+                marqueeX -= 2; // smoother movement
                 Size textSize = TextRenderer.MeasureText(marqueeText, marqueeLabel.Font, new Size(int.MaxValue, int.MaxValue), TextFormatFlags.NoPadding);
                 if (marqueeX < -(textSize.Width + marqueeHorizontalPadding))
                 {
                     marqueeX = marqueeLabel.Width + marqueeHorizontalPadding; // Reset to right side with padding
                 }
                 
-                // Change background color every 10 ticks (500ms) for rainbow effect
+                // Smooth color interpolation instead of abrupt jumps
                 tickCount++;
-                if (tickCount >= 10)
-                {
-                    tickCount = 0;
-                    marqueeColorIndex = (marqueeColorIndex + 1) % marqueeColors.Length;
-                    marqueeLabel.BackColor = marqueeColors[marqueeColorIndex];
-                }
+                int transitionSpan = 32;
+                int cycleLength = transitionSpan * marqueeColors.Length;
+                int cyclePos = tickCount % cycleLength;
+                int fromIndex = cyclePos / transitionSpan;
+                int toIndex = (fromIndex + 1) % marqueeColors.Length;
+                float blend = (cyclePos % transitionSpan) / (float)transitionSpan;
+                marqueeColorIndex = fromIndex;
+                marqueeLabel.BackColor = BlendColor(marqueeColors[fromIndex], marqueeColors[toIndex], blend);
                 
                 marqueeLabel.Invalidate();
             };
@@ -1045,7 +1274,7 @@ namespace SalaryCalculator
             calculateBtn.Width = 180;
             calculateBtn.Height = 40;
             calculateBtn.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
-            calculateBtn.BackColor = System.Drawing.Color.Green;
+            calculateBtn.BackColor = Color.FromArgb(0, 198, 255);
             calculateBtn.ForeColor = System.Drawing.Color.White;
             calculateBtn.Click += (s, e) =>
             {
@@ -1076,7 +1305,7 @@ namespace SalaryCalculator
             logoutBtn.Width = 175;
             logoutBtn.Height = 40;
             logoutBtn.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
-            logoutBtn.BackColor = System.Drawing.Color.Red;
+            logoutBtn.BackColor = Color.FromArgb(88, 63, 130);
             logoutBtn.ForeColor = System.Drawing.Color.White;
             logoutBtn.Click += (s, e) => {
                 // Đóng form tính lương; LoginForm sẽ hiện lại
@@ -1086,13 +1315,15 @@ namespace SalaryCalculator
 
             // Result Panel
             Panel resultPanel = new Panel();
+            resultPanel.Name = "resultPanel";
             int resultX = (mainPanel.Width - 855) / 2;
             int resultTop = Math.Max(calculateBtn.Bottom, logoutBtn.Bottom) + 6;
             resultPanel.Location = new System.Drawing.Point(resultX, resultTop);
             resultPanel.Width = 855;
             resultPanel.Height = mainPanel.Height - resultTop - 6;
-            resultPanel.Padding = new Padding(5);
-            resultPanel.BorderStyle = BorderStyle.Fixed3D;
+            resultPanel.Padding = new Padding(10);
+            resultPanel.BorderStyle = BorderStyle.None;
+            resultPanel.BackColor = Color.FromArgb(238, 247, 255);
 
             Label resultTitleLabel = new Label();
             resultTitleLabel.Text = "KẾT QUẢ";
@@ -1111,7 +1342,7 @@ namespace SalaryCalculator
             empNameLabel.Height = 20;
             empNameLabel.Name = "empNameLabel";
             empNameLabel.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-            empNameLabel.ForeColor = System.Drawing.Color.DarkBlue;
+            empNameLabel.ForeColor = Color.FromArgb(214, 236, 255);
             int detailY = 40; // bắt đầu từ nhân viên
             // spacing đều 21px, font tăng +1 cho phần kết quả
             int detailSpacing = 21;
@@ -1153,7 +1384,7 @@ namespace SalaryCalculator
             grossLabel.Height = 20;
             grossLabel.Name = "grossLabel";
             grossLabel.Font = new System.Drawing.Font("Arial", detailFontBold, System.Drawing.FontStyle.Bold);
-            grossLabel.ForeColor = System.Drawing.Color.DarkGreen;
+            grossLabel.ForeColor = Color.FromArgb(132, 233, 255);
 
             detailY += detailSpacing;
             Label insuranceDeductLabel = new Label();
@@ -1187,7 +1418,7 @@ namespace SalaryCalculator
             Label netLabel = new Label();
             netLabel.Text = "";
             netLabel.Font = new System.Drawing.Font("Arial", detailFontBold + 1f, System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic);
-            netLabel.ForeColor = System.Drawing.Color.DarkGreen;
+            netLabel.ForeColor = Color.FromArgb(141, 239, 255);
             netLabel.Location = new System.Drawing.Point(10, detailY);
             netLabel.Width = 400;
             netLabel.Height = 20;
@@ -1202,7 +1433,7 @@ namespace SalaryCalculator
             detailTitleLabel.Location = new System.Drawing.Point(430, 5);
             detailTitleLabel.Width = 400;
             detailTitleLabel.Height = 20;
-            detailTitleLabel.ForeColor = System.Drawing.Color.DarkBlue;
+            detailTitleLabel.ForeColor = Color.FromArgb(206, 232, 255);
             detailTitleLabel.Visible = false;
 
             Label detailLabel = new Label();
@@ -1258,10 +1489,1347 @@ namespace SalaryCalculator
                 editRankingBtnRef.Click += (s, e) => OpenRankingEditForm(editRankingBtnRef, rankingARef, rankingBRef, rankingCRef);
             }
 
-            // Apply e-commerce theme tweaks
-            try { Theme.ApplyEcommerceTheme(this); } catch { }
+            // Apply Infinity Glass theme tweaks
+            try { Theme.ApplyInfinityGlassTheme(this); } catch { }
             // Re-apply gray backgrounds for readonly fields after theme styling
             try { ApplyReadonlyTextboxStyles(); } catch { }
+            try { InitializeStickFigureCompanion(mainPanel); } catch { }
+        }
+
+        private void InitializeStickFigureCompanion(Panel hostPanel)
+        {
+            if (hostPanel == null || hostPanel.IsDisposed)
+            {
+                return;
+            }
+
+            stickFigureHostPanel = hostPanel;
+            stickFigurePosition = new PointF(28f, Math.Max(80f, hostPanel.Height * 0.35f));
+            stickFigureDestination = stickFigurePosition;
+            stickLeftFootPlantX = stickFigurePosition.X - 8f;
+            stickRightFootPlantX = stickFigurePosition.X + 8f;
+            stickPrevStrideSign = 0f;
+
+            EnableDoubleBuffer(hostPanel);
+            hostPanel.Paint -= StickFigureHostPanel_Paint;
+            hostPanel.Paint += StickFigureHostPanel_Paint;
+            WireStickClickHandlers(hostPanel);
+
+            hostPanel.ControlAdded += (s, e) =>
+            {
+                if (e.Control != null)
+                {
+                    WireStickClickHandlers(e.Control);
+                }
+            };
+
+            hostPanel.Resize += (s, e) =>
+            {
+                if (!hostPanel.IsDisposed)
+                {
+                    var bounds = GetStickWalkBounds();
+                    stickFigurePosition = ClampPoint(stickFigurePosition, bounds);
+                    stickFigureDestination = ClampPoint(stickFigureDestination, bounds);
+                    hostPanel.Invalidate();
+                }
+            };
+
+            if (stickFigureTimer != null)
+            {
+                try
+                {
+                    stickFigureTimer.Stop();
+                    stickFigureTimer.Dispose();
+                }
+                catch { }
+            }
+
+            stickFigureTimer = new Timer();
+            stickFigureTimer.Interval = 42;
+            stickFigureTimer.Tick += (s, e) => UpdateStickFigureState();
+            stickFigureTimer.Start();
+
+            this.FormClosing += (s, e) =>
+            {
+                try
+                {
+                    if (stickFigureTimer != null)
+                    {
+                        stickFigureTimer.Stop();
+                        stickFigureTimer.Dispose();
+                        stickFigureTimer = null;
+                    }
+
+                    if (stickFigureOverlayPanel != null)
+                    {
+                        if (!stickFigureOverlayPanel.IsDisposed)
+                        {
+                            stickFigureOverlayPanel.Dispose();
+                        }
+                        stickFigureOverlayPanel = null;
+                    }
+
+                    if (stickFigureHostPanel != null && !stickFigureHostPanel.IsDisposed)
+                    {
+                        stickFigureHostPanel.Paint -= StickFigureHostPanel_Paint;
+                    }
+                }
+                catch { }
+            };
+        }
+
+        private void UpdateStickFigureState()
+        {
+            if (stickFigureHostPanel == null || stickFigureHostPanel.IsDisposed)
+            {
+                return;
+            }
+
+            var bounds = GetStickWalkBounds();
+            EnsureStickPhysicsRecovery(bounds);
+            stickGesturePhase += 0.2f;
+            if (stickJumpCooldown > 0) stickJumpCooldown--;
+            if (stickSpeechCooldown > 0) stickSpeechCooldown--;
+            if (stickDisturbCooldown > 0) stickDisturbCooldown--;
+            if (stickWallClingTicks > 0) stickWallClingTicks--;
+
+            if (stickMoodTicks <= 0)
+            {
+                UpdateStickMood();
+                stickMoodTicks = 45;
+            }
+            else
+            {
+                stickMoodTicks--;
+            }
+
+            if (stickSpeechTicks > 0)
+            {
+                stickSpeechTicks--;
+            }
+            else
+            {
+                stickCurrentSpeech = "";
+            }
+
+            if (stickSpeechTicks == 0 && stickSpeechCooldown <= 0 && stickSlipTicks == 0)
+            {
+                bool moving = Math.Abs(stickVelocityX) > 0.35f || Math.Abs(stickVelocityY) > 0.2f || stickWantsClimb || stickInteractionTicks > 0;
+                if (moving && stickRandom.Next(100) < 12)
+                {
+                    stickCurrentSpeech = stickAmbientLines[stickRandom.Next(stickAmbientLines.Length)];
+                    stickSpeechTicks = 64;
+                    stickSpeechCooldown = 20;
+                }
+            }
+
+            if (stickAnnoyedTicks > 0)
+            {
+                stickAnnoyedTicks--;
+                if (stickAnnoyedTicks % 22 == 0)
+                {
+                    stickCurrentSpeech = stickAnnoyedLines[stickRandom.Next(stickAnnoyedLines.Length)];
+                    stickSpeechTicks = 48;
+                }
+            }
+
+            if (stickSlipTicks > 0)
+            {
+                stickSlipTicks--;
+                float slipDelta = stickSlipTicks > 6 ? 1.7f : -1.1f;
+                stickFigurePosition = new PointF(stickFigurePosition.X, stickFigurePosition.Y + slipDelta);
+                stickAction = "Trượt tay";
+                if (stickSlipTicks == 0)
+                {
+                    stickVelocityY = 0f;
+                    stickOnGround = true;
+                }
+            }
+
+            if (stickInteractionTicks > 0)
+            {
+                stickInteractionTicks--;
+                stickWalkPhase += 0.18f;
+                stickHandReach = Math.Min(1f, stickHandReach + 0.12f);
+                stickAction = "Bám ô";
+                stickVelocityX *= 0.75f;
+                stickParkourTicks = Math.Max(0, stickParkourTicks - 1);
+                if (stickSpeechCooldown <= 0 && stickInteractionTicks % 22 == 0)
+                {
+                    stickCurrentSpeech = BuildSmartSpeech(stickActiveTarget);
+                    stickSpeechTicks = 58;
+                    stickSpeechCooldown = 18;
+                }
+                if (!stickOnGround && stickWallClingTicks > 0)
+                {
+                    float lockX = stickFigureDestination.X - stickFigurePosition.X;
+                    float lockY = stickFigureDestination.Y - stickFigurePosition.Y;
+                    stickFigurePosition = new PointF(
+                        stickFigurePosition.X + lockX * 0.35f,
+                        stickFigurePosition.Y + lockY * 0.35f);
+                    stickVelocityY = 0f;
+                }
+                else if (!stickOnGround)
+                {
+                    stickVelocityY += 0.28f;
+                    stickFigurePosition = new PointF(stickFigurePosition.X, stickFigurePosition.Y + stickVelocityY);
+                }
+            }
+            else
+            {
+                if (NeedNewDestination(bounds))
+                {
+                    PickNextStickDestination(bounds);
+                }
+
+                stickHandReach = Math.Max(0f, stickHandReach - 0.1f);
+
+                float dx = stickFigureDestination.X - stickFigurePosition.X;
+                float dy = stickFigureDestination.Y - stickFigurePosition.Y;
+
+                if (stickParkourTicks > 0)
+                {
+                    stickParkourTicks--;
+                }
+
+                if (stickWantsClimb)
+                {
+                    float climbSpeedX = 1.7f;
+                    float climbSpeedY = 2.2f;
+
+                    float cx = stickClimbTarget.X - stickFigurePosition.X;
+                    float cy = stickClimbTarget.Y - stickFigurePosition.Y;
+
+                    float stepX = Math.Sign(cx) * Math.Min(Math.Abs(cx), climbSpeedX);
+                    float stepY = Math.Sign(cy) * Math.Min(Math.Abs(cy), climbSpeedY);
+
+                    stickFigurePosition = new PointF(stickFigurePosition.X + stepX, stickFigurePosition.Y + stepY);
+                    stickWalkPhase += 0.45f;
+                    stickAction = stickParkourTicks > 0 ? "Bám ô" : "Leo trèo";
+                    stickOnGround = false;
+
+                    if (Math.Abs(cx) < 2.5f && Math.Abs(cy) < 2.5f)
+                    {
+                        stickWantsClimb = false;
+                        stickFigurePosition = stickClimbTarget;
+                        stickOnGround = false;
+                        stickVelocityY = 0f;
+                        stickWallClingTicks = 72;
+                        stickInteractionTicks = 64;
+                    }
+                }
+                else
+                {
+                    bool shouldParkour = false;
+                    if (stickActiveTarget != null && !stickActiveTarget.IsDisposed && stickActiveTarget.Visible)
+                    {
+                        Rectangle targetRect = GetBoundsRelativeTo(stickActiveTarget, stickFigureHostPanel);
+                        float centerX = targetRect.Left + targetRect.Width * 0.5f;
+                        bool tallObstacle = targetRect.Top < stickFigurePosition.Y - 58f;
+                        bool nearTarget = Math.Abs(centerX - stickFigurePosition.X) < 120f;
+                        shouldParkour = stickOnGround && tallObstacle && nearTarget && Math.Abs(dx) > 26f && stickJumpCooldown == 0;
+                    }
+
+                    float runTopSpeed = Math.Abs(dx) > 120f ? 5.2f : 3.2f;
+                    float desiredVx = Math.Max(-runTopSpeed, Math.Min(runTopSpeed, dx * 0.09f));
+                    stickVelocityX += (desiredVx - stickVelocityX) * 0.23f;
+
+                    bool shouldJump = dy < -36f && stickOnGround && stickJumpCooldown == 0;
+                    if (shouldParkour)
+                    {
+                        stickVelocityY = -6.8f;
+                        stickVelocityX += Math.Sign(dx) * 1.1f;
+                        stickOnGround = false;
+                        stickJumpCooldown = 36;
+                        stickParkourTicks = 26;
+                        stickAction = "Bám ô";
+                    }
+                    else if (shouldJump)
+                    {
+                        stickVelocityY = -6.4f;
+                        stickOnGround = false;
+                        stickJumpCooldown = 42;
+                    }
+
+                    if (!stickOnGround)
+                    {
+                        stickVelocityY += 0.36f;
+                    }
+
+                    if (!stickOnGround && stickVelocityY > 0.15f)
+                    {
+                        TryMaintainWallCling(bounds);
+                    }
+
+                    stickFigurePosition = new PointF(stickFigurePosition.X + stickVelocityX, stickFigurePosition.Y + stickVelocityY);
+
+                    float groundY = bounds.Bottom;
+                    if (stickFigurePosition.Y >= groundY)
+                    {
+                        stickFigurePosition = new PointF(stickFigurePosition.X, groundY);
+                        stickVelocityY = 0f;
+                        stickOnGround = true;
+                    }
+
+                    stickWalkPhase += Math.Abs(stickVelocityX) * 0.11f + (stickOnGround ? 0.05f : 0.12f);
+
+                    if (!stickOnGround)
+                    {
+                        if (stickParkourTicks > 0)
+                        {
+                            stickAction = "Bám ô";
+                        }
+                        else
+                        {
+                            stickAction = "Bám ô";
+                        }
+                    }
+                    else if (Math.Abs(stickVelocityX) > 3.6f)
+                    {
+                        stickAction = "Bò";
+                    }
+                    else
+                    {
+                        stickAction = "Bò";
+                    }
+
+                    float planarDistance = (float)Math.Sqrt(dx * dx + dy * dy);
+                    if (planarDistance < 10f && stickOnGround)
+                    {
+                        stickInteractionTicks = 74;
+                        stickVelocityX *= 0.4f;
+                    }
+
+                    if (stickOnGround)
+                    {
+                        float strideSign = Math.Sign((float)Math.Sin(stickWalkPhase));
+                        if (stickPrevStrideSign <= 0f && strideSign > 0f)
+                        {
+                            stickRightFootPlantX = stickFigurePosition.X + 8f;
+                        }
+                        else if (stickPrevStrideSign >= 0f && strideSign < 0f)
+                        {
+                            stickLeftFootPlantX = stickFigurePosition.X - 8f;
+                        }
+
+                        if (Math.Abs(stickVelocityX) < 0.35f)
+                        {
+                            stickLeftFootPlantX = stickFigurePosition.X - 7.5f;
+                            stickRightFootPlantX = stickFigurePosition.X + 7.5f;
+                        }
+
+                        stickPrevStrideSign = strideSign;
+                    }
+                }
+            }
+
+            stickFigurePosition = ClampPoint(stickFigurePosition, bounds);
+            EnsureStickPhysicsRecovery(bounds);
+            Rectangle updatedBounds = ComputeStickDrawBounds();
+            Rectangle dirtyRegion = Rectangle.Union(stickLastDrawBounds, updatedBounds);
+            if (dirtyRegion.Width <= 0 || dirtyRegion.Height <= 0)
+            {
+                dirtyRegion = updatedBounds;
+            }
+
+            dirtyRegion.Inflate(8, 8);
+            stickFigureHostPanel.Invalidate(dirtyRegion);
+            stickLastDrawBounds = updatedBounds;
+        }
+
+        private void EnsureStickPhysicsRecovery(Rectangle bounds)
+        {
+            bool invalidPosition = float.IsNaN(stickFigurePosition.X) || float.IsNaN(stickFigurePosition.Y) ||
+                                   float.IsInfinity(stickFigurePosition.X) || float.IsInfinity(stickFigurePosition.Y);
+            bool tooFarOut = stickFigurePosition.X < bounds.Left - 120f ||
+                             stickFigurePosition.X > bounds.Right + 120f ||
+                             stickFigurePosition.Y < bounds.Top - 120f ||
+                             stickFigurePosition.Y > bounds.Bottom + 120f;
+
+            if (invalidPosition || tooFarOut)
+            {
+                float safeX = Math.Max(bounds.Left + 24f, Math.Min(bounds.Right - 24f, stickFigurePosition.X));
+                if (float.IsNaN(safeX) || float.IsInfinity(safeX))
+                {
+                    safeX = bounds.Left + (bounds.Width * 0.5f);
+                }
+
+                stickFigurePosition = new PointF(safeX, bounds.Bottom);
+                stickFigureDestination = stickFigurePosition;
+                stickVelocityX = 0f;
+                stickVelocityY = 0f;
+                stickWantsClimb = false;
+                stickClimbTarget = PointF.Empty;
+                stickSlipTicks = 0;
+                stickInteractionTicks = Math.Min(stickInteractionTicks, 16);
+                stickOnGround = true;
+                if (stickAction == "Trượt tay" || stickAction == "Nhảy" || stickAction == "Parkour")
+                {
+                    stickAction = "Bò";
+                }
+            }
+
+            if (stickFigurePosition.Y >= bounds.Bottom - 0.5f)
+            {
+                stickFigurePosition = new PointF(stickFigurePosition.X, bounds.Bottom);
+                stickOnGround = true;
+                if (stickVelocityY > 0f)
+                {
+                    stickVelocityY = 0f;
+                }
+
+                if (stickSlipTicks == 0 && (stickAction == "Trượt tay" || stickAction == "Nhảy"))
+                {
+                    stickAction = "Bò";
+                }
+            }
+        }
+
+        private Rectangle ComputeStickDrawBounds()
+        {
+            int x = (int)Math.Round(stickFigurePosition.X) - 46;
+            int y = (int)Math.Round(stickFigurePosition.Y) - 82;
+            int width = 180;
+            int height = 138;
+
+            if (stickInteractionTicks > 0 || stickSpeechTicks > 0)
+            {
+                width += 80;
+                y -= 10;
+                height += 18;
+            }
+
+            var rect = new Rectangle(x, y, width, height);
+
+            if (stickActiveTarget != null && !stickActiveTarget.IsDisposed && stickActiveTarget.Visible && stickFigureHostPanel != null)
+            {
+                Rectangle targetRect = GetBoundsRelativeTo(stickActiveTarget, stickFigureHostPanel);
+                targetRect.Inflate(14, 14);
+                rect = Rectangle.Union(rect, targetRect);
+            }
+
+            if (stickFigureHostPanel != null && !stickFigureHostPanel.IsDisposed)
+            {
+                Rectangle clientRect = new Rectangle(Point.Empty, stickFigureHostPanel.ClientSize);
+                rect.Intersect(clientRect);
+            }
+
+            return rect;
+        }
+
+        private bool NeedNewDestination(Rectangle bounds)
+        {
+            if (stickFigureDestination == PointF.Empty)
+            {
+                return true;
+            }
+
+            float dx = stickFigureDestination.X - stickFigurePosition.X;
+            float dy = stickFigureDestination.Y - stickFigurePosition.Y;
+            float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            if (distance < 3f)
+            {
+                return true;
+            }
+
+            return !bounds.Contains(Point.Round(stickFigureDestination));
+        }
+
+        private void PickNextStickDestination(Rectangle bounds)
+        {
+            var candidates = GetInteractiveControls(stickFigureHostPanel)
+                .Where(c => c.Visible && c.Enabled)
+                .ToList();
+
+            if (candidates.Count == 0)
+            {
+                stickActiveTarget = null;
+                stickFigureDestination = new PointF(
+                    stickRandom.Next(bounds.Left + 18, Math.Max(bounds.Left + 19, bounds.Right - 18)),
+                    stickRandom.Next(bounds.Top + 70, Math.Max(bounds.Top + 71, bounds.Bottom - 22)));
+                return;
+            }
+
+            var scored = candidates
+                .Select(c => new { Control = c, Score = EvaluateStickTargetScore(c) })
+                .OrderByDescending(x => x.Score)
+                .Take(10)
+                .ToList();
+
+            if (scored.Count == 0)
+            {
+                stickActiveTarget = candidates[stickRandom.Next(candidates.Count)];
+            }
+            else
+            {
+                int pickIndex = stickRandom.Next(Math.Min(5, scored.Count));
+                stickActiveTarget = scored[pickIndex].Control;
+            }
+
+            Rectangle targetRect = GetBoundsRelativeTo(stickActiveTarget, stickFigureHostPanel);
+            bool climbMode;
+            PointF destination = ComputeSmartStickDestination(targetRect, bounds, out climbMode);
+            stickFigureDestination = ClampPoint(destination, bounds);
+            stickWantsClimb = climbMode;
+            if (stickWantsClimb)
+            {
+                stickClimbTarget = stickFigureDestination;
+            }
+            else
+            {
+                stickClimbTarget = PointF.Empty;
+            }
+
+            string key = GetStickControlKey(stickActiveTarget);
+            if (!string.IsNullOrEmpty(key))
+            {
+                int visit = 0;
+                stickVisitCounter.TryGetValue(key, out visit);
+                stickVisitCounter[key] = visit + 1;
+            }
+
+            if (stickSpeechCooldown <= 0)
+            {
+                stickCurrentSpeech = BuildSmartSpeech(stickActiveTarget);
+                stickSpeechTicks = 96;
+                stickSpeechCooldown = 20;
+            }
+        }
+
+        private PointF ComputeSmartStickDestination(Rectangle targetRect, Rectangle bounds, out bool climbMode)
+        {
+            climbMode = true;
+            float targetCenterX = targetRect.Left + targetRect.Width / 2f;
+            float targetCenterY = targetRect.Top + targetRect.Height / 2f;
+
+            float margin = 14f;
+            var anchors = new[]
+            {
+                new PointF(targetRect.Left - margin, targetCenterY),
+                new PointF(targetRect.Right + margin, targetCenterY),
+                new PointF(targetCenterX, targetRect.Top - margin),
+                new PointF(targetCenterX, targetRect.Bottom + margin)
+            };
+
+            PointF best = anchors[0];
+            float bestDistance = float.MaxValue;
+            foreach (var anchor in anchors)
+            {
+                PointF clamped = ClampPoint(anchor, bounds);
+                float dx = clamped.X - stickFigurePosition.X;
+                float dy = clamped.Y - stickFigurePosition.Y;
+                float distance = dx * dx + dy * dy;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = clamped;
+                }
+            }
+
+            return best;
+        }
+
+        private bool TryMaintainWallCling(Rectangle bounds)
+        {
+            if (stickOnGround || stickWantsClimb)
+            {
+                return false;
+            }
+
+            if (stickActiveTarget == null || stickActiveTarget.IsDisposed || !stickActiveTarget.Visible)
+            {
+                return false;
+            }
+
+            float dx = stickFigureDestination.X - stickFigurePosition.X;
+            float dy = stickFigureDestination.Y - stickFigurePosition.Y;
+            bool nearDestination = Math.Abs(dx) <= 18f && Math.Abs(dy) <= 22f;
+            if (!nearDestination)
+            {
+                return false;
+            }
+
+            stickFigurePosition = new PointF(
+                stickFigurePosition.X + dx * 0.42f,
+                stickFigurePosition.Y + dy * 0.42f);
+            stickFigurePosition = ClampPoint(stickFigurePosition, bounds);
+            stickVelocityY = 0f;
+            stickVelocityX *= 0.6f;
+            stickWallClingTicks = Math.Max(stickWallClingTicks, 18);
+            stickAction = "Bám ô";
+            return true;
+        }
+
+        private IEnumerable<Control> GetInteractiveControls(Control root)
+        {
+            foreach (Control child in root.Controls)
+            {
+                if (child == null || child.IsDisposed)
+                {
+                    continue;
+                }
+
+                if (ReferenceEquals(child, stickFigureOverlayPanel))
+                {
+                    continue;
+                }
+
+                if ((child is Label || child is TextBox || child is Button || child is CheckBox || child is Panel) &&
+                    !string.Equals(child.Name, "marqueeLabel", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return child;
+                }
+
+                foreach (var nested in GetInteractiveControls(child))
+                {
+                    yield return nested;
+                }
+            }
+        }
+
+        private Rectangle GetStickWalkBounds()
+        {
+            if (stickFigureHostPanel == null)
+            {
+                return new Rectangle(0, 0, 1, 1);
+            }
+
+            int left = 8;
+            int top = 8;
+            int right = Math.Max(left + 100, stickFigureHostPanel.ClientSize.Width - 8);
+            int bottom = Math.Max(top + 100, stickFigureHostPanel.ClientSize.Height - 8);
+            return Rectangle.FromLTRB(left, top, right, bottom);
+        }
+
+        private static PointF ClampPoint(PointF p, Rectangle bounds)
+        {
+            float x = Math.Max(bounds.Left, Math.Min(bounds.Right, p.X));
+            float y = Math.Max(bounds.Top, Math.Min(bounds.Bottom, p.Y));
+            return new PointF(x, y);
+        }
+
+        private static Rectangle GetBoundsRelativeTo(Control control, Control ancestor)
+        {
+            if (control == null || ancestor == null)
+            {
+                return Rectangle.Empty;
+            }
+
+            Point screen = control.PointToScreen(Point.Empty);
+            Point local = ancestor.PointToClient(screen);
+            return new Rectangle(local, control.Size);
+        }
+
+        private int EvaluateStickTargetScore(Control control)
+        {
+            if (control == null)
+            {
+                return int.MinValue;
+            }
+
+            int score = stickRandom.Next(0, 18);
+            string text = (control.Text ?? string.Empty).Trim();
+            string name = control.Name ?? string.Empty;
+            string key = GetStickControlKey(control);
+
+            if (control is TextBox tb)
+            {
+                string value = (tb.Text ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(value) || value == "0") score += 65;
+                else score += 26;
+                if (!tb.ReadOnly) score += 10;
+                if (!tb.ReadOnly && stickMood == "Tinh nghịch") score += 8;
+            }
+            else if (control is Label)
+            {
+                if (!string.IsNullOrWhiteSpace(text)) score += 30;
+                if (name.Contains("result", StringComparison.OrdinalIgnoreCase) || name.Contains("net", StringComparison.OrdinalIgnoreCase)) score += 22;
+            }
+            else if (control is Button)
+            {
+                score += 16;
+            }
+            else if (control is CheckBox)
+            {
+                score += 14;
+            }
+
+            if (name.Contains("tax", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("salary", StringComparison.OrdinalIgnoreCase) ||
+                text.Contains("Lương", StringComparison.OrdinalIgnoreCase) ||
+                text.Contains("Net", StringComparison.OrdinalIgnoreCase))
+            {
+                score += 20;
+            }
+
+            if (!string.IsNullOrWhiteSpace(key) && stickVisitCounter.TryGetValue(key, out int visits))
+            {
+                score -= Math.Min(40, visits * 10);
+            }
+
+            if (stickFigureHostPanel != null)
+            {
+                Rectangle rect = GetBoundsRelativeTo(control, stickFigureHostPanel);
+                float dx = rect.Left + rect.Width / 2f - stickFigurePosition.X;
+                float dy = rect.Top + rect.Height / 2f - stickFigurePosition.Y;
+                float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+                score -= (int)(distance * 0.035f);
+            }
+
+            return score;
+        }
+
+        private void UpdateStickMood()
+        {
+            decimal net = ReadNumberFromControl("netLabel");
+            decimal tax = ReadNumberFromControl("taxTextBox");
+
+            if (net >= 13000000m)
+            {
+                stickMood = "Phấn khích";
+            }
+            else if (tax > 0)
+            {
+                stickMood = "Tập trung";
+            }
+            else
+            {
+                stickMood = "Tinh nghịch";
+            }
+        }
+
+        private decimal ReadNumberFromControl(string controlName)
+        {
+            try
+            {
+                var found = this.Controls.Find(controlName, true);
+                if (found.Length == 0) return 0m;
+
+                string text = string.Empty;
+                if (found[0] is TextBox tb) text = tb.Text;
+                else if (found[0] is Label lb) text = lb.Text;
+
+                if (string.IsNullOrWhiteSpace(text)) return 0m;
+                var chars = text.Where(c => char.IsDigit(c) || c == ',' || c == '.').ToArray();
+                string cleaned = new string(chars).Replace(",", "");
+                if (decimal.TryParse(cleaned, out decimal number)) return number;
+                return 0m;
+            }
+            catch
+            {
+                return 0m;
+            }
+        }
+
+        private string BuildSmartSpeech(Control target)
+        {
+            decimal netValue = ReadNumberFromControl("netLabel");
+            decimal taxPercent = ReadNumberFromControl("taxTextBox");
+            decimal overtime3x = ReadNumberFromControl("overtime3xTextBox");
+            decimal overtime2x = ReadNumberFromControl("overtime2xTextBox");
+            int emptyKeyFields = CountEmptyKeyInputs();
+
+            if (stickAnnoyedTicks > 0)
+            {
+                return stickAnnoyedLines[stickRandom.Next(stickAnnoyedLines.Length)];
+            }
+
+            if (stickAction == "Parkour" || stickAction == "Bám ô")
+            {
+                return "Parkour mode: bám ô cho mượt nè!";
+            }
+
+            if (target == null)
+            {
+                if (emptyKeyFields >= 4) return "Mình thấy còn thiếu nhiều ô, điền dần nhé";
+                if (netValue >= 10000000m) return GetRandomSalaryComment();
+                if (taxPercent >= 20m) return "Thuế đang cao, cân nhắc OT hợp lý nè";
+                if (overtime2x + overtime3x >= 30m) return "OT khá dày, nhớ cân bằng sức khỏe nha";
+                return stickMood == "Phấn khích" ? "Hôm nay vui quá!" : GetRandomDialogue();
+            }
+
+            if (target is TextBox tb)
+            {
+                string val = (tb.Text ?? string.Empty).Trim();
+                string lowerName = (tb.Name ?? string.Empty).ToLowerInvariant();
+
+                if (lowerName.Contains("overtime3x"))
+                {
+                    return overtime3x > 0 ? stickOtTips[stickRandom.Next(stickOtTips.Length)] : "Có OT x3 thì net sẽ bật mạnh đó";
+                }
+                if (lowerName.Contains("tax"))
+                {
+                    if (taxPercent <= 0) return "Thuế đang 0%, khá ổn áp";
+                    if (taxPercent >= 30) return "Thuế cao rồi, tối ưu phụ cấp thôi";
+                    return stickTaxTips[stickRandom.Next(stickTaxTips.Length)];
+                }
+                if (lowerName.Contains("salary"))
+                {
+                    return GetRandomSalaryComment();
+                }
+
+                if (string.IsNullOrWhiteSpace(val) || val == "0")
+                {
+                    return stickMood == "Tập trung" ? "Điền ô này để tính chuẩn hơn" : "Ô này đang trống nè!";
+                }
+                if (decimal.TryParse(val.Replace(",", ""), out decimal n))
+                {
+                    if (n > 10000000m) return "Số này to ghê ✨";
+                    if (n > 0m) return "Con số ổn áp đó!";
+                }
+                return "Để mình kiểm tra ô này";
+            }
+
+            string t = (target.Text ?? string.Empty).Trim();
+            if (t.Contains("Net", StringComparison.OrdinalIgnoreCase) || t.Contains("Thực Nhận", StringComparison.OrdinalIgnoreCase))
+            {
+                if (netValue >= 10000000m) return GetRandomSalaryComment();
+                if (netValue >= 8000000m) return "Net đang trong vùng mục tiêu 8-15 triệu, giữ nhịp này nha";
+                return "Cố thêm chút nữa để chạm mốc net 8 triệu nè";
+            }
+            if (t.Contains("Thuế", StringComparison.OrdinalIgnoreCase))
+            {
+                return taxPercent >= 20m ? "Thuế này cao, mình nên tối ưu phụ cấp" : "Thuế này vẫn trong tầm kiểm soát";
+            }
+            if (target is Button)
+            {
+                return stickMood == "Phấn khích" ? "Bấm phát là mình chạy full combo!" : "Bấm nút này để mình phân tích kết quả nè";
+            }
+
+            var netFound = this.Controls.Find("netLabel", true);
+            if (netFound.Length > 0 && netFound[0] is Label netLabel && !string.IsNullOrWhiteSpace(netLabel.Text))
+            {
+                return "Kết quả đang đẹp lắm 💙";
+            }
+
+            if (stickMood == "Tập trung") return "Mình đang theo dõi số liệu";
+            if (stickMood == "Phấn khích") return "Yayyy, tiếp tục nào!";
+            return GetRandomDialogue();
+        }
+
+        private string GetRandomDialogue()
+        {
+            int baseCount = stickMessages.Length;
+            int extraCount = stickExtraMessages.Length;
+            int pick = stickRandom.Next(baseCount + extraCount);
+            return pick < baseCount ? stickMessages[pick] : stickExtraMessages[pick - baseCount];
+        }
+
+        private string GetRandomSalaryComment()
+        {
+            return stickSalaryComments[stickRandom.Next(stickSalaryComments.Length)];
+        }
+
+        private int CountEmptyKeyInputs()
+        {
+            string[] keys = new[]
+            {
+                "salaryTextBox", "workingDaysTextBox", "overtime2xTextBox", "overtime3xTextBox",
+                "overtime15xTextBox", "otDays12TextBox", "otDays8TextBox", "otherBonusTextBox"
+            };
+
+            int emptyCount = 0;
+            foreach (var key in keys)
+            {
+                var found = this.Controls.Find(key, true);
+                if (found.Length == 0 || !(found[0] is TextBox tb))
+                {
+                    continue;
+                }
+
+                string value = (tb.Text ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(value) || value == "0")
+                {
+                    emptyCount++;
+                }
+            }
+
+            return emptyCount;
+        }
+
+        private void WireStickClickHandlers(Control root)
+        {
+            if (root == null || root.IsDisposed)
+            {
+                return;
+            }
+
+            root.MouseDown -= StickControl_MouseDown;
+            root.MouseDown += StickControl_MouseDown;
+
+            foreach (Control child in root.Controls)
+            {
+                WireStickClickHandlers(child);
+            }
+        }
+
+        private void StickControl_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (stickFigureHostPanel == null || stickFigureHostPanel.IsDisposed)
+            {
+                return;
+            }
+
+            Point clickPoint = stickFigureHostPanel.PointToClient(Control.MousePosition);
+            TryDisturbStickFigure(clickPoint);
+        }
+
+        private void TryDisturbStickFigure(Point clickPoint)
+        {
+            if (stickDisturbCooldown > 0 || stickSlipTicks > 0)
+            {
+                return;
+            }
+
+            float dx = clickPoint.X - stickFigurePosition.X;
+            float dy = clickPoint.Y - (stickFigurePosition.Y - 10f);
+            float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+            bool isMoving = Math.Abs(stickVelocityX) > 0.95f ||
+                            Math.Abs(stickFigureDestination.X - stickFigurePosition.X) > 24f ||
+                            stickAction == "Chạy" ||
+                            stickAction == "Đi bộ" ||
+                            stickAction == "Parkour" ||
+                            stickAction == "Bò" ||
+                            stickAction == "Bám ô";
+
+            if (!isMoving || distance > 70f)
+            {
+                return;
+            }
+
+            stickSlipTicks = 12;
+            stickAnnoyedTicks = 88;
+            stickDisturbCooldown = 52;
+            stickWallClingTicks = 0;
+            stickOnGround = false;
+            stickVelocityX *= 0.58f;
+            stickVelocityY = 0.5f;
+            stickAction = "Trượt tay";
+            stickCurrentSpeech = stickAnnoyedLines[stickRandom.Next(stickAnnoyedLines.Length)];
+            stickSpeechTicks = 68;
+            stickSpeechCooldown = 12;
+        }
+
+        private static string GetStickControlKey(Control control)
+        {
+            if (control == null)
+            {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(control.Name))
+            {
+                return control.Name;
+            }
+
+            return control.GetType().Name + ":" + (control.Text ?? string.Empty);
+        }
+
+        private void StickFigureHostPanel_Paint(object sender, PaintEventArgs e)
+        {
+            if (stickFigureHostPanel == null || stickFigureHostPanel.IsDisposed)
+            {
+                return;
+            }
+
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            bool facingRight = stickFigureDestination.X >= stickFigurePosition.X;
+            float direction = facingRight ? 1f : -1f;
+            float stride = (float)Math.Sin(stickWalkPhase);
+            float strideCos = (float)Math.Cos(stickWalkPhase);
+            float bodyBob = (float)Math.Sin(stickWalkPhase * 0.6f) * 1.1f;
+            float lean = 0f;
+
+            float headRadius = 7.2f;
+            float bodyTopY = stickFigurePosition.Y - 23f + bodyBob;
+            float bodyBottomY = stickFigurePosition.Y - 4f + bodyBob;
+            float headCenterX = stickFigurePosition.X;
+            float headCenterY = bodyTopY - 9f;
+
+            if (stickAction == "Chạy") lean = 2.2f * direction;
+            if (stickAction == "Leo trèo") lean = 1.4f * direction;
+
+            PointF shoulderCenter = new PointF(stickFigurePosition.X + lean, bodyTopY + 6f);
+            PointF hipCenter = new PointF(stickFigurePosition.X + lean * 0.45f, bodyBottomY);
+            PointF shoulderLeft = new PointF(shoulderCenter.X - 4.8f, shoulderCenter.Y);
+            PointF shoulderRight = new PointF(shoulderCenter.X + 4.8f, shoulderCenter.Y);
+            PointF hipLeft = new PointF(hipCenter.X - 3.8f, hipCenter.Y);
+            PointF hipRight = new PointF(hipCenter.X + 3.8f, hipCenter.Y);
+
+            PointF leftHandTarget = new PointF(shoulderLeft.X - 6.5f, bodyTopY + 8f + stride * 2.5f);
+            PointF rightHandTarget = new PointF(shoulderRight.X + 6.5f, bodyTopY + 8f - stride * 2.5f);
+            PointF leftFootTarget = new PointF(hipLeft.X - 4.4f + stride * 1.8f, stickFigurePosition.Y + 11f + stride * 1.2f);
+            PointF rightFootTarget = new PointF(hipRight.X + 4.4f - stride * 1.8f, stickFigurePosition.Y + 11f - stride * 1.2f);
+
+            if (stickOnGround && (stickAction == "Đi bộ" || stickAction == "Chạy"))
+            {
+                float speed = Math.Abs(stickVelocityX);
+                float stepLength = stickAction == "Chạy" ? 10.5f : 7.5f;
+                float lift = stickAction == "Chạy" ? 5.2f : 3.6f;
+                float groundY = stickFigurePosition.Y + 11f;
+
+                bool leftSwing = stride > 0f;
+                if (leftSwing)
+                {
+                    leftFootTarget = new PointF(hipLeft.X + stepLength * stride, groundY - Math.Abs(stride) * lift);
+                    rightFootTarget = new PointF(
+                        stickRightFootPlantX + Math.Sign(stickVelocityX) * Math.Min(speed * 0.22f, 1.1f),
+                        groundY + Math.Abs(strideCos) * 0.25f);
+                }
+                else
+                {
+                    leftFootTarget = new PointF(
+                        stickLeftFootPlantX + Math.Sign(stickVelocityX) * Math.Min(speed * 0.22f, 1.1f),
+                        groundY + Math.Abs(strideCos) * 0.25f);
+                    rightFootTarget = new PointF(hipRight.X - stepLength * stride, groundY - Math.Abs(stride) * lift);
+                }
+            }
+
+            Rectangle targetRect = Rectangle.Empty;
+            bool hasVisibleTarget = stickActiveTarget != null && !stickActiveTarget.IsDisposed && stickActiveTarget.Visible;
+            if (hasVisibleTarget)
+            {
+                targetRect = GetBoundsRelativeTo(stickActiveTarget, stickFigureHostPanel);
+                PointF touchPoint = new PointF(targetRect.Left + targetRect.Width / 2f, targetRect.Top + targetRect.Height / 2f);
+                float tx = touchPoint.X - shoulderRight.X;
+                float ty = touchPoint.Y - shoulderRight.Y;
+                float dist = (float)Math.Sqrt(tx * tx + ty * ty);
+
+                if (dist > 0.001f)
+                {
+                    float maxReach = 44f;
+                    float nx = tx / dist;
+                    float ny = ty / dist;
+                    PointF stretched = new PointF(shoulderRight.X + nx * maxReach, shoulderRight.Y + ny * maxReach);
+                    rightHandTarget = new PointF(
+                        rightHandTarget.X + (stretched.X - rightHandTarget.X) * stickHandReach,
+                        rightHandTarget.Y + (stretched.Y - rightHandTarget.Y) * stickHandReach);
+                }
+            }
+
+            if (stickAction == "Chạy")
+            {
+                float sprint = (float)Math.Sin(stickWalkPhase * 2f) * 6f;
+                leftHandTarget = new PointF(shoulderLeft.X - 9.2f, bodyTopY + 7f - sprint * 0.5f);
+                rightHandTarget = new PointF(shoulderRight.X + 9.2f, bodyTopY + 7f + sprint * 0.5f);
+                leftFootTarget = new PointF(hipLeft.X - 4f + sprint * 0.95f, stickFigurePosition.Y + 11f + sprint);
+                rightFootTarget = new PointF(hipRight.X + 4f - sprint * 0.95f, stickFigurePosition.Y + 11f - sprint);
+            }
+            else if (stickAction == "Nhảy")
+            {
+                float kick = (float)Math.Sin(stickWalkPhase * 1.2f) * 2f;
+                leftHandTarget = new PointF(shoulderLeft.X - 5f, bodyTopY - 12f);
+                rightHandTarget = new PointF(shoulderRight.X + 5f, bodyTopY - 12f);
+                leftFootTarget = new PointF(hipLeft.X - 1.8f, stickFigurePosition.Y + 7f - kick);
+                rightFootTarget = new PointF(hipRight.X + 1.8f, stickFigurePosition.Y + 7f + kick);
+            }
+            else if (stickAction == "Leo trèo" || stickAction == "Bò")
+            {
+                float climbWave = (float)Math.Sin(stickWalkPhase * 1.4f) * 5f;
+                leftHandTarget = new PointF(shoulderLeft.X - 2f, bodyTopY + 0.5f + climbWave);
+                rightHandTarget = new PointF(shoulderRight.X + 2f, bodyTopY + 9f - climbWave);
+                leftFootTarget = new PointF(hipLeft.X - 1.2f, stickFigurePosition.Y + 8f - climbWave * 0.55f);
+                rightFootTarget = new PointF(hipRight.X + 1.2f, stickFigurePosition.Y + 8f + climbWave * 0.55f);
+            }
+            else if (stickAction == "Bám ô")
+            {
+                float cling = (float)Math.Sin(stickGesturePhase * 1.5f) * 1.8f;
+                leftHandTarget = new PointF(shoulderLeft.X - 2.4f, bodyTopY - 1.5f + cling);
+                rightHandTarget = new PointF(shoulderRight.X + 2.4f, bodyTopY - 4.5f - cling);
+                leftFootTarget = new PointF(hipLeft.X - 0.8f, stickFigurePosition.Y + 8.5f - cling * 0.35f);
+                rightFootTarget = new PointF(hipRight.X + 0.8f, stickFigurePosition.Y + 7.4f + cling * 0.35f);
+            }
+            else if (stickAction == "Parkour")
+            {
+                float pk = (float)Math.Sin(stickGesturePhase * 2.2f);
+                leftHandTarget = new PointF(shoulderLeft.X - 4.8f, bodyTopY - 8f - pk * 1.2f);
+                rightHandTarget = new PointF(shoulderRight.X + 4.8f, bodyTopY - 5f + pk * 1.2f);
+                leftFootTarget = new PointF(hipLeft.X - 2.2f, stickFigurePosition.Y + 7.2f + pk * 0.8f);
+                rightFootTarget = new PointF(hipRight.X + 5.2f, stickFigurePosition.Y + 10.6f - pk * 0.8f);
+            }
+            else if (stickAction == "Tương tác")
+            {
+                float wave = (float)Math.Sin(stickGesturePhase * 1.8f) * 3f;
+                leftHandTarget = new PointF(shoulderLeft.X - 5.2f, bodyTopY + 6.5f + wave);
+            }
+            else if (stickAction == "Trượt tay")
+            {
+                float panic = (float)Math.Sin(stickGesturePhase * 2.6f) * 2.4f;
+                leftHandTarget = new PointF(shoulderLeft.X - 5.6f, bodyTopY - 7f + panic);
+                rightHandTarget = new PointF(shoulderRight.X + 5.6f, bodyTopY - 6f - panic);
+                leftFootTarget = new PointF(hipLeft.X - 2.4f, stickFigurePosition.Y + 9.6f + panic * 0.2f);
+                rightFootTarget = new PointF(hipRight.X + 2.4f, stickFigurePosition.Y + 9.2f - panic * 0.2f);
+            }
+
+            EnforceSideSeparation(ref leftHandTarget, ref rightHandTarget, stickFigurePosition.X, 8.8f);
+            EnforceSideSeparation(ref leftFootTarget, ref rightFootTarget, stickFigurePosition.X, 7.6f);
+
+            PointF leftElbowHint = new PointF(shoulderLeft.X - 8f, shoulderLeft.Y + 2.2f);
+            PointF rightElbowHint = new PointF(shoulderRight.X + 8f, shoulderRight.Y + 2.2f);
+            PointF leftKneeHint = new PointF(hipLeft.X - 6.5f, hipLeft.Y + 8.5f);
+            PointF rightKneeHint = new PointF(hipRight.X + 6.5f, hipRight.Y + 8.5f);
+
+            PointF leftElbow = ComputeJointPointWithHint(shoulderLeft, leftHandTarget, 8.8f, 8.3f, leftElbowHint);
+            PointF rightElbow = ComputeJointPointWithHint(shoulderRight, rightHandTarget, 8.8f, 8.3f, rightElbowHint);
+            PointF leftKnee = ComputeJointPointWithHint(hipLeft, leftFootTarget, 9.2f, 10.2f, leftKneeHint);
+            PointF rightKnee = ComputeJointPointWithHint(hipRight, rightFootTarget, 9.2f, 10.2f, rightKneeHint);
+
+            using (var bodyPen = new Pen(Color.FromArgb(22, 22, 22), 3f))
+            using (var limbPen = new Pen(Color.FromArgb(18, 18, 18), 3.2f))
+            using (var headBrush = new SolidBrush(Color.FromArgb(25, 25, 25)))
+            using (var jointBrush = new SolidBrush(Color.FromArgb(18, 18, 18)))
+            {
+                bodyPen.StartCap = LineCap.Round;
+                bodyPen.EndCap = LineCap.Round;
+                limbPen.StartCap = LineCap.Round;
+                limbPen.EndCap = LineCap.Round;
+
+                g.FillEllipse(headBrush, headCenterX - headRadius, headCenterY - headRadius, headRadius * 2, headRadius * 2);
+
+                g.DrawLine(bodyPen, stickFigurePosition.X, bodyTopY, stickFigurePosition.X, bodyBottomY);
+                g.DrawLine(bodyPen, shoulderLeft.X, shoulderLeft.Y - 0.8f, shoulderRight.X, shoulderRight.Y - 0.8f);
+                g.DrawLine(bodyPen, hipLeft.X, hipLeft.Y, hipRight.X, hipRight.Y);
+
+                DrawJointedLimb(g, limbPen, jointBrush, shoulderLeft, leftElbow, leftHandTarget, 1.9f);
+                DrawJointedLimb(g, limbPen, jointBrush, shoulderRight, rightElbow, rightHandTarget, 1.9f);
+                DrawJointedLimb(g, limbPen, jointBrush, hipLeft, leftKnee, leftFootTarget, 2.1f);
+                DrawJointedLimb(g, limbPen, jointBrush, hipRight, rightKnee, rightFootTarget, 2.1f);
+
+                g.DrawLine(bodyPen, leftFootTarget.X - 2.6f, leftFootTarget.Y + 0.8f, leftFootTarget.X + 2.6f, leftFootTarget.Y + 0.8f);
+                g.DrawLine(bodyPen, rightFootTarget.X - 2.6f, rightFootTarget.Y + 0.8f, rightFootTarget.X + 2.6f, rightFootTarget.Y + 0.8f);
+
+                float frontEyeX = headCenterX + (facingRight ? 2.3f : -2.3f);
+                float backEyeX = headCenterX + (facingRight ? -1.1f : 1.1f);
+                g.FillEllipse(Brushes.White, frontEyeX - 1.05f, headCenterY - 1.1f, 2.1f, 2.1f);
+                g.FillEllipse(Brushes.White, backEyeX - 0.95f, headCenterY - 1.0f, 1.9f, 1.9f);
+            }
+
+            if (hasVisibleTarget)
+            {
+                targetRect.Inflate(3, 3);
+
+                using (var glowPen = new Pen(Color.FromArgb(90, 255, 222, 117), 2f))
+                {
+                    g.DrawRectangle(glowPen, targetRect);
+                }
+
+                if (stickInteractionTicks > 0 && stickInteractionTicks % 12 < 6)
+                {
+                    float sparkX = targetRect.Left + targetRect.Width * 0.5f + (float)Math.Sin(stickGesturePhase) * 4f;
+                    float sparkY = targetRect.Top - 2f;
+                    using (var sparkPen = new Pen(Color.FromArgb(180, 255, 245, 142), 1.6f))
+                    {
+                        g.DrawLine(sparkPen, sparkX - 4, sparkY, sparkX + 4, sparkY);
+                        g.DrawLine(sparkPen, sparkX, sparkY - 4, sparkX, sparkY + 4);
+                    }
+                }
+
+                if (stickInteractionTicks > 0 || stickSpeechTicks > 0)
+                {
+                    DrawSpeechBubble(g, string.IsNullOrWhiteSpace(stickCurrentSpeech)
+                        ? GetRandomDialogue()
+                        : stickCurrentSpeech);
+                }
+            }
+        }
+
+        private static PointF ComputeJointPoint(PointF root, PointF end, float upperLen, float lowerLen, bool bendRight)
+        {
+            float dx = end.X - root.X;
+            float dy = end.Y - root.Y;
+            float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (dist < 0.001f)
+            {
+                return new PointF(root.X + (bendRight ? upperLen : -upperLen), root.Y);
+            }
+
+            float minDist = Math.Abs(upperLen - lowerLen) + 0.001f;
+            float maxDist = upperLen + lowerLen - 0.001f;
+            float clampedDist = Math.Max(minDist, Math.Min(maxDist, dist));
+
+            float nx = dx / dist;
+            float ny = dy / dist;
+            PointF mid = new PointF(root.X + nx * (clampedDist * 0.5f), root.Y + ny * (clampedDist * 0.5f));
+
+            float half = clampedDist * 0.5f;
+            float hSq = upperLen * upperLen - half * half;
+            float h = hSq > 0f ? (float)Math.Sqrt(hSq) : 0f;
+
+            float px = -ny;
+            float py = nx;
+            float sign = bendRight ? 1f : -1f;
+            return new PointF(mid.X + px * h * sign, mid.Y + py * h * sign);
+        }
+
+        private static PointF ComputeJointPointWithHint(PointF root, PointF end, float upperLen, float lowerLen, PointF hint)
+        {
+            float dx = end.X - root.X;
+            float dy = end.Y - root.Y;
+            float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (dist < 0.001f)
+            {
+                return hint;
+            }
+
+            float minDist = Math.Abs(upperLen - lowerLen) + 0.001f;
+            float maxDist = upperLen + lowerLen - 0.001f;
+            float d = Math.Max(minDist, Math.Min(maxDist, dist));
+
+            float nx = dx / dist;
+            float ny = dy / dist;
+
+            float a = (upperLen * upperLen - lowerLen * lowerLen + d * d) / (2f * d);
+            float hSq = upperLen * upperLen - a * a;
+            float h = hSq > 0f ? (float)Math.Sqrt(hSq) : 0f;
+
+            PointF basePoint = new PointF(root.X + nx * a, root.Y + ny * a);
+            if (h <= 0.0001f)
+            {
+                return basePoint;
+            }
+
+            float px = -ny;
+            float py = nx;
+
+            PointF jointA = new PointF(basePoint.X + px * h, basePoint.Y + py * h);
+            PointF jointB = new PointF(basePoint.X - px * h, basePoint.Y - py * h);
+
+            float da = (jointA.X - hint.X) * (jointA.X - hint.X) + (jointA.Y - hint.Y) * (jointA.Y - hint.Y);
+            float db = (jointB.X - hint.X) * (jointB.X - hint.X) + (jointB.Y - hint.Y) * (jointB.Y - hint.Y);
+            return da <= db ? jointA : jointB;
+        }
+
+        private static void DrawJointedLimb(Graphics g, Pen limbPen, Brush jointBrush, PointF root, PointF joint, PointF end, float jointRadius)
+        {
+            g.DrawLine(limbPen, root, joint);
+            g.DrawLine(limbPen, joint, end);
+            g.FillEllipse(jointBrush, joint.X - jointRadius, joint.Y - jointRadius, jointRadius * 2f, jointRadius * 2f);
+        }
+
+        private static void EnforceSideSeparation(ref PointF leftPoint, ref PointF rightPoint, float bodyCenterX, float minGap)
+        {
+            float leftMaxX = bodyCenterX - minGap * 0.5f;
+            float rightMinX = bodyCenterX + minGap * 0.5f;
+
+            if (leftPoint.X > leftMaxX)
+            {
+                leftPoint = new PointF(leftMaxX, leftPoint.Y);
+            }
+
+            if (rightPoint.X < rightMinX)
+            {
+                rightPoint = new PointF(rightMinX, rightPoint.Y);
+            }
+
+            if (rightPoint.X - leftPoint.X < minGap)
+            {
+                float middle = (leftPoint.X + rightPoint.X) * 0.5f;
+                leftPoint = new PointF(middle - minGap * 0.5f, leftPoint.Y);
+                rightPoint = new PointF(middle + minGap * 0.5f, rightPoint.Y);
+            }
+        }
+
+        private void DrawSpeechBubble(Graphics g, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return;
+            }
+
+            using (var font = new Font("Arial", 7.5f, FontStyle.Bold))
+            {
+                Size textSize = TextRenderer.MeasureText(text, font);
+                int bubbleWidth = Math.Max(70, textSize.Width + 12);
+                int bubbleHeight = Math.Max(24, textSize.Height + 4);
+                int x = (int)stickFigurePosition.X + 10;
+                int y = (int)stickFigurePosition.Y - 50;
+
+                if (stickFigureHostPanel != null)
+                {
+                    if (x + bubbleWidth > stickFigureHostPanel.ClientSize.Width - 4)
+                    {
+                        x = Math.Max(4, (int)stickFigurePosition.X - bubbleWidth - 10);
+                    }
+                    if (y < 2)
+                    {
+                        y = (int)stickFigurePosition.Y + 8;
+                    }
+                }
+
+                Rectangle bubbleRect = new Rectangle(x, y, bubbleWidth, bubbleHeight);
+                using (var bubbleBrush = new SolidBrush(Color.FromArgb(230, 255, 255, 255)))
+                using (var bubblePen = new Pen(Color.FromArgb(120, 78, 126), 1.2f))
+                {
+                    g.FillRectangle(bubbleBrush, bubbleRect);
+                    g.DrawRectangle(bubblePen, bubbleRect);
+                }
+
+                TextRenderer.DrawText(g, text, font, bubbleRect, Color.FromArgb(37, 60, 102), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            }
+        }
+
+        private sealed class StickFigureOverlayPanel : Panel
+        {
+            public StickFigureOverlayPanel()
+            {
+                SetStyle(ControlStyles.AllPaintingInWmPaint |
+                         ControlStyles.UserPaint |
+                         ControlStyles.OptimizedDoubleBuffer |
+                         ControlStyles.ResizeRedraw |
+                         ControlStyles.SupportsTransparentBackColor, true);
+                DoubleBuffered = true;
+                BackColor = Color.Transparent;
+            }
+
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    const int WS_EX_TRANSPARENT = 0x20;
+                    var cp = base.CreateParams;
+                    cp.ExStyle |= WS_EX_TRANSPARENT;
+                    return cp;
+                }
+            }
+
+            protected override void OnPaintBackground(PaintEventArgs e)
+            {
+                // Intentionally skip background paint so this overlay does not cover sibling controls.
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                const int WM_NCHITTEST = 0x84;
+                const int HTTRANSPARENT = -1;
+
+                if (m.Msg == WM_NCHITTEST)
+                {
+                    m.Result = (IntPtr)HTTRANSPARENT;
+                    return;
+                }
+
+                base.WndProc(ref m);
+            }
+        }
+
+        private static void EnableDoubleBuffer(Control control)
+        {
+            if (control == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var property = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                property?.SetValue(control, true, null);
+            }
+            catch
+            {
+            }
         }
 
         private void ApplyReadonlyTextboxStyles()
@@ -1279,7 +2847,8 @@ namespace SalaryCalculator
                 if (found.Length > 0 && found[0] is TextBox tb)
                 {
                     tb.ReadOnly = true;
-                    tb.BackColor = System.Drawing.Color.LightGray;
+                    tb.BackColor = Color.FromArgb(227, 236, 250);
+                    tb.ForeColor = Color.FromArgb(33, 55, 94);
                 }
             }
         }
@@ -1344,7 +2913,7 @@ namespace SalaryCalculator
                     decimal thresholdToShow = user.TaxThreshold > 0 ? user.TaxThreshold : BaseTaxThreshold;
                     taxThresholdTextBox.Text = NumberFormatter.FormatNumberDisplay(thresholdToShow);
                     taxThresholdTextBox.ReadOnly = true;
-                    taxThresholdTextBox.BackColor = System.Drawing.Color.LightGray;
+                    taxThresholdTextBox.BackColor = Color.FromArgb(227, 236, 250);
                 }
 
                 // Load OT meal editable amounts to buttons and labels
@@ -1395,7 +2964,7 @@ namespace SalaryCalculator
             editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
             editForm.MaximizeBox = false;
             editForm.MinimizeBox = false;
-            try { Theme.ApplyEcommerceTheme(editForm); } catch { }
+            try { Theme.ApplyInfinityGlassTheme(editForm); } catch { }
 
             // Full Name
             int startY = 26, gapY = 44;
@@ -1577,6 +3146,7 @@ namespace SalaryCalculator
             // Tweak save button to use ecommerce primary color
             try { saveBtn.BackColor = System.Drawing.Color.FromArgb(255, 90, 0); } catch { }
 
+            try { Theme.ApplyInfinityGlassTheme(editForm); } catch { }
             editForm.ShowDialog();
         }
 
@@ -2055,8 +3625,7 @@ namespace SalaryCalculator
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
                 
-                // Apply typing effect to result labels with staggered timing
-                var typingTimer = new System.Windows.Forms.Timer();
+                // Apply typing effect sequentially: line N completes before line N+1 starts
                 var labels = new[] { empNameLabel, dayRate8hLabel, mealDayLabel, dayRateLabel, grossLabel, insuranceDeductLabel, taxThresholdResultLabel, taxDeductLabel, netLabel };
                 var labelTexts = new[] 
                 { 
@@ -2070,58 +3639,51 @@ namespace SalaryCalculator
                     $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("C0") + " VND" : "0 VND")}",
                     $"Lương Net (Thực Nhận): {netSalary:C0} VND"
                 };
-                
-                int labelIndex = 0;
-                typingTimer.Interval = 200; // Stagger each label by 200ms (faster)
-                typingTimer.Tick += (s, e) =>
+
+                void TypeNextLabel(int index)
                 {
-                    if (labelIndex < labels.Length)
+                    if (index >= labels.Length)
                     {
-                        string currentText = labelTexts[labelIndex];
-                        AnimateTypingEffect(labels[labelIndex], currentText, 5); // 5ms per character (faster)
-                        
-                        // If this is the last label (netLabel), set timer to show detail after it completes
-                        if (labelIndex == labels.Length - 1)
+                        return;
+                    }
+
+                    string currentText = labelTexts[index];
+                    bool isLastLabel = index == labels.Length - 1;
+
+                    AnimateTypingEffect(labels[index], currentText, 2, 3, () =>
+                    {
+                        if (isLastLabel)
                         {
-                            var showDetailTimer = new System.Windows.Forms.Timer();
-                            showDetailTimer.Interval = (int)(currentText.Length * 10 + 100); // Wait for typing to complete + buffer
-                            showDetailTimer.Tick += (st, se) =>
+                            // Display detail label only after all result lines are fully completed
+                            detailLabel.Text = detail;
+
+                            // Update marquee with latest rankings
+                            if (marqueeLabel != null)
                             {
-                                showDetailTimer.Stop();
-                                try { showDetailTimer.Dispose(); } catch { }
-                                
-                                // Display detail label all at once
-                                detailLabel.Text = detail;
-                                
-                                // Update marquee with latest rankings
-                                if (marqueeLabel != null)
+                                marqueeText = GetTop5RankingText();
+                                marqueeX = marqueeLabel.Width; // Reset position
+                            }
+
+                            // Play applause sound when net salary exceeds 15 million
+                            if (netSalary > 15000000m)
+                            {
+                                try
                                 {
-                                    marqueeText = GetTop5RankingText();
-                                    marqueeX = marqueeLabel.Width; // Reset position
+                                    PlayApplauseEmbedded();
                                 }
-                                
-                                // Play applause sound when net salary exceeds 15 million
-                                if (netSalary > 15000000)
+                                catch
                                 {
-                                    try
-                                    {
-                                        PlayApplauseEmbedded();
-                                    }
-                                    catch { }
                                 }
-                            };
-                            showDetailTimer.Start();
+                            }
                         }
-                        
-                        labelIndex++;
-                    }
-                    else
-                    {
-                        typingTimer.Stop();
-                        try { typingTimer.Dispose(); } catch { }
-                    }
-                };
-                typingTimer.Start();
+                        else
+                        {
+                            TypeNextLabel(index + 1);
+                        }
+                    });
+                }
+
+                TypeNextLabel(0);
             }
             catch (Exception ex)
             {
@@ -2202,6 +3764,7 @@ namespace SalaryCalculator
             };
             editForm.Controls.Add(saveBtn);
 
+            try { Theme.ApplyInfinityGlassTheme(editForm); } catch { }
             editForm.ShowDialog();
         }
 
@@ -2328,6 +3891,7 @@ namespace SalaryCalculator
             };
             editForm.Controls.Add(saveBtn);
 
+            try { Theme.ApplyInfinityGlassTheme(editForm); } catch { }
             editForm.ShowDialog();
         }
 
@@ -2378,6 +3942,7 @@ namespace SalaryCalculator
             };
             editForm.Controls.Add(saveBtn);
 
+            try { Theme.ApplyInfinityGlassTheme(editForm); } catch { }
             editForm.ShowDialog();
         }
 
@@ -2396,25 +3961,41 @@ namespace SalaryCalculator
             return defaultValue;
         }
 
+        private Color BlendColor(Color from, Color to, float t)
+        {
+            if (t < 0f) t = 0f;
+            if (t > 1f) t = 1f;
+
+            int a = from.A + (int)((to.A - from.A) * t);
+            int r = from.R + (int)((to.R - from.R) * t);
+            int g = from.G + (int)((to.G - from.G) * t);
+            int b = from.B + (int)((to.B - from.B) * t);
+
+            return Color.FromArgb(a, r, g, b);
+        }
+
         // Typing effect animation for label text
-        private void AnimateTypingEffect(Label label, string fullText, int delayPerChar = 15)
+        private void AnimateTypingEffect(Label label, string fullText, int delayPerChar = 15, int charsPerTick = 1, Action onCompleted = null)
         {
             label.Text = "";
             var typingTimer = new System.Windows.Forms.Timer();
             int charIndex = 0;
+            int safeCharsPerTick = Math.Max(1, charsPerTick);
             
             typingTimer.Interval = delayPerChar;
             typingTimer.Tick += (s, e) =>
             {
                 if (charIndex < fullText.Length)
                 {
-                    label.Text += fullText[charIndex];
-                    charIndex++;
+                    int takeCount = Math.Min(safeCharsPerTick, fullText.Length - charIndex);
+                    label.Text += fullText.Substring(charIndex, takeCount);
+                    charIndex += takeCount;
                 }
                 else
                 {
                     typingTimer.Stop();
                     try { typingTimer.Dispose(); } catch { }
+                    try { onCompleted?.Invoke(); } catch { }
                 }
             };
             typingTimer.Start();
@@ -2551,10 +4132,6 @@ namespace SalaryCalculator
             }
         }
 
-        
-
-
-        // Play embedded applause.wav (or fallback to external Assets/audio/applause.wav)
         private void PlayApplauseEmbedded()
         {
             try
@@ -2563,8 +4140,8 @@ namespace SalaryCalculator
                 var asm = System.Reflection.Assembly.GetExecutingAssembly();
                 var resourceCandidates = new[]
                 {
-                    asm.GetName().Name + ".Assets.audio.clap.wav",   // new file
-                    asm.GetName().Name + ".Assets.audio.applause.wav" // legacy name
+                    asm.GetName().Name + ".Assets.audio.clap.wav",
+                    asm.GetName().Name + ".Assets.audio.applause.wav"
                 };
 
                 foreach (var resName in resourceCandidates)
@@ -2574,48 +4151,54 @@ namespace SalaryCalculator
                         if (rs == null) continue;
                         try
                         {
-                            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "applause_" + System.Guid.NewGuid().ToString() + ".wav");
-                            using (var fs = System.IO.File.Create(tmp)) { rs.CopyTo(fs); }
-                            try
+                            string tmp = Path.Combine(Path.GetTempPath(), "applause_" + Guid.NewGuid().ToString("N") + ".wav");
+                            using (var fs = File.Create(tmp)) { rs.CopyTo(fs); }
+                            var sp = new System.Media.SoundPlayer(tmp);
+                            sp.Play();
+                            _ = System.Threading.Tasks.Task.Run(async () =>
                             {
-                                var sp = new System.Media.SoundPlayer(tmp);
-                                sp.Play();
-                                System.Threading.Tasks.Task.Run(async () => { await System.Threading.Tasks.Task.Delay(12000); try { System.IO.File.Delete(tmp); } catch { } });
-                                played = true;
-                                break;
-                            }
-                            catch { try { System.IO.File.Delete(tmp); } catch { } played = false; }
+                                await System.Threading.Tasks.Task.Delay(12000);
+                                try { File.Delete(tmp); } catch { }
+                            });
+                            played = true;
+                            break;
                         }
-                        catch { played = false; }
+                        catch
+                        {
+                        }
                     }
-                    if (played) break;
                 }
 
                 if (!played)
                 {
-                    var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string appDir = AppDomain.CurrentDomain.BaseDirectory;
                     var fileCandidates = new[]
                     {
-                        System.IO.Path.Combine(appDir, "Assets", "audio", "clap.wav"),
-                        System.IO.Path.Combine(appDir, "Assets", "audio", "applause.wav")
+                        Path.Combine(appDir, "Assets", "audio", "clap.wav"),
+                        Path.Combine(appDir, "Assets", "audio", "applause.wav")
                     };
 
                     foreach (var path in fileCandidates)
                     {
                         try
                         {
-                            if (System.IO.File.Exists(path))
+                            if (!File.Exists(path)) continue;
+                            using (var sp = new System.Media.SoundPlayer(path))
                             {
-                                using (var sp = new System.Media.SoundPlayer(path)) { sp.Play(); }
-                                played = true;
-                                break;
+                                sp.Play();
                             }
+                            played = true;
+                            break;
                         }
-                        catch { }
+                        catch
+                        {
+                        }
                     }
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         private string GetTop5RankingText()

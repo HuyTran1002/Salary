@@ -24,7 +24,7 @@ namespace SalaryCalculator
             try
             {
                 var login = new LoginForm();
-                Theme.ApplyEcommerceTheme(login);
+                Theme.ApplyInfinityGlassTheme(login);
                 Application.Run(login);
             }
             catch (Exception ex)

@@ -293,19 +293,20 @@ namespace SalaryCalculator
             // Login Button - positioned at bottom of form (fixed position)
             // Center action buttons as a group
             int actionYLogin = 170;
-            int calcWidth = 200; // login width
-            int toggleWidth = 200;
-            int actionGap = 16;
+            int calcWidth = 196; // login width
+            int toggleWidth = 236;
+            int actionGap = 12;
             int totalActionWidth = calcWidth + actionGap + toggleWidth;
             int actionStartXLogin = (formWidth - totalActionWidth) / 2 - 8;
 
             loginBtn.Text = "🔐 Đăng Nhập";
             loginBtn.Location = new Point(actionStartXLogin, actionYLogin);
             loginBtn.Width = calcWidth;
-            loginBtn.Height = 32;
-            loginBtn.Font = new Font("Arial", 10, FontStyle.Bold);
+            loginBtn.Height = 36;
+            loginBtn.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             loginBtn.BackColor = Color.FromArgb(255, 90, 0);
             loginBtn.ForeColor = Color.White;
+            loginBtn.TextAlign = ContentAlignment.MiddleCenter;
             loginBtn.Name = "loginBtn";
             loginBtn.Click += (s, e) => {
                 HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
@@ -316,10 +317,11 @@ namespace SalaryCalculator
             toggleBtn.Text = "📝 Chuyển sang Đăng Ký";
             toggleBtn.Location = new Point(actionStartXLogin + calcWidth + actionGap, actionYLogin);
             toggleBtn.Width = toggleWidth;
-            toggleBtn.Height = 32;
-            toggleBtn.Font = new Font("Arial", 10, FontStyle.Bold);
+            toggleBtn.Height = 36;
+            toggleBtn.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             toggleBtn.BackColor = Color.DodgerBlue;
             toggleBtn.ForeColor = Color.White;
+            toggleBtn.TextAlign = ContentAlignment.MiddleCenter;
             toggleBtn.Name = "toggleBtn";
             toggleBtn.Click += (s, e) => {
                 ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, certTextBox, attendancePerDayTextBox, travelPerDayTextBox, housingAllowanceTextBox,
@@ -329,8 +331,8 @@ namespace SalaryCalculator
                 taxThresholdTextBox.Visible = isRegistering;
             };
             this.Controls.Add(toggleBtn);
-            // Apply e-commerce theme tweaks
-            try { Theme.ApplyEcommerceTheme(this); } catch { }
+            // Apply infinity glass theme tweaks
+            try { Theme.ApplyInfinityGlassTheme(this); } catch { }
         }
 
         private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox phoneTextBox, TextBox ageTextBox, TextBox salaryTextBox,
@@ -367,12 +369,16 @@ namespace SalaryCalculator
                 toggleBtn.Text = "🔐 Quay lại Đăng Nhập";
                 loginBtn.BackColor = Color.FromArgb(255, 90, 0);
                 int formWidthLocal = this.Width;
-                int calcWidthLocal = 210;
-                int toggleWidthLocal = 210;
-                int actionGapLocal = 20;
+                int calcWidthLocal = 196;
+                int toggleWidthLocal = 236;
+                int actionGapLocal = 12;
                 int totalActionWidthLocal = calcWidthLocal + actionGapLocal + toggleWidthLocal;
                 int actionStartXRegister = (formWidthLocal - totalActionWidthLocal) / 2 - 8;
                 int actionYRegister = 680;
+                loginBtn.Width = calcWidthLocal;
+                toggleBtn.Width = toggleWidthLocal;
+                loginBtn.Height = 36;
+                toggleBtn.Height = 36;
                 loginBtn.Location = new Point(actionStartXRegister, actionYRegister);
                 toggleBtn.Location = new Point(actionStartXRegister + calcWidthLocal + actionGapLocal, actionYRegister);
                 this.CenterToScreen();
@@ -384,12 +390,16 @@ namespace SalaryCalculator
                 toggleBtn.Text = "📝 Chuyển sang Đăng Ký";
                 loginBtn.BackColor = Color.FromArgb(255, 90, 0);
                 int formWidthLocal = this.Width;
-                int calcWidthLocal = 210;
-                int toggleWidthLocal = 210;
-                int actionGapLocal = 20;
+                int calcWidthLocal = 196;
+                int toggleWidthLocal = 236;
+                int actionGapLocal = 12;
                 int totalActionWidthLocal = calcWidthLocal + actionGapLocal + toggleWidthLocal;
                 int actionStartXLoginLocal = (formWidthLocal - totalActionWidthLocal) / 2 - 8;
                 int actionYLoginLocal = 170;
+                loginBtn.Width = calcWidthLocal;
+                toggleBtn.Width = toggleWidthLocal;
+                loginBtn.Height = 36;
+                toggleBtn.Height = 36;
                 loginBtn.Location = new Point(actionStartXLoginLocal, actionYLoginLocal);
                 toggleBtn.Location = new Point(actionStartXLoginLocal + calcWidthLocal + actionGapLocal, actionYLoginLocal);
                 this.CenterToScreen();
@@ -573,13 +583,17 @@ namespace SalaryCalculator
 
             // Tính toán vị trí nhóm nút theo layout mặc định
             int formWidthLocal = this.Width;
-            int calcWidthLocal = 210;
-            int toggleWidthLocal = 210;
-            int actionGapLocal = 20;
+            int calcWidthLocal = 196;
+            int toggleWidthLocal = 236;
+            int actionGapLocal = 12;
             int totalActionWidthLocal = calcWidthLocal + actionGapLocal + toggleWidthLocal;
             int actionStartXLoginLocal = (formWidthLocal - totalActionWidthLocal) / 2 - 8;
             int actionYLoginLocal = 170;
 
+            if (loginBtn != null) loginBtn.Width = calcWidthLocal;
+            if (toggleBtn != null) toggleBtn.Width = toggleWidthLocal;
+            if (loginBtn != null) loginBtn.Height = 36;
+            if (toggleBtn != null) toggleBtn.Height = 36;
             if (loginBtn != null) loginBtn.Location = new System.Drawing.Point(actionStartXLoginLocal, actionYLoginLocal);
             if (toggleBtn != null) toggleBtn.Location = new System.Drawing.Point(actionStartXLoginLocal + calcWidthLocal + actionGapLocal, actionYLoginLocal);
         }

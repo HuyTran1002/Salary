@@ -9,6 +9,16 @@ namespace SalaryCalculator
 {
     public class UserDetailForm : Form
     {
+        private static void EnableDoubleBuffer(Control control)
+        {
+            try
+            {
+                var property = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                property?.SetValue(control, true, null);
+            }
+            catch { }
+        }
+
         public UserDetailForm(UserInfo user)
         {
             this.Text = $"Chi tiết nhân viên: {user.FullName}";
@@ -19,45 +29,54 @@ namespace SalaryCalculator
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+            this.UpdateStyles();
+            EnableDoubleBuffer(this);
 
             var mainPanel = new TableLayoutPanel();
             mainPanel.Dock = DockStyle.Fill;
-            mainPanel.Padding = new Padding(18, 18, 18, 18);
+            mainPanel.Padding = new Padding(14, 14, 14, 14);
             mainPanel.BackColor = System.Drawing.Color.WhiteSmoke;
+            mainPanel.ColumnCount = 1;
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             mainPanel.RowCount = 3;
             mainPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             mainPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            EnableDoubleBuffer(mainPanel);
 
             // Tiêu đề
             var titleLabel = new Label();
             titleLabel.Text = $"Thông tin nhân viên";
-            titleLabel.Font = new System.Drawing.Font("Segoe UI", 15, System.Drawing.FontStyle.Bold);
+            titleLabel.Font = new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Bold);
             titleLabel.ForeColor = System.Drawing.Color.DarkBlue;
             titleLabel.Dock = DockStyle.Top;
             titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            titleLabel.Height = 38;
+            titleLabel.Height = 34;
             mainPanel.Controls.Add(titleLabel, 0, 0);
 
             // Thông tin cá nhân
             var infoGroup = new GroupBox();
             infoGroup.Text = "Thông tin cá nhân";
-            infoGroup.Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold);
+            infoGroup.Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold);
             infoGroup.Dock = DockStyle.Top;
-            infoGroup.Height = 280;
-            infoGroup.BackColor = System.Drawing.Color.White;
+            infoGroup.Height = 272;
+            infoGroup.BackColor = System.Drawing.Color.FromArgb(242, 248, 255);
+            EnableDoubleBuffer(infoGroup);
 
             var infoTable = new TableLayoutPanel();
             infoTable.Dock = DockStyle.Fill;
             infoTable.AutoSize = false;
             infoTable.ColumnCount = 2;
             infoTable.RowCount = 10;
-            infoTable.Padding = new Padding(10, 8, 10, 8);
+            infoTable.Padding = new Padding(8, 6, 8, 6);
             infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
             infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
             infoTable.RowStyles.Clear();
             for (int i = 0; i < 10; i++)
-                infoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 25));
+                infoTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
+            infoTable.BackColor = System.Drawing.Color.Transparent;
+            EnableDoubleBuffer(infoTable);
 
             Label CreateLeftLabel(string text)
             {
@@ -66,8 +85,9 @@ namespace SalaryCalculator
                     Text = text,
                     Dock = DockStyle.Fill,
                     TextAlign = System.Drawing.ContentAlignment.MiddleRight,
-                    Font = new System.Drawing.Font("Segoe UI", 10),
+                    Font = new System.Drawing.Font("Segoe UI", 9.25f),
                     AutoSize = false,
+                    AutoEllipsis = true,
                     Margin = new Padding(0, 2, 8, 2)
                 };
             }
@@ -79,8 +99,9 @@ namespace SalaryCalculator
                     Text = text,
                     Dock = DockStyle.Fill,
                     TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
-                    Font = bold ? new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold) : new System.Drawing.Font("Segoe UI", 10),
+                    Font = bold ? new System.Drawing.Font("Segoe UI", 9.25f, System.Drawing.FontStyle.Bold) : new System.Drawing.Font("Segoe UI", 9.25f),
                     AutoSize = false,
+                    AutoEllipsis = true,
                     Margin = new Padding(8, 2, 0, 2)
                 };
             }
@@ -108,9 +129,10 @@ namespace SalaryCalculator
             // Lịch sử lương
             var salaryGroup = new GroupBox();
             salaryGroup.Text = "Lịch sử lương";
-            salaryGroup.Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold);
+            salaryGroup.Font = new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold);
             salaryGroup.Dock = DockStyle.Fill;
-            salaryGroup.BackColor = System.Drawing.Color.White;
+            salaryGroup.BackColor = System.Drawing.Color.FromArgb(242, 248, 255);
+            EnableDoubleBuffer(salaryGroup);
 
             var salaryTable = new TableLayoutPanel();
             salaryTable.AutoSize = true;
@@ -119,12 +141,14 @@ namespace SalaryCalculator
             salaryTable.ColumnCount = 2;
             salaryTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             salaryTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            salaryTable.BackColor = System.Drawing.Color.Transparent;
+            EnableDoubleBuffer(salaryTable);
             // Đảm bảo tối thiểu 6 dòng (6 tháng)
             int salaryRows = Math.Max(6, user.SalaryHistory?.Count ?? 0);
             salaryTable.RowCount = salaryRows;
             salaryTable.RowStyles.Clear();
             for (int i = 0; i < salaryRows; i++)
-                salaryTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); // Giảm chiều cao dòng
+                salaryTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
 
             if (user.SalaryHistory != null && user.SalaryHistory.Count > 0)
             {
@@ -141,38 +165,48 @@ namespace SalaryCalculator
                                             }))
                 {
                     if (row >= salaryRows) break;
-                    salaryTable.Controls.Add(new Label { Text = entry.Key, Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 9), Padding = new Padding(0, 2, 0, 0) }, 0, row);
-                    salaryTable.Controls.Add(new Label { Text = entry.Value.ToString("N0") + " VND", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Bold), ForeColor = System.Drawing.Color.DarkGreen, Padding = new Padding(0, 2, 0, 0) }, 1, row);
+                    salaryTable.Controls.Add(new Label { Text = entry.Key, Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Font = new System.Drawing.Font("Segoe UI", 8.75f), AutoSize = false, AutoEllipsis = true, Padding = new Padding(0, 2, 0, 0) }, 0, row);
+                    salaryTable.Controls.Add(new Label { Text = entry.Value.ToString("N0") + " VND", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Font = new System.Drawing.Font("Segoe UI", 8.75f, System.Drawing.FontStyle.Bold), ForeColor = System.Drawing.Color.DarkGreen, AutoSize = false, AutoEllipsis = true, Padding = new Padding(0, 2, 0, 0) }, 1, row);
                     row++;
                 }
                 // Nếu ít hơn 6 tháng thì thêm dòng trống
                 for (; row < salaryRows; row++)
                 {
-                    salaryTable.Controls.Add(new Label { Text = "", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 9) }, 0, row);
-                    salaryTable.Controls.Add(new Label { Text = "", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 9) }, 1, row);
+                    salaryTable.Controls.Add(new Label { Text = "", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Font = new System.Drawing.Font("Segoe UI", 8.75f), AutoSize = false }, 0, row);
+                    salaryTable.Controls.Add(new Label { Text = "", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Font = new System.Drawing.Font("Segoe UI", 8.75f), AutoSize = false }, 1, row);
                 }
             }
             else
             {
-                salaryTable.Controls.Add(new Label { Text = "Không có dữ liệu", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Italic), ForeColor = System.Drawing.Color.Gray, Padding = new Padding(0, 2, 0, 0) }, 0, 0);
+                salaryTable.Controls.Add(new Label { Text = "Không có dữ liệu", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Font = new System.Drawing.Font("Segoe UI", 8.75f, System.Drawing.FontStyle.Italic), ForeColor = System.Drawing.Color.Gray, AutoSize = false, Padding = new Padding(0, 2, 0, 0) }, 0, 0);
                 for (int i = 1; i < salaryRows; i++)
                 {
-                    salaryTable.Controls.Add(new Label { Text = "", Anchor = AnchorStyles.Right, Font = new System.Drawing.Font("Segoe UI", 9) }, 0, i);
-                    salaryTable.Controls.Add(new Label { Text = "", Anchor = AnchorStyles.Left, Font = new System.Drawing.Font("Segoe UI", 9) }, 1, i);
+                    salaryTable.Controls.Add(new Label { Text = "", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleRight, Font = new System.Drawing.Font("Segoe UI", 8.75f), AutoSize = false }, 0, i);
+                    salaryTable.Controls.Add(new Label { Text = "", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleLeft, Font = new System.Drawing.Font("Segoe UI", 8.75f), AutoSize = false }, 1, i);
                 }
             }
             // Wrap salary table in a scrollable panel to handle overflow
             var salaryScrollPanel = new Panel();
             salaryScrollPanel.Dock = DockStyle.Fill;
             salaryScrollPanel.AutoScroll = true;
-            salaryScrollPanel.BackColor = System.Drawing.Color.White;
+            salaryScrollPanel.BackColor = System.Drawing.Color.FromArgb(246, 251, 255);
+            EnableDoubleBuffer(salaryScrollPanel);
             salaryScrollPanel.Controls.Add(salaryTable);
 
             salaryGroup.Controls.Add(salaryScrollPanel);
             mainPanel.Controls.Add(salaryGroup, 0, 2);
 
             this.Controls.Add(mainPanel);
-            try { Theme.ApplyEcommerceTheme(this); } catch { }
+            try { Theme.ApplyInfinityGlassTheme(this); } catch { }
+
+            // Re-assert card surfaces after global theme for readability/stability
+            try
+            {
+                infoGroup.BackColor = System.Drawing.Color.FromArgb(242, 248, 255);
+                salaryGroup.BackColor = System.Drawing.Color.FromArgb(242, 248, 255);
+                salaryScrollPanel.BackColor = System.Drawing.Color.FromArgb(246, 251, 255);
+            }
+            catch { }
         }
     }
 }
