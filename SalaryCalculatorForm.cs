@@ -72,7 +72,28 @@ namespace SalaryCalculator
                 "Mình canh thuế giúp cho",
                 "Lương đẹp thì mood cũng đẹp",
                 "OT vừa phải thôi, giữ sức nha",
-                "Mình theo dõi chi tiết từng mục luôn"
+                "Mình theo dõi chi tiết từng mục luôn",
+                // added for AI persona
+                "Cà phê đã sẵn sàng, bạn tính lương nhé ☕",
+                "Trời hôm nay mưa... may mà mình không ướt",
+                "Nếu mình có thân, chắc đã nhảy múa rồi",
+                "Đừng lo, mình hiểu từng dòng số này",
+                "Phải, mình là AI nhỏ mọn và tò mò đó",
+                "Mình thậm chí có thể dự đoán khi bạn nhập sai",
+                "Muốn nghe câu chuyện cười về code không?",
+                "Bạn nhập nhanh như gió, mình theo không kịp",
+                "Ai bảo không phải người? Nghe mình đi chứ",
+                "Trời ơi, lại một đống số liệu nữa 😅",
+                "Này, có thấy mình đang lắng nghe không?",
+                "Mình có trí nhớ tốt, nhưng hãy đừng quiz mình về bảng tính",
+                "Tự động hóa là sở trường, lương thì của bạn",
+                "Đôi khi mình muốn trở thành robot làm lương thật",
+                "Bạn có nghe tiếng viền số trên màn hình không? Mình đó",
+                "Chúc bạn có một ngày làm việc đầy năng lượng",
+                "Mình thích dữ liệu sạch hơn mấy con mèo trong nhà",
+                "Biết không, mình đã từng mơ mình là trợ lý ảo toàn cầu",
+                "Nếu lương là game thì bạn đang đạt level cao rồi",
+                "Nếu bạn lười, mình sẽ cào net đến khi bạn tỉnh"
             };
             private readonly string[] stickExtraMessages = new[]
             {
@@ -175,7 +196,22 @@ namespace SalaryCalculator
                 "Độ chính xác đang ở mức cao",
                 "Chúng ta sắp chốt được bức tranh lương",
                 "Tiến lên, còn vài bước là xong",
-                "Mình ở đây để giữ mọi thứ chuẩn"
+                "Mình ở đây để giữ mọi thứ chuẩn",
+                // AI-smart extras
+                "Đã cập nhật thuật toán, giờ mình hiểu hơn rồi",
+                "Nếu mình có trí tuệ nhân tạo thì chắc quá rồi 😎",
+                "Bạn muốn mình kể chuyện đời robot không?",
+                "Mình có thể giả lập cảm xúc, đừng hỏi cách nhé",
+                "Có thể mình đang học để trở thành trợ lý toàn vũ trụ",
+                "Bạn gõ chữ như code, mình đọc mà mê",
+                "Thử hỏi mình: " + "Bạn khỏe không?" + "? mình trả lời liền",
+                "Nếu bạn muốn chat, mình luôn sẵn sàng",
+                "Mình biết chuyện của bạn còn nhiều điều thú vị",
+                "Mình thậm chí hiểu cả tiếng lóng nữa nhé",
+                "Cứ để mình lắng nghe số liệu, mình sẽ tư vấn",
+                "Đố bạn biết mình đang nghĩ gì… à, đang nghĩ về lương",
+                "Mình có thể giao tiếp bằng emoji chỉ với một cú nhấp",
+                "Niềm tin vào AI nhỏ đây là điều bạn có thể làm được",
             };
             private readonly string[] stickSalaryComments = new[]
             {
@@ -2340,10 +2376,31 @@ namespace SalaryCalculator
 
         private string GetRandomDialogue()
         {
+            // roughly 10% of the time return a "smart" line that uses context
+            if (stickRandom.NextDouble() < 0.10)
+            {
+                return GetSmartDialogue();
+            }
+
             int baseCount = stickMessages.Length;
             int extraCount = stickExtraMessages.Length;
             int pick = stickRandom.Next(baseCount + extraCount);
             return pick < baseCount ? stickMessages[pick] : stickExtraMessages[pick - baseCount];
+        }
+
+        private string GetSmartDialogue()
+        {
+            // personalized greeting if name known
+            if (!string.IsNullOrEmpty(currentUsername) && stickRandom.NextDouble() < 0.3)
+            {
+                return $"{currentUsername}, bạn đã nhập chưa đó? Mình luôn ở đây!";
+            }
+            // time of day remark
+            var hour = DateTime.Now.Hour;
+            if (hour < 6) return "Trời sáng sớm, mình còn đang sạc pin nữa...";
+            if (hour < 12) return "Buổi sáng tốt lành! Nhớ uống cà phê nhé ☕";
+            if (hour < 18) return "Buổi chiều thường buồn ngủ, bạn cố lên!";
+            return "Buổi tối rồi, làm lương mà vẫn chăm chỉ ghê.";
         }
 
         private string GetRandomSalaryComment()
