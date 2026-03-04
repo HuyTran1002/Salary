@@ -1293,6 +1293,21 @@ namespace SalaryCalculator
                     return;
                 }
 
+                // rating isn't part of the editable profile; it is chosen via the
+                // checkboxes on the main salary form. If the user hasn't picked one
+                // yet, warn and abort, but don't open the profile editor.
+                {
+                    var rankingA = this.Controls.Find("rankingACheckBox", true).FirstOrDefault() as CheckBox;
+                    var rankingB = this.Controls.Find("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
+                    var rankingC = this.Controls.Find("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
+                    bool ratingSelected = (rankingA?.Checked == true) || (rankingB?.Checked == true) || (rankingC?.Checked == true);
+                    if (!ratingSelected)
+                    {
+                        MessageBox.Show("Vui lòng chọn xếp loại (A/B/C) trên form trước khi tính lương.", "Thiếu xếp loại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+
                 // Disable calculate button during calculation
                 calculateBtn.Enabled = false;
 
@@ -2978,13 +2993,13 @@ namespace SalaryCalculator
             if (u.MealAllowance <= 0)
                 missing.Add("Tiền ăn/tháng");
 
-            // only certificate amount and rating need explicit checks now;
+            // only certificate amount needs an explicit check now;
             // the daily travel/housing/attendance fields already default to nonzero
             // when a user is registered, so we don't bother warning about them.
             if (u.CertificateBonus <= 0)
                 missing.Add("Tiền chứng chỉ");
-            if (string.IsNullOrWhiteSpace(u.RatingBonus))
-                missing.Add("Xếp loại (A/B/C)");
+            // rating is selected on the calculation form, not stored as part of the
+            // "profile" the user edits, so we no longer include it here.
 
             return missing;
         }
