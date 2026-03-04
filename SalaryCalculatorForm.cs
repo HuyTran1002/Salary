@@ -2956,8 +2956,8 @@ namespace SalaryCalculator
         }
 
         // examine user record and return a list of profile fields that are still empty or zero
-        // updated to understand the newer breakdown fields (travel/housing/etc.) so that
-        // users who only fill those do not get a misleading "missing" warning.
+        // this version breaks out all the individual allowances/attendance items so that
+        // users see exactly what is missing rather than an ambiguous "phụ cấp" label.
         private List<string> GetMissingUserInfo()
         {
             var missing = new List<string>();
@@ -2966,6 +2966,7 @@ namespace SalaryCalculator
             var u = userDataManager.Login(currentUsername);
             if (u == null)
                 return missing;
+
             if (string.IsNullOrWhiteSpace(u.FullName))
                 missing.Add("Tên đầy đủ");
             if (string.IsNullOrWhiteSpace(u.Phone))
@@ -2977,23 +2978,27 @@ namespace SalaryCalculator
             if (u.MealAllowance <= 0)
                 missing.Add("Tiền ăn/tháng");
 
-            // allowance used to be a single field, but newer versions split it into
-            // travel/housing/cert/rating components.  Treat the profile as complete if
-            // any of those sub‑fields are provided (or the old "Allowance" value is
-            // still nonzero for backwards compatibility).
-            bool hasAllowance = u.Allowance > 0 ||
-                                u.TravelAllowance > 0 ||
-                                u.HousingAllowance > 0 ||
-                                u.CertificateBonus > 0 ||
-                                !string.IsNullOrWhiteSpace(u.RatingBonus);
-            if (!hasAllowance)
-                missing.Add("Tiền phụ cấp (ví dụ: đi lại, nhà ở, chứng chỉ, xếp loại)");
+            // allowance breakdown
+            bool hasAnyAllowance = u.Allowance > 0 ||
+                                   u.TravelAllowance > 0 ||
+                                   u.HousingAllowance > 0 ||
+                                   u.CertificateBonus > 0 ||
+                                   !string.IsNullOrWhiteSpace(u.RatingBonus);
+            if (!hasAnyAllowance)
+            {
+                // no allowance data at all – list each sub‑field so user knows what to fill
+                missing.Add("Tiền đi lại/ngày");
+                missing.Add("Tiền nhà ở");
+                missing.Add("Tiền chứng chỉ");
+                missing.Add("Xếp loại (A/B/C)");
+            }
 
-            // similarly attendance incentive may be stored as a flat amount or as a per‑day
-            // rate; either one counts.
-            bool hasAttendance = u.AttendanceIncentive > 0 || u.AttendancePerDay > 0;
-            if (!hasAttendance)
-                missing.Add("Tiền thưởng chuyên cần (hoặc chuyên cần/ngày)");
+            // attendance incentive breakdown
+            if (u.AttendanceIncentive <= 0 && u.AttendancePerDay <= 0)
+            {
+                missing.Add("Tiền thưởng chuyên cần");
+                missing.Add("Chuyên cần/ngày");
+            }
 
             return missing;
         }
