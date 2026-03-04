@@ -1278,6 +1278,21 @@ namespace SalaryCalculator
             calculateBtn.ForeColor = System.Drawing.Color.White;
             calculateBtn.Click += (s, e) =>
             {
+                // before computing, make sure user has filled required profile info
+                var missing = GetMissingUserInfo();
+                if (missing.Count > 0)
+                {
+                    string message = "Vui lòng điền đầy đủ các mục sau trước khi tính lương:\n- " +
+                                     string.Join("\n- ", missing);
+                    var result = MessageBox.Show(message, "Thiếu thông tin", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                    if (result == DialogResult.OK)
+                    {
+                        OpenEditForm(nameTextBox, salaryTextBox, mealTextBox);
+                    }
+                    // abort calculation until user updates info
+                    return;
+                }
+
                 // Disable calculate button during calculation
                 calculateBtn.Enabled = false;
 
@@ -2938,6 +2953,32 @@ namespace SalaryCalculator
                     }
                 }
             }
+        }
+
+        // examine user record and return a list of profile fields that are still empty or zero
+        private List<string> GetMissingUserInfo()
+        {
+            var missing = new List<string>();
+            if (string.IsNullOrEmpty(currentUsername))
+                return missing;
+            var u = userDataManager.Login(currentUsername);
+            if (u == null)
+                return missing;
+            if (string.IsNullOrWhiteSpace(u.FullName))
+                missing.Add("Tên đầy đủ");
+            if (string.IsNullOrWhiteSpace(u.Phone))
+                missing.Add("SĐT/Zalo");
+            if (u.Age <= 0)
+                missing.Add("Tuổi");
+            if (u.BasicSalary <= 0)
+                missing.Add("Lương cơ bản");
+            if (u.MealAllowance <= 0)
+                missing.Add("Tiền ăn/tháng");
+            if (u.Allowance <= 0)
+                missing.Add("Tiền phụ cấp");
+            if (u.AttendanceIncentive <= 0)
+                missing.Add("Tiền thưởng chuyên cần");
+            return missing;
         }
 
         private void OpenEditForm(TextBox nameTextBox, TextBox salaryTextBox, TextBox mealTextBox)
