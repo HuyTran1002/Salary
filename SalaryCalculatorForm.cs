@@ -2978,19 +2978,25 @@ namespace SalaryCalculator
             if (u.MealAllowance <= 0)
                 missing.Add("Tiền ăn/tháng");
 
-            // allowance breakdown
-            bool hasAnyAllowance = u.Allowance > 0 ||
-                                   u.TravelAllowance > 0 ||
-                                   u.HousingAllowance > 0 ||
-                                   u.CertificateBonus > 0 ||
-                                   !string.IsNullOrWhiteSpace(u.RatingBonus);
-            if (!hasAnyAllowance)
-            {
-                // no allowance data at all – list each sub‑field so user knows what to fill
+            // require each allowance component separately; users expect to fill all of them
+            if (u.TravelAllowance <= 0)
                 missing.Add("Tiền đi lại/ngày");
+            if (u.HousingAllowance <= 0)
                 missing.Add("Tiền nhà ở");
+            if (u.CertificateBonus <= 0)
                 missing.Add("Tiền chứng chỉ");
-                missing.Add("Xếp loại (A/B/C)");
+            // rating is still optional, treat blank as not an error
+
+            // fall back to the old combined field if present (kept for compatibility)
+            if (u.Allowance > 0 &&
+                missing.Contains("Tiền đi lại/ngày") &&
+                missing.Contains("Tiền nhà ở") &&
+                missing.Contains("Tiền chứng chỉ"))
+            {
+                // if the legacy aggregate allowance exists, consider those three satisfied
+                missing.Remove("Tiền đi lại/ngày");
+                missing.Remove("Tiền nhà ở");
+                missing.Remove("Tiền chứng chỉ");
             }
 
             // attendance incentive breakdown
