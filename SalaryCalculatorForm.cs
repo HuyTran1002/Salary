@@ -811,7 +811,7 @@ namespace SalaryCalculator
             Label slDaysOffLabel = new Label();
             slDaysOffLabel.Text = "Nghỉ SL/NP (ngày):";
             slDaysOffLabel.Location = new System.Drawing.Point(10, leftY);
-            slDaysOffLabel.Width = 110;
+            slDaysOffLabel.Width = 120;
             slDaysOffLabel.Height = 18;
 
             TextBox slDaysOffTextBox = new TextBox();
@@ -826,7 +826,7 @@ namespace SalaryCalculator
             leftY += 28;
 
             Label alDaysOffLabel = new Label();
-            alDaysOffLabel.Text = "Nghỉ AL/PH (ngày):";
+            alDaysOffLabel.Text = "Nghỉ AL (ngày):";
             alDaysOffLabel.Location = new System.Drawing.Point(10, leftY);
             alDaysOffLabel.Width = 120;
             alDaysOffLabel.Height = 18;
