@@ -67,22 +67,42 @@ namespace SalaryCalculator
             infoGroup.BackColor = System.Drawing.Color.FromArgb(242, 248, 255);
             EnableDoubleBuffer(infoGroup);
 
-            var infoTable = new TableLayoutPanel();
-            infoTable.Dock = DockStyle.Fill;
-            infoTable.AutoSize = false;
-            infoTable.ColumnCount = 4;
-            infoTable.RowCount = 5;
-            infoTable.Padding = new Padding(8, 6, 8, 6);
-            infoTable.ColumnStyles.Clear();
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18));
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32));
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18));
-            infoTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32));
-            infoTable.RowStyles.Clear();
-            for (int i = 0; i < 5; i++)
-                infoTable.RowStyles.Add(new RowStyle(SizeType.Percent, 20));
-            infoTable.BackColor = System.Drawing.Color.Transparent;
-            EnableDoubleBuffer(infoTable);
+            var infoColumns = new TableLayoutPanel();
+            infoColumns.Dock = DockStyle.Fill;
+            infoColumns.AutoSize = false;
+            infoColumns.ColumnCount = 2;
+            infoColumns.RowCount = 1;
+            infoColumns.Padding = new Padding(10, 6, 10, 6);
+            infoColumns.ColumnStyles.Clear();
+            infoColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            infoColumns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            infoColumns.RowStyles.Clear();
+            infoColumns.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            infoColumns.BackColor = System.Drawing.Color.Transparent;
+            EnableDoubleBuffer(infoColumns);
+
+            TableLayoutPanel CreateInfoSideTable(float labelPercent)
+            {
+                var sideTable = new TableLayoutPanel();
+                sideTable.Dock = DockStyle.Fill;
+                sideTable.AutoSize = false;
+                sideTable.ColumnCount = 2;
+                sideTable.RowCount = 5;
+                sideTable.Padding = new Padding(0);
+                sideTable.Margin = new Padding(4, 0, 4, 0);
+                sideTable.ColumnStyles.Clear();
+                sideTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, labelPercent));
+                sideTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f - labelPercent));
+                sideTable.RowStyles.Clear();
+                for (int i = 0; i < 5; i++)
+                    sideTable.RowStyles.Add(new RowStyle(SizeType.Percent, 20));
+                sideTable.BackColor = System.Drawing.Color.Transparent;
+                EnableDoubleBuffer(sideTable);
+                return sideTable;
+            }
+
+            var leftInfoTable = CreateInfoSideTable(50f);
+            var rightInfoTable = CreateInfoSideTable(50f);
 
             var infoToolTip = new ToolTip();
             infoToolTip.AutoPopDelay = 8000;
@@ -97,10 +117,10 @@ namespace SalaryCalculator
                     Text = text,
                     Dock = DockStyle.Fill,
                     TextAlign = System.Drawing.ContentAlignment.MiddleRight,
-                    Font = new System.Drawing.Font("Segoe UI", 8.5f),
+                    Font = new System.Drawing.Font("Segoe UI", 8f),
                     AutoSize = false,
                     AutoEllipsis = false,
-                    Margin = new Padding(0, 2, 6, 2)
+                    Margin = new Padding(0, 2, 8, 2)
                 };
 
                 infoToolTip.SetToolTip(lbl, text);
@@ -117,38 +137,41 @@ namespace SalaryCalculator
                     Font = bold ? new System.Drawing.Font("Segoe UI", 8.5f, System.Drawing.FontStyle.Bold) : new System.Drawing.Font("Segoe UI", 8.5f),
                     AutoSize = false,
                     AutoEllipsis = false,
-                    Margin = new Padding(6, 2, 0, 2)
+                    Margin = new Padding(8, 2, 0, 2)
                 };
 
                 infoToolTip.SetToolTip(lbl, text);
                 return lbl;
             }
 
-            void AddInfoPairRow(
-                int row,
-                string leftLabel,
-                string leftValue,
-                string rightLabel,
-                string rightValue,
-                bool leftBoldValue = false,
-                bool rightBoldValue = false)
+            void AddInfoRow(TableLayoutPanel targetTable, int row, string label, string value, bool boldValue = false)
             {
-                infoTable.Controls.Add(CreateLeftLabel(leftLabel), 0, row);
-                infoTable.Controls.Add(CreateRightLabel(leftValue, leftBoldValue), 1, row);
-                infoTable.Controls.Add(CreateLeftLabel(rightLabel), 2, row);
-                infoTable.Controls.Add(CreateRightLabel(rightValue, rightBoldValue), 3, row);
+                targetTable.Controls.Add(CreateLeftLabel(label), 0, row);
+                targetTable.Controls.Add(CreateRightLabel(value, boldValue), 1, row);
             }
 
             decimal attendancePerMonth = user.AttendancePerDay > 0 && user.AttendancePerDay <= 20000m ? user.AttendancePerDay * 23m : user.AttendancePerDay;
             decimal travelPerMonth = user.TravelAllowance > 0 && user.TravelAllowance <= 20000m ? user.TravelAllowance * 23m : user.TravelAllowance;
 
-            AddInfoPairRow(0, "Tên đăng nhập:", user.Username, "Họ tên:", user.FullName, true, true);
-            AddInfoPairRow(1, "Số điện thoại:", user.Phone, "Tuổi:", user.Age.ToString());
-            AddInfoPairRow(2, "Lương cơ bản:", user.BasicSalary.ToString("N0") + " VND", "Tiền ăn:", user.MealAllowance.ToString("N0") + " VND");
-            AddInfoPairRow(3, "Tiền chuyên cần/tháng:", attendancePerMonth.ToString("N0") + " VND", "Tiền đi lại/tháng:", travelPerMonth.ToString("N0") + " VND");
-            AddInfoPairRow(4, "Tiền nhà ở:", user.HousingAllowance.ToString("N0") + " VND", "Thưởng cert:", user.CertificateBonus.ToString("N0") + " VND");
+            // Pair related fields on each row so both columns look balanced and aligned.
+            AddInfoRow(leftInfoTable, 0, "Tên đăng nhập:", user.Username, true);
+            AddInfoRow(rightInfoTable, 0, "Số điện thoại:", user.Phone);
 
-            infoGroup.Controls.Add(infoTable);
+            AddInfoRow(leftInfoTable, 1, "Họ tên:", user.FullName, true);
+            AddInfoRow(rightInfoTable, 1, "Tuổi:", user.Age.ToString());
+
+            AddInfoRow(leftInfoTable, 2, "Lương cơ bản:", user.BasicSalary.ToString("N0") + " VND");
+            AddInfoRow(rightInfoTable, 2, "Tiền nhà ở:", user.HousingAllowance.ToString("N0") + " VND");
+
+            AddInfoRow(leftInfoTable, 3, "Tiền ăn/tháng:", user.MealAllowance.ToString("N0") + " VND");
+            AddInfoRow(rightInfoTable, 3, "Thưởng cert:", user.CertificateBonus.ToString("N0") + " VND");
+
+            AddInfoRow(leftInfoTable, 4, "Tiền chuyên cần:", attendancePerMonth.ToString("N0") + " VND");
+            AddInfoRow(rightInfoTable, 4, "Tiền đi lại:", travelPerMonth.ToString("N0") + " VND");
+
+            infoColumns.Controls.Add(leftInfoTable, 0, 0);
+            infoColumns.Controls.Add(rightInfoTable, 1, 0);
+            infoGroup.Controls.Add(infoColumns);
             mainPanel.Controls.Add(infoGroup, 0, 1);
 
             // Lịch sử lương
