@@ -809,7 +809,7 @@ namespace SalaryCalculator
             leftY += 28;
 
             Label slDaysOffLabel = new Label();
-            slDaysOffLabel.Text = "Nghỉ SL (ngày):";
+            slDaysOffLabel.Text = "Nghỉ SL/NP (ngày):";
             slDaysOffLabel.Location = new System.Drawing.Point(10, leftY);
             slDaysOffLabel.Width = 110;
             slDaysOffLabel.Height = 18;
@@ -3410,9 +3410,9 @@ namespace SalaryCalculator
             NumberFormatter.FormatNumberInput(mealEditBox);
             editForm.Controls.Add(mealEditBox);
 
-            // Attendance per day
+            // Attendance per month
             Label attendancePerDayLabel = new Label();
-            attendancePerDayLabel.Text = "Chuyên cần/ngày:";
+            attendancePerDayLabel.Text = "Chuyên cần/tháng:";
             attendancePerDayLabel.Location = new System.Drawing.Point(30, startY + gapY * 5);
             attendancePerDayLabel.Width = 120;
             editForm.Controls.Add(attendancePerDayLabel);
@@ -3420,13 +3420,13 @@ namespace SalaryCalculator
             TextBox attendancePerDayEditBox = new TextBox();
             attendancePerDayEditBox.Location = new System.Drawing.Point(160, startY + gapY * 5 - 3);
             attendancePerDayEditBox.Width = 250;
-            attendancePerDayEditBox.Text = NumberFormatter.FormatNumberDisplay(user.AttendancePerDay.ToString());
+            attendancePerDayEditBox.Text = NumberFormatter.FormatNumberDisplay(NormalizeMonthlyAllowanceValue(user.AttendancePerDay).ToString());
             NumberFormatter.FormatNumberInput(attendancePerDayEditBox);
             editForm.Controls.Add(attendancePerDayEditBox);
 
-            // Travel per day
+            // Travel per month
             Label travelPerDayLabel = new Label();
-            travelPerDayLabel.Text = "Đi lại/ngày:";
+            travelPerDayLabel.Text = "Đi lại/tháng:";
             travelPerDayLabel.Location = new System.Drawing.Point(30, startY + gapY * 6);
             travelPerDayLabel.Width = 120;
             editForm.Controls.Add(travelPerDayLabel);
@@ -3434,7 +3434,7 @@ namespace SalaryCalculator
             TextBox travelPerDayEditBox = new TextBox();
             travelPerDayEditBox.Location = new System.Drawing.Point(160, startY + gapY * 6 - 3);
             travelPerDayEditBox.Width = 250;
-            travelPerDayEditBox.Text = NumberFormatter.FormatNumberDisplay(user.TravelAllowance.ToString());
+            travelPerDayEditBox.Text = NumberFormatter.FormatNumberDisplay(NormalizeMonthlyAllowanceValue(user.TravelAllowance).ToString());
             NumberFormatter.FormatNumberInput(travelPerDayEditBox);
             editForm.Controls.Add(travelPerDayEditBox);
 
@@ -3525,7 +3525,7 @@ namespace SalaryCalculator
             editForm.ShowDialog();
         }
 
-        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string certificate, string taxThreshold, string attendancePerDay, string travelPerDay, string housingAllowance)
+        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string certificate, string taxThreshold, string attendancePerMonth, string travelPerMonth, string housingAllowance)
         {
             try
             {
@@ -3540,22 +3540,22 @@ namespace SalaryCalculator
                 if (string.IsNullOrWhiteSpace(meal)) meal = "0";
                 if (string.IsNullOrWhiteSpace(certificate)) certificate = "0";
                 if (string.IsNullOrWhiteSpace(taxThreshold)) taxThreshold = "0";
-                if (string.IsNullOrWhiteSpace(attendancePerDay)) attendancePerDay = "8500";
-                if (string.IsNullOrWhiteSpace(travelPerDay)) travelPerDay = "8500";
+                if (string.IsNullOrWhiteSpace(attendancePerMonth)) attendancePerMonth = "195500";
+                if (string.IsNullOrWhiteSpace(travelPerMonth)) travelPerMonth = "195500";
                 if (string.IsNullOrWhiteSpace(housingAllowance)) housingAllowance = "100000";
 
                 if (!int.TryParse(age, out int userAge) || !decimal.TryParse(salary, out decimal basicSalary) ||
                     !decimal.TryParse(meal, out decimal mealAllowance) ||
                     !decimal.TryParse(certificate, out decimal certificateBonus) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue) ||
-                    !decimal.TryParse(attendancePerDay, out decimal attendancePerDayValue) || !decimal.TryParse(travelPerDay, out decimal travelPerDayValue) || !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
+                    !decimal.TryParse(attendancePerMonth, out decimal attendancePerMonthValue) || !decimal.TryParse(travelPerMonth, out decimal travelPerMonthValue) || !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/ngày, đi lại/ngày, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
-                if (attendancePerDayValue < 0 || travelPerDayValue < 0 || housingAllowanceValue < 0)
+                if (attendancePerMonthValue < 0 || travelPerMonthValue < 0 || housingAllowanceValue < 0)
                 {
-                    MessageBox.Show("Tiền chuyên cần/ngày, tiền đi lại/ngày và tiền nhà ở không được âm!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Tiền chuyên cần/tháng, tiền đi lại/tháng và tiền nhà ở không được âm!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
 
@@ -3565,7 +3565,7 @@ namespace SalaryCalculator
                     return false;
                 }
 
-                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThresholdValue, "", certificateBonus, attendancePerDayValue, travelPerDayValue, housingAllowanceValue);
+                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThresholdValue, "", certificateBonus, attendancePerMonthValue, travelPerMonthValue, housingAllowanceValue);
             }
             catch
             {
@@ -3733,8 +3733,6 @@ namespace SalaryCalculator
                 decimal.TryParse(otDays8TextBox.Text, out otDays8);    // Số ngày OT +4h
                 decimal overtime15xHours = 0;
                 decimal.TryParse(overtime15xTextBox.Text, out overtime15xHours); // Làm thêm x1.5 lương
-                int recognizeCount = 0;
-                int.TryParse(recognizeTextBox.Text, out recognizeCount); // Số lượng Recognize
                 decimal otherBonus = 0;
                 decimal.TryParse(otherBonusTextBox.Text, out otherBonus); // Tiền bonus khác
                 decimal baseTaxThresholdInput = BaseTaxThreshold;
@@ -3753,7 +3751,7 @@ namespace SalaryCalculator
                 if (alDaysOff < 0) alDaysOff = 0;
                 if (slDaysOff + alDaysOff > workingDays)
                 {
-                    MessageBox.Show("Tổng ngày nghỉ SL + AL không được vượt quá số ngày công!", "Dữ liệu không hợp lệ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Tổng ngày nghỉ SL/NP + AL không được vượt quá số ngày công!", "Dữ liệu không hợp lệ", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -3762,8 +3760,8 @@ namespace SalaryCalculator
                 if (payableDays < 0) payableDays = 0;
                 if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
 
-                decimal travelPerDay = 8500m;
-                decimal attendancePerDay = 8500m;
+                decimal travelPerMonth = 195500m;
+                decimal attendancePerMonth = 195500m;
                 decimal rankingAAmount = 300000m;
                 decimal rankingBAmount = 275000m;
                 decimal rankingCAmount = 250000m;
@@ -3798,8 +3796,8 @@ namespace SalaryCalculator
 
                 if (user != null)
                 {
-                    travelPerDay = user.TravelAllowance > 0 ? user.TravelAllowance : 8500m;
-                    attendancePerDay = user.AttendancePerDay > 0 ? user.AttendancePerDay : 8500m;
+                    travelPerMonth = NormalizeMonthlyAllowanceValue(user.TravelAllowance > 0 ? user.TravelAllowance : 195500m);
+                    attendancePerMonth = NormalizeMonthlyAllowanceValue(user.AttendancePerDay > 0 ? user.AttendancePerDay : 195500m);
                     housingAllowance = user.HousingAllowance > 0 ? user.HousingAllowance : 100000m;
                     rankingAAmount = user.RankingABonusAmount > 0 ? user.RankingABonusAmount : rankingAAmount;
                     rankingBAmount = user.RankingBBonusAmount > 0 ? user.RankingBBonusAmount : rankingBAmount;
@@ -3818,8 +3816,8 @@ namespace SalaryCalculator
                     certificateBonus = user.CertificateBonus;
                 }
 
-                travelAllowance = travelPerDay * allowanceEligibleDays;
-                attendanceIncentive = attendancePerDay * allowanceEligibleDays;
+                travelAllowance = ComputeProratedAllowanceByWorkedDays(travelPerMonth, workingDays, allowanceEligibleDays);
+                attendanceIncentive = ComputeProratedAllowanceByWorkedDays(attendancePerMonth, workingDays, allowanceEligibleDays);
 
                 // Display incentive components in textboxes
                 try
@@ -3872,8 +3870,8 @@ namespace SalaryCalculator
                 decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
                 decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-                // Calculate Incentive - New structure with 5 components + recognize + other bonus
-                decimal totalIncentive = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus + (recognizeCount * 50000) + otherBonus;
+                // Calculate Incentive - New structure with allowance components + other bonus
+                decimal totalIncentive = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus + otherBonus;
 
                 // Lương Brutto bao gồm tiền ăn bonus và incentive
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
@@ -3947,9 +3945,13 @@ namespace SalaryCalculator
                 }
 
                 decimal allowanceTotal = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus;
+                decimal adjustedTravelPerMonth = ComputeEffectiveMonthlyAllowance(travelPerMonth, workingDays);
+                decimal adjustedAttendancePerMonth = ComputeEffectiveMonthlyAllowance(attendancePerMonth, workingDays);
+                decimal travelPerDayEffective = workingDays > 0 ? adjustedTravelPerMonth / workingDays : 0m;
+                decimal attendancePerDayEffective = workingDays > 0 ? adjustedAttendancePerMonth / workingDays : 0m;
                 string incentiveInfo = $"\n  • Tổng phụ cấp: {allowanceTotal:C0} VND" +
-                                        $"\n    - Tiền đi lại ({allowanceEligibleDays:F1} ngày × {travelPerDay:C0}): {travelAllowance:C0} VND" +
-                                        $"\n    - Tiền chuyên cần ({allowanceEligibleDays:F1} ngày × {attendancePerDay:C0}): {attendanceIncentive:C0} VND" +
+                                        $"\n    - Tiền đi lại ({travelPerDayEffective:C0}/ngày × {allowanceEligibleDays:F1} ngày): {travelAllowance:C0} VND" +
+                                        $"\n    - Tiền chuyên cần ({attendancePerDayEffective:C0}/ngày × {allowanceEligibleDays:F1} ngày): {attendanceIncentive:C0} VND" +
                                         $"\n    - Tiền nhà ở: {housingAllowance:C0} VND";
                 if (ratingBonus > 0)
                 {
@@ -3959,10 +3961,6 @@ namespace SalaryCalculator
                 {
                     incentiveInfo += $"\n    - Tiền chứng chỉ: {certificateBonus:C0} VND";
                 }
-                if (recognizeCount > 0)
-                {
-                    incentiveInfo += $"\n  • Recognize ({recognizeCount} × 50k): {recognizeCount * 50000:C0} VND";
-                }
                 if (otherBonus > 0)
                 {
                     incentiveInfo += $"\n  • Tiền bonus khác: {otherBonus:C0} VND";
@@ -3970,8 +3968,8 @@ namespace SalaryCalculator
 
                 string detail = $"Chi Tiết:\n" +
                     $"  • Lương ngày công gốc ({workingDays:F1} ngày × {dailySalaryForMeal:C0}): {baseRegularSalary:C0} VND\n" +
-                    $"  • Trừ nghỉ SL ({slDaysOff:F1} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
-                    $"  • Lương ngày công sau trừ SL: {regularSalary:C0} VND\n" +
+                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F1} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
+                    $"  • Lương ngày công sau trừ SL/NP: {regularSalary:C0} VND\n" +
                     $"  • OT x2 ({overtime2xHours:F1} tiếng × {hourlyRate:C0} × 2): {overtime2xSalary:C0} VND\n" +
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
@@ -3979,8 +3977,8 @@ namespace SalaryCalculator
                 // Save calculation to user data
                 string resultDetail = $"Chi Tiết:\n" +
                     $"  • Lương ngày công gốc ({workingDays:F1} ngày × {dailySalaryForMeal:C0}): {baseRegularSalary:C0} VND\n" +
-                    $"  • Trừ nghỉ SL ({slDaysOff:F1} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
-                    $"  • Lương ngày công sau trừ SL: {regularSalary:C0} VND\n" +
+                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F1} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
+                    $"  • Lương ngày công sau trừ SL/NP: {regularSalary:C0} VND\n" +
                     $"  • OT x2 ({overtime2xHours:F1} tiếng × {hourlyRate:C0} × 2): {overtime2xSalary:C0} VND\n" +
                     $"  • OT x3 ({overtime3xHours:F1} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
                     $"  • OT x1.5 ({overtime15xHours:F1} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
@@ -4324,6 +4322,43 @@ namespace SalaryCalculator
             return defaultValue;
         }
 
+        private decimal NormalizeMonthlyAllowanceValue(decimal rawValue)
+        {
+            if (rawValue < 0) return 0;
+
+            // Backward compatibility: old data may store per-day values (typically 8,500).
+            if (rawValue > 0 && rawValue <= 20000m)
+            {
+                return rawValue * 23m;
+            }
+
+            return rawValue;
+        }
+
+        private decimal ComputeEffectiveMonthlyAllowance(decimal monthlyBase, decimal workingDays)
+        {
+            monthlyBase = Math.Max(0m, monthlyBase);
+
+            if (workingDays > 23m)
+            {
+                monthlyBase += 8500m * (workingDays - 23m);
+            }
+
+            return monthlyBase;
+        }
+
+        private decimal ComputeProratedAllowanceByWorkedDays(decimal monthlyBase, decimal workingDays, decimal actualWorkedDays)
+        {
+            if (workingDays <= 0 || actualWorkedDays <= 0)
+            {
+                return 0m;
+            }
+
+            decimal effectiveMonthly = ComputeEffectiveMonthlyAllowance(monthlyBase, workingDays);
+            decimal prorated = (effectiveMonthly / workingDays) * actualWorkedDays;
+            return Math.Round(prorated, 0, MidpointRounding.AwayFromZero);
+        }
+
         private Color BlendColor(Color from, Color to, float t)
         {
             if (t < 0f) t = 0f;
@@ -4381,7 +4416,6 @@ namespace SalaryCalculator
                 decimal otDays12 = decimal.Parse(otDays12TextBox.Text);
                 decimal otDays8 = decimal.Parse(otDays8TextBox.Text);
                 decimal overtime15xHours = decimal.Parse(overtime15xTextBox.Text);
-                int recognizeCount = int.Parse(recognizeTextBox.Text);
                 decimal otherBonus = decimal.Parse(otherBonusTextBox.Text);
                 decimal baseTaxThresholdInput = BaseTaxThreshold;
                 if (taxThresholdTextBox != null && decimal.TryParse(taxThresholdTextBox.Text.Replace(",", ""), out decimal userInputThreshold) && userInputThreshold > 0)
@@ -4399,8 +4433,8 @@ namespace SalaryCalculator
                 if (payableDays < 0) payableDays = 0;
                 if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
 
-                decimal travelPerDay = 8500m;
-                decimal attendancePerDay = 8500m;
+                decimal travelPerMonth = 195500m;
+                decimal attendancePerMonth = 195500m;
                 decimal rankingAAmount = 300000m;
                 decimal rankingBAmount = 275000m;
                 decimal rankingCAmount = 250000m;
@@ -4415,8 +4449,8 @@ namespace SalaryCalculator
                 var user = userDataManager.Login(currentUsername);
                 if (user != null)
                 {
-                    travelPerDay = user.TravelAllowance > 0 ? user.TravelAllowance : 8500m;
-                    attendancePerDay = user.AttendancePerDay > 0 ? user.AttendancePerDay : 8500m;
+                    travelPerMonth = NormalizeMonthlyAllowanceValue(user.TravelAllowance > 0 ? user.TravelAllowance : 195500m);
+                    attendancePerMonth = NormalizeMonthlyAllowanceValue(user.AttendancePerDay > 0 ? user.AttendancePerDay : 195500m);
                     housingAllowance = user.HousingAllowance > 0 ? user.HousingAllowance : 100000m;
                     rankingAAmount = user.RankingABonusAmount > 0 ? user.RankingABonusAmount : rankingAAmount;
                     rankingBAmount = user.RankingBBonusAmount > 0 ? user.RankingBBonusAmount : rankingBAmount;
@@ -4429,8 +4463,8 @@ namespace SalaryCalculator
                     certificateBonus = user.CertificateBonus;
                 }
 
-                travelAllowance = travelPerDay * allowanceEligibleDays;
-                attendanceIncentive = attendancePerDay * allowanceEligibleDays;
+                travelAllowance = ComputeProratedAllowanceByWorkedDays(travelPerMonth, workingDays, allowanceEligibleDays);
+                attendanceIncentive = ComputeProratedAllowanceByWorkedDays(attendancePerMonth, workingDays, allowanceEligibleDays);
 
                 decimal bonusMealAllowance = 0;
                 if (otDays12 > 0) bonusMealAllowance += otDays12 * meal12Amount;
@@ -4456,7 +4490,7 @@ namespace SalaryCalculator
                 decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
                 decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-                decimal totalIncentive = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus + (recognizeCount * 50000) + otherBonus;
+                decimal totalIncentive = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus + otherBonus;
                 decimal grossSalary = regularSalary + overtime2xSalary + overtime3xSalary + overtime15xSalary + bonusMealAllowance + totalIncentive;
                 decimal netSalaryBeforeTax = grossSalary - insuranceDeduction;
 
@@ -4499,6 +4533,7 @@ namespace SalaryCalculator
         {
             try
             {
+                const float applauseVolumeScale = 0.6f;
                 bool played = false;
                 var asm = System.Reflection.Assembly.GetExecutingAssembly();
                 var resourceCandidates = new[]
@@ -4514,15 +4549,17 @@ namespace SalaryCalculator
                         if (rs == null) continue;
                         try
                         {
-                            string tmp = Path.Combine(Path.GetTempPath(), "applause_" + Guid.NewGuid().ToString("N") + ".wav");
-                            using (var fs = File.Create(tmp)) { rs.CopyTo(fs); }
+                            byte[] wavBytes;
+                            using (var ms = new MemoryStream())
+                            {
+                                rs.CopyTo(ms);
+                                wavBytes = ms.ToArray();
+                            }
+
+                            string tmp = WriteTempWavBytes(ReduceWavVolumeToScale(wavBytes, applauseVolumeScale));
                             var sp = new System.Media.SoundPlayer(tmp);
                             sp.Play();
-                            _ = System.Threading.Tasks.Task.Run(async () =>
-                            {
-                                await System.Threading.Tasks.Task.Delay(12000);
-                                try { File.Delete(tmp); } catch { }
-                            });
+                            ScheduleTempFileCleanup(tmp);
                             played = true;
                             break;
                         }
@@ -4546,10 +4583,12 @@ namespace SalaryCalculator
                         try
                         {
                             if (!File.Exists(path)) continue;
-                            using (var sp = new System.Media.SoundPlayer(path))
-                            {
-                                sp.Play();
-                            }
+
+                            byte[] wavBytes = File.ReadAllBytes(path);
+                            string tmp = WriteTempWavBytes(ReduceWavVolumeToScale(wavBytes, applauseVolumeScale));
+                            var sp = new System.Media.SoundPlayer(tmp);
+                            sp.Play();
+                            ScheduleTempFileCleanup(tmp);
                             played = true;
                             break;
                         }
@@ -4562,6 +4601,130 @@ namespace SalaryCalculator
             catch
             {
             }
+        }
+
+        private static void ScheduleTempFileCleanup(string tempPath)
+        {
+            _ = System.Threading.Tasks.Task.Run(async () =>
+            {
+                await System.Threading.Tasks.Task.Delay(12000);
+                try { File.Delete(tempPath); } catch { }
+            });
+        }
+
+        private static string WriteTempWavBytes(byte[] wavBytes)
+        {
+            string tmp = Path.Combine(Path.GetTempPath(), "applause_" + Guid.NewGuid().ToString("N") + ".wav");
+            File.WriteAllBytes(tmp, wavBytes);
+            return tmp;
+        }
+
+        private static byte[] ReduceWavVolumeToScale(byte[] wavBytes, float volumeScale)
+        {
+            if (wavBytes == null || wavBytes.Length < 44)
+            {
+                return wavBytes ?? Array.Empty<byte>();
+            }
+
+            float safeScale = Math.Max(0f, Math.Min(1f, volumeScale));
+            if (safeScale >= 0.999f)
+            {
+                return wavBytes;
+            }
+
+            int fmtChunkOffset = -1;
+            int dataChunkOffset = -1;
+            int dataChunkSize = 0;
+
+            int cursor = 12;
+            while (cursor + 8 <= wavBytes.Length)
+            {
+                if (cursor + 8 > wavBytes.Length)
+                {
+                    break;
+                }
+
+                int chunkSize = BitConverter.ToInt32(wavBytes, cursor + 4);
+                if (chunkSize < 0)
+                {
+                    return wavBytes;
+                }
+
+                bool isFmt = cursor + 3 < wavBytes.Length &&
+                             wavBytes[cursor] == (byte)'f' &&
+                             wavBytes[cursor + 1] == (byte)'m' &&
+                             wavBytes[cursor + 2] == (byte)'t' &&
+                             wavBytes[cursor + 3] == (byte)' ';
+
+                bool isData = cursor + 3 < wavBytes.Length &&
+                              wavBytes[cursor] == (byte)'d' &&
+                              wavBytes[cursor + 1] == (byte)'a' &&
+                              wavBytes[cursor + 2] == (byte)'t' &&
+                              wavBytes[cursor + 3] == (byte)'a';
+
+                if (isFmt)
+                {
+                    fmtChunkOffset = cursor;
+                }
+
+                if (isData)
+                {
+                    dataChunkOffset = cursor + 8;
+                    dataChunkSize = chunkSize;
+                    break;
+                }
+
+                int next = cursor + 8 + chunkSize;
+                if (chunkSize % 2 != 0)
+                {
+                    next += 1;
+                }
+
+                if (next <= cursor)
+                {
+                    return wavBytes;
+                }
+
+                cursor = next;
+            }
+
+            if (fmtChunkOffset < 0 || dataChunkOffset < 0 || dataChunkOffset >= wavBytes.Length)
+            {
+                return wavBytes;
+            }
+
+            if (fmtChunkOffset + 24 > wavBytes.Length)
+            {
+                return wavBytes;
+            }
+
+            short audioFormat = BitConverter.ToInt16(wavBytes, fmtChunkOffset + 8);
+            short bitsPerSample = BitConverter.ToInt16(wavBytes, fmtChunkOffset + 22);
+            if (audioFormat != 1 || bitsPerSample != 16)
+            {
+                return wavBytes;
+            }
+
+            int dataEnd = Math.Min(wavBytes.Length, dataChunkOffset + dataChunkSize);
+            if (dataEnd <= dataChunkOffset)
+            {
+                return wavBytes;
+            }
+
+            byte[] adjusted = (byte[])wavBytes.Clone();
+            for (int i = dataChunkOffset; i + 1 < dataEnd; i += 2)
+            {
+                short sample = BitConverter.ToInt16(adjusted, i);
+                int scaled = (int)Math.Round(sample * safeScale, MidpointRounding.AwayFromZero);
+                if (scaled > short.MaxValue) scaled = short.MaxValue;
+                if (scaled < short.MinValue) scaled = short.MinValue;
+
+                byte[] sampleBytes = BitConverter.GetBytes((short)scaled);
+                adjusted[i] = sampleBytes[0];
+                adjusted[i + 1] = sampleBytes[1];
+            }
+
+            return adjusted;
         }
 
         private string GetTop5RankingText()

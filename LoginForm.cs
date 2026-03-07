@@ -165,8 +165,8 @@ namespace SalaryCalculator
             NumberFormatter.FormatNumberInput(mealTextBox);
             this.Controls.Add(mealTextBox);
 
-            // Attendance per day (hidden by default)
-            attendancePerDayLabel.Text = "Tiền chuyên cần/ngày:";
+            // Attendance per month (hidden by default)
+            attendancePerDayLabel.Text = "Tiền chuyên cần/tháng:";
             attendancePerDayLabel.Location = new Point(contentStartX, formInputsY + 156);
             attendancePerDayLabel.Width = 180;
             attendancePerDayLabel.Height = 18;
@@ -179,12 +179,12 @@ namespace SalaryCalculator
             attendancePerDayTextBox.Height = 24;
             attendancePerDayTextBox.Name = "attendancePerDayTextBox";
             attendancePerDayTextBox.Visible = false;
-            attendancePerDayTextBox.Text = "8500";
+            attendancePerDayTextBox.Text = "195500";
             NumberFormatter.FormatNumberInput(attendancePerDayTextBox);
             this.Controls.Add(attendancePerDayTextBox);
 
-            // Travel per day (hidden by default)
-            travelPerDayLabel.Text = "Tiền đi lại/ngày:";
+            // Travel per month (hidden by default)
+            travelPerDayLabel.Text = "Tiền đi lại/tháng:";
             travelPerDayLabel.Location = new Point(contentStartX, formInputsY + 208);
             travelPerDayLabel.Width = 180;
             travelPerDayLabel.Height = 18;
@@ -197,7 +197,7 @@ namespace SalaryCalculator
             travelPerDayTextBox.Height = 24;
             travelPerDayTextBox.Name = "travelPerDayTextBox";
             travelPerDayTextBox.Visible = false;
-            travelPerDayTextBox.Text = "8500";
+            travelPerDayTextBox.Text = "195500";
             NumberFormatter.FormatNumberInput(travelPerDayTextBox);
             this.Controls.Add(travelPerDayTextBox);
 
@@ -409,8 +409,8 @@ namespace SalaryCalculator
                 salaryTextBox.Clear();
                 mealTextBox.Clear();
                 certTextBox.Clear();
-                attendancePerDayTextBox.Text = "8500";
-                travelPerDayTextBox.Text = "8500";
+                attendancePerDayTextBox.Text = "195500";
+                travelPerDayTextBox.Text = "195500";
                 housingAllowanceTextBox.Text = "100000";
             }
         }
@@ -436,8 +436,8 @@ namespace SalaryCalculator
                 if (string.IsNullOrWhiteSpace(salary)) salary = "0";
                 if (string.IsNullOrWhiteSpace(meal)) meal = "0";
                 if (string.IsNullOrWhiteSpace(cert)) cert = "0";
-                if (string.IsNullOrWhiteSpace(attendancePerDay)) attendancePerDay = "8500";
-                if (string.IsNullOrWhiteSpace(travelPerDay)) travelPerDay = "8500";
+                if (string.IsNullOrWhiteSpace(attendancePerDay)) attendancePerDay = "195500";
+                if (string.IsNullOrWhiteSpace(travelPerDay)) travelPerDay = "195500";
                 if (string.IsNullOrWhiteSpace(housingAllowance)) housingAllowance = "100000";
 
                 // Validate tax threshold
@@ -470,13 +470,13 @@ namespace SalaryCalculator
                     !decimal.TryParse(travelPerDay, out decimal travelPerDayValue) ||
                     !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/ngày, đi lại/ngày và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 if (attendancePerDayValue < 0 || travelPerDayValue < 0 || housingAllowanceValue < 0)
                 {
-                    MessageBox.Show("Tiền chuyên cần/ngày, tiền đi lại/ngày và tiền nhà ở không được âm!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Tiền chuyên cần/tháng, tiền đi lại/tháng và tiền nhà ở không được âm!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 

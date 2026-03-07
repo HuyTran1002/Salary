@@ -21,8 +21,8 @@ namespace SalaryCalculator
         public int RecognizeCount { get; set; }
         public decimal TaxThreshold { get; set; }
         // New incentive components
-        public decimal TravelAllowance { get; set; } = 8500m;
-        public decimal AttendancePerDay { get; set; } = 8500m;
+        public decimal TravelAllowance { get; set; } = 195500m;
+        public decimal AttendancePerDay { get; set; } = 195500m;
         public decimal HousingAllowance { get; set; } = 100000m;
         public string RatingBonus { get; set; } = "";
         public decimal CertificateBonus { get; set; } = 0;
@@ -55,7 +55,7 @@ namespace SalaryCalculator
                 Directory.CreateDirectory(DataFolder);
         }
 
-        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 8500m, decimal travelAllowancePerDay = 8500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
+        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 195500m, decimal travelAllowancePerDay = 195500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
         {
             try
             {
@@ -236,6 +236,65 @@ namespace SalaryCalculator
             catch
             {
                 return new List<UserInfo>();
+            }
+        }
+
+        private static bool TryExtractYearFromPeriodKey(string periodKey, out int year)
+        {
+            year = 0;
+            if (string.IsNullOrWhiteSpace(periodKey))
+                return false;
+
+            string[] parts = periodKey.Split('-');
+            if (parts.Length != 2)
+                return false;
+
+            return int.TryParse(parts[1], out year);
+        }
+
+        public int DeleteOldSalaryHistoryByYear(string username, int keepFromYear)
+        {
+            try
+            {
+                var user = Login(username);
+                if (user == null)
+                    return 0;
+
+                int removedCount = 0;
+
+                if (user.SalaryHistory != null)
+                {
+                    var oldSalaryKeys = user.SalaryHistory.Keys
+                        .Where(key => TryExtractYearFromPeriodKey(key, out int y) && y < keepFromYear)
+                        .ToList();
+
+                    removedCount += oldSalaryKeys.Count;
+                    foreach (var key in oldSalaryKeys)
+                    {
+                        user.SalaryHistory.Remove(key);
+                    }
+                }
+
+                if (user.SalaryResultHistory != null)
+                {
+                    var oldDetailKeys = user.SalaryResultHistory.Keys
+                        .Where(key => TryExtractYearFromPeriodKey(key, out int y) && y < keepFromYear)
+                        .ToList();
+
+                    foreach (var key in oldDetailKeys)
+                    {
+                        user.SalaryResultHistory.Remove(key);
+                    }
+                }
+
+                string json = JsonSerializer.Serialize(user, JsonOptions);
+                string userFile = Path.Combine(DataFolder, $"{username}.json");
+                File.WriteAllText(userFile, json);
+                return removedCount;
+            }
+            catch
+            {
+                return 0;
             }
         }
 
