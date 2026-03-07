@@ -10,6 +10,7 @@ namespace SalaryCalculator
     public class UpdateChecker
     {
         private const string GITHUB_API_RELEASE_URL = "https://api.github.com/repos/HuyTran1002/Salary/releases/latest";
+        private static bool isShowingUpdateDialog = false;
 
             public static async Task<string> GetLatestExeDownloadUrlAsync()
             {
@@ -94,19 +95,32 @@ namespace SalaryCalculator
 
         public static void ShowManualUpdateDialog(string latestVersion, string downloadUrl)
         {
-            var result = MessageBox.Show(
-                $"Phiên bản mới ({latestVersion}) có sẵn!\n\n" +
-                $"Phiên bản hiện tại: {CurrentVersion}\n" +
-                $"Phiên bản mới nhất: {latestVersion}\n\n" +
-                $"Bạn có muốn tải phiên bản mới ngay bây giờ không?",
-                "Cập Nhật Có Sẵn",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Information
-            );
-
-            if (result == DialogResult.Yes)
+            if (isShowingUpdateDialog)
             {
-                ShowAutoUpdateDialog(latestVersion, downloadUrl);
+                return;
+            }
+
+            isShowingUpdateDialog = true;
+            try
+            {
+                var result = MessageBox.Show(
+                    $"Phiên bản mới ({latestVersion}) có sẵn!\n\n" +
+                    $"Phiên bản hiện tại: {CurrentVersion}\n" +
+                    $"Phiên bản mới nhất: {latestVersion}\n\n" +
+                    $"Bạn có muốn tải phiên bản mới ngay bây giờ không?",
+                    "Cập Nhật Có Sẵn",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information
+                );
+
+                if (result == DialogResult.Yes)
+                {
+                    ShowAutoUpdateDialog(latestVersion, downloadUrl);
+                }
+            }
+            finally
+            {
+                isShowingUpdateDialog = false;
             }
         }
     }

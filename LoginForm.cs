@@ -9,6 +9,9 @@ namespace SalaryCalculator
     {
         private UserDataManager userDataManager = new UserDataManager();
         private bool isRegistering = false;
+        private static bool hasCheckedUpdateThisSession = false;
+        private static bool hasShownUpdateDialogThisSession = false;
+        private bool isCheckingForUpdate = false;
 
         public LoginForm()
         {
@@ -18,12 +21,23 @@ namespace SalaryCalculator
 
         private async void CheckForUpdate()
         {
+            if (hasCheckedUpdateThisSession || isCheckingForUpdate)
+            {
+                return;
+            }
+
+            isCheckingForUpdate = true;
+            hasCheckedUpdateThisSession = true;
+
             var result = await UpdateChecker.CheckForUpdateAsync();
-            if (result.hasUpdate)
+            if (result.hasUpdate && !hasShownUpdateDialogThisSession)
             {
                 string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
                 UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
+                hasShownUpdateDialogThisSession = true;
             }
+
+            isCheckingForUpdate = false;
         }
 
         private void InitializeComponent()
