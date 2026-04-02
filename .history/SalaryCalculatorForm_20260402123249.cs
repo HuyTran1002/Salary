@@ -641,9 +641,9 @@ namespace SalaryCalculator
             rightPanel.Location = new System.Drawing.Point(columnsStartX + leftPanel.Width + 25, 5);
 
             int leftY = 10;
-            int rightY = 0; // shift right panel objects up 10px
+            int rightY = 10;
             int rowGap = 24;
-            int sectionGap = 28;
+            int sectionGap = 20;
 
             // LEFT COLUMN - Employee Info & Basic Salary
             Label nameLabel = new Label();
@@ -935,17 +935,17 @@ namespace SalaryCalculator
             overtime2xLabel.Height = 18;
             overtime2xLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
 
-            // OT FWD label (first 24 hours) - aligned slightly above top-right corner of OT x2 textbox
+            // OT FWD label (first 24 hours) - on same line as OT x2 textbox
             Label overtime2xFwdLabel = new Label();
-            overtime2xFwdLabel.Text = "";
-            overtime2xFwdLabel.Location = new System.Drawing.Point(190, rightY - 4);
+            overtime2xFwdLabel.Text = "→ 0H OT FWD: 0 VND";
+            overtime2xFwdLabel.Location = new System.Drawing.Point(190, rightY);
             overtime2xFwdLabel.AutoSize = false;
             overtime2xFwdLabel.Width = 220;
             overtime2xFwdLabel.Height = 18;
             overtime2xFwdLabel.Name = "overtime2xFwdLabel";
             overtime2xFwdLabel.ForeColor = System.Drawing.Color.DarkOrange;
             overtime2xFwdLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
-            overtime2xFwdLabel.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+            overtime2xFwdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 
             TextBox overtime2xTextBox = new TextBox();
             overtime2xTextBox.Location = new System.Drawing.Point(105, rightY);
@@ -960,19 +960,19 @@ namespace SalaryCalculator
                 UpdateOvertime2xDisplay();
             };
 
-            // OT x2 label (remaining hours) - aligned slightly above bottom-right corner of OT x2 textbox
+            // OT x2 label (remaining hours) - next line
             Label overtime2xResultLabel = new Label();
-            overtime2xResultLabel.Text = "";
-            overtime2xResultLabel.Location = new System.Drawing.Point(190, rightY + 13);
+            overtime2xResultLabel.Text = "→ 0H OT x2: 0 VND";
+            overtime2xResultLabel.Location = new System.Drawing.Point(190, rightY + 20);
             overtime2xResultLabel.AutoSize = false;
-            overtime2xResultLabel.Width = 260;
+            overtime2xResultLabel.Width = 220;
             overtime2xResultLabel.Height = 18;
             overtime2xResultLabel.Name = "overtime2xResultLabel";
             overtime2xResultLabel.ForeColor = System.Drawing.Color.DarkOrange;
             overtime2xResultLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
-            overtime2xResultLabel.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+            overtime2xResultLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 
-            rightY += 38;
+            rightY += 44;
 
             // OT x3
             Label overtime3xLabel = new Label();
@@ -983,7 +983,7 @@ namespace SalaryCalculator
             overtime3xLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
 
             TextBox overtime3xTextBox = new TextBox();
-            overtime3xTextBox.Location = new System.Drawing.Point(105, rightY - 5);
+            overtime3xTextBox.Location = new System.Drawing.Point(105, rightY);
             overtime3xTextBox.Width = 80;
             overtime3xTextBox.Height = 22;
             overtime3xTextBox.Name = "overtime3xTextBox";
@@ -996,8 +996,8 @@ namespace SalaryCalculator
             };
 
             Label overtime3xResultLabel = new Label();
-            overtime3xResultLabel.Text = "";
-            overtime3xResultLabel.Location = new System.Drawing.Point(190, rightY - 3);
+            overtime3xResultLabel.Text = "→ 0H OT x3: 0 VND";
+            overtime3xResultLabel.Location = new System.Drawing.Point(190, rightY);
             overtime3xResultLabel.AutoSize = false;
             overtime3xResultLabel.Width = 220;
             overtime3xResultLabel.Height = 18;
@@ -1011,7 +1011,7 @@ namespace SalaryCalculator
             rightPanel.Controls.Add(overtime3xTextBox);
             rightPanel.Controls.Add(overtime3xResultLabel);
 
-            rightY += 28;
+            rightY += 35;
 
             Label overtime15xLabel = new Label();
             overtime15xLabel.Text = "Số Giờ (x1.5):";
@@ -1034,7 +1034,7 @@ namespace SalaryCalculator
             };
 
             Label overtime15xResultLabel = new Label();
-            overtime15xResultLabel.Text = "";
+            overtime15xResultLabel.Text = "→ 0H OT x1.5: 0 VND";
             overtime15xResultLabel.Location = new System.Drawing.Point(190, rightY);
             overtime15xResultLabel.AutoSize = false;
             overtime15xResultLabel.Width = 220;
@@ -1044,7 +1044,7 @@ namespace SalaryCalculator
             overtime15xResultLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
             overtime15xResultLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 
-            rightY += 28;
+            rightY += 35;
 
             // Divider
             Label divider2 = new Label();
@@ -1060,12 +1060,12 @@ namespace SalaryCalculator
             Label mealOTTitle = new Label();
             mealOTTitle.Text = "TIỀN ĂN TĂNG CA";
             mealOTTitle.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-            mealOTTitle.Location = new System.Drawing.Point(10, rightY - 10); // shift up 10px
+            mealOTTitle.Location = new System.Drawing.Point(10, rightY);
             mealOTTitle.Width = 400;
             mealOTTitle.Height = 20;
             mealOTTitle.ForeColor = System.Drawing.Color.DarkBlue;
 
-            rightY += 18;
+            rightY += 25;
 
             Label otDays12Label = new Label();
             otDays12Label.Text = "Số ngày OT 8/12h:";
@@ -1149,12 +1149,12 @@ namespace SalaryCalculator
             Label incentiveTitle = new Label();
             incentiveTitle.Text = "TIỀN PHỤ CẤP";
             incentiveTitle.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-            incentiveTitle.Location = new System.Drawing.Point(10, rightY - 5);
+            incentiveTitle.Location = new System.Drawing.Point(10, rightY);
             incentiveTitle.Width = 400;
             incentiveTitle.Height = 20;
             incentiveTitle.ForeColor = System.Drawing.Color.DarkOrange;
 
-            rightY += 22;
+            rightY += 25;
 
             // Single total allowance (sum of all incentive components)
             Label allowanceLabel = new Label();
@@ -1162,7 +1162,7 @@ namespace SalaryCalculator
             allowanceLabel.Location = new System.Drawing.Point(10, rightY);
             allowanceLabel.Width = 110;
             allowanceLabel.Height = 18;
-            allowanceLabel.Font = new System.Drawing.Font("Arial", 9);
+            allowanceLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
 
             TextBox allowanceTextBox = new TextBox();
             allowanceTextBox.Location = new System.Drawing.Point(125, rightY);
@@ -1591,7 +1591,7 @@ namespace SalaryCalculator
 
             Label detailLabel = new Label();
             detailLabel.Text = "";
-            detailLabel.Location = new System.Drawing.Point(430, 20);
+            detailLabel.Location = new System.Drawing.Point(430, 30);
             detailLabel.Width = 410;
             detailLabel.Height = resultPanel.Height - 34;
             detailLabel.Name = "detailLabel";
@@ -3342,7 +3342,7 @@ namespace SalaryCalculator
             // the daily travel/housing/attendance fields already default to nonzero
             // when a user is registered, so we don't bother warning about them.
             if (u.CertificateBonus <= 0)
-                missing.Add("Tiền cert");
+                missing.Add("Tiền chứng chỉ");
             // rating is selected on the calculation form, not stored as part of the
             // "profile" the user edits, so we no longer include it here.
 
@@ -3488,7 +3488,7 @@ namespace SalaryCalculator
 
             // Certificate Bonus
             Label certLabel = new Label();
-            certLabel.Text = "Tiền cert:";
+            certLabel.Text = "Tiền chứng chỉ:";
             certLabel.Location = new System.Drawing.Point(30, startY + gapY * 8);
             certLabel.Width = 120;
             editForm.Controls.Add(certLabel);
@@ -3583,7 +3583,7 @@ namespace SalaryCalculator
                     !decimal.TryParse(certificate, out decimal certificateBonus) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue) ||
                     !decimal.TryParse(attendancePerMonth, out decimal attendancePerMonthValue) || !decimal.TryParse(travelPerMonth, out decimal travelPerMonthValue) || !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền cert, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
@@ -3655,7 +3655,7 @@ namespace SalaryCalculator
                     decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
 
                     Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
-                    dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:N0} VND";
+                    dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
                 }
             }
             catch
@@ -3702,17 +3702,9 @@ namespace SalaryCalculator
                 decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
 
-                // Update label text - only show if hours > 0
-                if (overtime2xHours > 0)
-                {
-                    overtime2xFwdLabel.Text = $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}";
-                    overtime2xResultLabel.Text = $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}";
-                }
-                else
-                {
-                    overtime2xFwdLabel.Text = "";
-                    overtime2xResultLabel.Text = "";
-                }
+                // Update label text
+                overtime2xFwdLabel.Text = $"{otFwdHours:F0}H OT FWD: {otFwdSalary:C0}";
+                overtime2xResultLabel.Text = $"{ot2xHours:F0}H OT x2: {ot2xSalary:C0}";
             }
             catch
             {
@@ -3752,15 +3744,8 @@ namespace SalaryCalculator
                 // Calculate OT x3 salary
                 decimal overtime3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
 
-                // Update label text - only show if hours > 0
-                if (overtime3xHours > 0)
-                {
-                    overtime3xResultLabel.Text = $"→ {overtime3xHours:F0}H OT x3: {overtime3xSalary:N0}";
-                }
-                else
-                {
-                    overtime3xResultLabel.Text = "";
-                }
+                // Update label text
+                overtime3xResultLabel.Text = $"{overtime3xHours:F0}H OT x3: {overtime3xSalary:C0}";
             }
             catch
             {
@@ -3800,15 +3785,8 @@ namespace SalaryCalculator
                 // Calculate OT x1.5 salary
                 decimal overtime15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-                // Update label text - only show if hours > 0
-                if (overtime15xHours > 0)
-                {
-                    overtime15xResultLabel.Text = $"→ {overtime15xHours:F0}H OT x1.5: {overtime15xSalary:N0}";
-                }
-                else
-                {
-                    overtime15xResultLabel.Text = "";
-                }
+                // Update label text
+                overtime15xResultLabel.Text = $"{overtime15xHours:F0}H OT x1.5: {overtime15xSalary:C0}";
             }
             catch
             {
@@ -3816,18 +3794,18 @@ namespace SalaryCalculator
             }
         }
 
-        private decimal ComputeTaxThreshold(decimal baseThreshold, decimal hourlyRate, decimal overtime2xHours, decimal overtime3xHours, decimal overtime15xHours, decimal insuranceDeduction)
+        private decimal ComputeTaxThreshold(decimal baseThreshold, decimal hourlyRate, decimal overtime2xHours, decimal overtime3xHours, decimal insuranceDeduction)
         {
             // Tính tiền OT miễn thuế với giới hạn 28 tiếng
             const decimal maxTaxExemptHours = 28m;
             decimal taxExemptOT = 0m;
-
+            
             // Ưu tiên số tiếng x3 trước
             if (overtime3xHours > 0)
             {
                 decimal x3HoursForExempt = Math.Min(overtime3xHours, maxTaxExemptHours);
                 taxExemptOT += hourlyRate * x3HoursForExempt * 2m;
-
+                
                 // Nếu còn giới hạn, tính thêm từ x2
                 decimal remainingHours = maxTaxExemptHours - x3HoursForExempt;
                 if (remainingHours > 0 && overtime2xHours > 0)
@@ -3842,22 +3820,8 @@ namespace SalaryCalculator
                 decimal x2HoursForExempt = Math.Min(overtime2xHours, maxTaxExemptHours);
                 taxExemptOT += hourlyRate * x2HoursForExempt * 1m;
             }
-
-            // Tính các thành phần bổ sung theo công thức mới
-            decimal otFwdHours = Math.Min(overtime2xHours, 24);
-            decimal ot2xHours = Math.Max(0, overtime2xHours - 24);
-            decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
-            decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
-            decimal ot3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
-            decimal ot15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
-
-            // Công thức mới: mốc lương tính thuế + tiền bảo hiểm + 730000 + ((tiền OT x2 của số tiếng OT x2)/2) + ((tiền OT x3 của số tiền OT x3)*2/3) + ((tiền OT x1.5 của số tiếng OT x1.5)*1/3) + ((tiền OT FWD)*1/12)
-            decimal additionalOTx2 = ot2xSalary / 2m;
-            decimal additionalOTx3 = ot3xSalary * 2m / 3m;
-            decimal additionalOTx15 = ot15xSalary / 3m;
-            decimal additionalOTFwd = otFwdSalary / 12m;
-
-            return baseThreshold + insuranceDeduction + FixedThresholdAddon + additionalOTx2 + additionalOTx3 + additionalOTx15 + additionalOTFwd;
+            
+            return baseThreshold + FixedThresholdAddon + taxExemptOT + insuranceDeduction;
         }
 
         private void CalculateSalary(TextBox nameTextBox, TextBox monthTextBox, TextBox yearTextBox, TextBox salaryTextBox, TextBox mealTextBox, TextBox workingDaysTextBox, TextBox slDaysOffTextBox, TextBox alDaysOffTextBox,
@@ -4059,7 +4023,7 @@ namespace SalaryCalculator
                 decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
 
                 // Dynamic tax threshold = base (user input) + 730,000 + phần chênh lệch OT x2/x3 + khấu trừ BH
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
+                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 // Calculate gross salary components:
                 decimal baseRegularSalary = workingDays * dailySalaryForMeal;
@@ -4144,11 +4108,11 @@ namespace SalaryCalculator
                 string bonusInfo = "";
                 if (otDays12 > 0)
                 {
-                    bonusInfo += $"\n  • Tiền ăn OT 8/12h ({otDays12:F0} ngày × {meal12Amount:N0}): {otDays12 * meal12Amount:N0} VND";
+                    bonusInfo += $"\n  • Tiền ăn OT 8/12h ({otDays12:F0} ngày × {meal12Amount:C0}): {otDays12 * meal12Amount:C0} VND";
                 }
                 if (otDays8 > 0)
                 {
-                    bonusInfo += $"\n  • Tiền ăn OT +4h ({otDays8:F0} ngày × {meal8Amount:N0}): {otDays8 * meal8Amount:N0} VND";
+                    bonusInfo += $"\n  • Tiền ăn OT +4h ({otDays8:F0} ngày × {meal8Amount:C0}): {otDays8 * meal8Amount:C0} VND";
                 }
 
                 decimal allowanceTotal = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus;
@@ -4156,78 +4120,55 @@ namespace SalaryCalculator
                 decimal adjustedAttendancePerMonth = ComputeEffectiveMonthlyAllowance(attendancePerMonth, workingDays);
                 decimal travelPerDayEffective = workingDays > 0 ? adjustedTravelPerMonth / workingDays : 0m;
                 decimal attendancePerDayEffective = workingDays > 0 ? adjustedAttendancePerMonth / workingDays : 0m;
-                string incentiveInfo = $"\n  • Tổng phụ cấp: {allowanceTotal:N0} VND" +
-                                        $"\n    - Tiền đi lại ({travelPerDayEffective:N0}/ngày × {allowanceEligibleDays:F1} ngày): {travelAllowance:N0} VND" +
-                                        $"\n    - Tiền chuyên cần ({attendancePerDayEffective:N0}/ngày × {allowanceEligibleDays:F1} ngày): {attendanceIncentive:N0} VND" +
-                                        $"\n    - Tiền nhà ở: {housingAllowance:N0} VND";
+                string incentiveInfo = $"\n  • Tổng phụ cấp: {allowanceTotal:C0} VND" +
+                                        $"\n    - Tiền đi lại ({travelPerDayEffective:C0}/ngày × {allowanceEligibleDays:F1} ngày): {travelAllowance:C0} VND" +
+                                        $"\n    - Tiền chuyên cần ({attendancePerDayEffective:C0}/ngày × {allowanceEligibleDays:F1} ngày): {attendanceIncentive:C0} VND" +
+                                        $"\n    - Tiền nhà ở: {housingAllowance:C0} VND";
                 if (ratingBonus > 0)
                 {
-                    incentiveInfo += $"\n    - Tiền xếp loại ({selectedRating}): {ratingBonus:N0} VND";
+                    incentiveInfo += $"\n    - Tiền xếp loại ({selectedRating}): {ratingBonus:C0} VND";
                 }
                 if (certificateBonus > 0)
                 {
-                    incentiveInfo += $"\n    - Tiền cert: {certificateBonus:N0} VND";
+                    incentiveInfo += $"\n    - Tiền chứng chỉ: {certificateBonus:C0} VND";
                 }
                 if (otherBonus > 0)
                 {
-                    incentiveInfo += $"\n  • Tiền bonus khác: {otherBonus:N0} VND";
+                    incentiveInfo += $"\n  • Tiền bonus khác: {otherBonus:C0} VND";
                 }
 
-                string detail = $"\n" +
-                    $"  • Lương cơ bản + tiền ăn ({workingDays:F0} ngày × {dailySalaryForMeal:N0}): {baseRegularSalary:N0} VND\n" +
-                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F0} ngày × {dailySalaryForMeal:N0}): -{slSalaryDeduction:N0} VND\n" +
-                    $"  • Lương cơ bản + tiền ăn sau khi trừ SL/NP: {regularSalary:N0} VND\n" +
-                    $"  • OT FWD ({otFwdHours:F0} tiếng × {hourlyRate:N0} × 2): {otFwdSalary:N0} VND\n" +
-                    $"  • OT x2 ({ot2xHours:F0} tiếng × {hourlyRate:N0} × 2): {ot2xSalary:N0} VND\n" +
-                    $"  • OT x3 ({overtime3xHours:F0} tiếng × {hourlyRate:N0} × 3): {overtime3xSalary:N0} VND\n" +
-                    $"  • OT x1.5 ({overtime15xHours:F0} tiếng × {hourlyRate:N0} × 1.5): {overtime15xSalary:N0} VND{bonusInfo}{incentiveInfo}";
+                string detail = $"Chi Tiết:\n" +
+                    $"  • Lương ngày công gốc ({workingDays:F0} ngày × {dailySalaryForMeal:C0}): {baseRegularSalary:C0} VND\n" +
+                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F0} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
+                    $"  • Lương ngày công sau trừ SL/NP: {regularSalary:C0} VND\n" +
+                    $"  • OT FWD ({otFwdHours:F0} tiếng × {hourlyRate:C0} × 2): {otFwdSalary:C0} VND\n" +
+                    $"  • OT x2 ({ot2xHours:F0} tiếng × {hourlyRate:C0} × 2): {ot2xSalary:C0} VND\n" +
+                    $"  • Tổng OT x2: {overtime2xSalary:C0} VND\n" +
+                    $"  • OT x3 ({overtime3xHours:F0} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
+                    $"  • OT x1.5 ({overtime15xHours:F0} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
 
                 // Save calculation to user data
                 string resultDetail = $"Chi Tiết:\n" +
-                    $"  • Lương cơ bản + tiền ăn ({workingDays:F0} ngày × {dailySalaryForMeal:N0}): {baseRegularSalary:N0} VND\n" +
-                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F0} ngày × {dailySalaryForMeal:N0}): -{slSalaryDeduction:N0} VND\n" +
-                    $"  • Lương cơ bản + tiền ăn sau khi trừ SL/NP: {regularSalary:N0} VND\n" +
-                    $"  • OT FWD ({otFwdHours:F0} tiếng × {hourlyRate:N0} × 2): {otFwdSalary:N0} VND\n" +
-                    $"  • OT x2 ({ot2xHours:F0} tiếng × {hourlyRate:N0} × 2): {ot2xSalary:N0} VND\n" +
-                    $"  • OT x3 ({overtime3xHours:F0} tiếng × {hourlyRate:N0} × 3): {overtime3xSalary:N0} VND\n" +
-                    $"  • OT x1.5 ({overtime15xHours:F0} tiếng × {hourlyRate:N0} × 1.5): {overtime15xSalary:N0} VND{bonusInfo}{incentiveInfo}";
+                    $"  • Lương ngày công gốc ({workingDays:F0} ngày × {dailySalaryForMeal:C0}): {baseRegularSalary:C0} VND\n" +
+                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F0} ngày × {dailySalaryForMeal:C0}): -{slSalaryDeduction:C0} VND\n" +
+                    $"  • Lương ngày công sau trừ SL/NP: {regularSalary:C0} VND\n" +
+                    $"  • OT FWD ({otFwdHours:F0} tiếng × {hourlyRate:C0} × 2): {otFwdSalary:C0} VND\n" +
+                    $"  • OT x2 ({ot2xHours:F0} tiếng × {hourlyRate:C0} × 2): {ot2xSalary:C0} VND\n" +
+                    $"  • Tổng OT x2: {overtime2xSalary:C0} VND\n" +
+                    $"  • OT x3 ({overtime3xHours:F0} tiếng × {hourlyRate:C0} × 3): {overtime3xSalary:C0} VND\n" +
+                    $"  • OT x1.5 ({overtime15xHours:F0} tiếng × {hourlyRate:C0} × 1.5): {overtime15xSalary:C0} VND{bonusInfo}{incentiveInfo}";
                 
                 userDataManager.UpdateLastCalculation(currentUsername, month, year, netSalary, resultDetail);
 
-                // Update OT result labels - only show if hours > 0
+                // Update OT result labels
                 Label overtime2xFwdLabel = this.Controls.Find("overtime2xFwdLabel", true)[0] as Label;
                 Label overtime2xResultLabel = this.Controls.Find("overtime2xResultLabel", true)[0] as Label;
                 Label overtime3xResultLabel = this.Controls.Find("overtime3xResultLabel", true)[0] as Label;
                 Label overtime15xResultLabel = this.Controls.Find("overtime15xResultLabel", true)[0] as Label;
-                
-                if (overtime2xHours > 0)
-                {
-                    overtime2xFwdLabel.Text = $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}";
-                    overtime2xResultLabel.Text = $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}";
-                }
-                else
-                {
-                    overtime2xFwdLabel.Text = "";
-                    overtime2xResultLabel.Text = "";
-                }
-                
-                if (overtime3xHours > 0)
-                {
-                    overtime3xResultLabel.Text = $"→ {overtime3xHours:F0}H OT x3: {overtime3xSalary:N0}";
-                }
-                else
-                {
-                    overtime3xResultLabel.Text = "";
-                }
-                
-                if (overtime15xHours > 0)
-                {
-                    overtime15xResultLabel.Text = $"→ {overtime15xHours:F0}H OT x1.5: {overtime15xSalary:N0}";
-                }
-                else
-                {
-                    overtime15xResultLabel.Text = "";
-                }
+                overtime2xFwdLabel.Text = $"{otFwdHours:F0}H OT FWD: {otFwdSalary:C0}";
+                overtime2xResultLabel.Text = $"{ot2xHours:F0}H OT x2: {ot2xSalary:C0}";
+                overtime3xResultLabel.Text = $"{overtime3xHours:F0}H OT x3: {overtime3xSalary:C0}";
+                overtime15xResultLabel.Text = $"{overtime15xHours:F0}H OT x1.5: {overtime15xSalary:C0}";
 
                 // Get label references for typing effect
                 Label empNameLabel = this.Controls.Find("empNameLabel", true)[0] as Label;
@@ -4253,14 +4194,14 @@ namespace SalaryCalculator
 
                 // Show results immediately (no typing effect)
                 empNameLabel.Text = $"Nhân Viên: {employeeName}";
-                dayRate8hLabel.Text = $"Lương cơ bản 1 ngày: {basicDailySalary:N0} VND";
-                mealDayLabel.Text = $"Tiền ăn 1 ngày: {mealDailySalary:N0} VND";
-                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:N0} VND";
-                grossLabel.Text = $"Lương Brutto: {grossSalary:N0} VND";
-                insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm ({insurancePercent}% lương cơ bản): {insuranceDeduction:N0} VND";
-                taxThresholdResultLabel.Text = $"Mốc thuế áp dụng: {taxThreshold:N0} VND";
-                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("N0") + " VND" : "0 VND")}";
-                netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:N0} VND";
+                dayRate8hLabel.Text = $"Lương cơ bản 1 ngày: {basicDailySalary:C0} VND";
+                mealDayLabel.Text = $"Tiền ăn 1 ngày: {mealDailySalary:C0} VND";
+                dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:C0} VND";
+                grossLabel.Text = $"Lương Brutto: {grossSalary:C0} VND";
+                insuranceDeductLabel.Text = $"Khấu Trừ Bảo Hiểm ({insurancePercent}% lương cơ bản): {insuranceDeduction:C0} VND";
+                taxThresholdResultLabel.Text = $"Mốc thuế áp dụng: {taxThreshold:C0} VND";
+                taxDeductLabel.Text = $"Khấu Trừ Thuế: {(taxDeductionDisplay > 0 ? taxDeductionDisplay.ToString("C0") + " VND" : "0 VND")}";
+                netLabel.Text = $"Lương Net (Thực Nhận): {netSalary:C0} VND";
                 detailLabel.Text = detail;
 
                 // Update marquee with latest rankings
@@ -4371,9 +4312,9 @@ namespace SalaryCalculator
             decimal safeB = amountB > 0 ? amountB : 275000m;
             decimal safeC = amountC > 0 ? amountC : 250000m;
 
-            if (rankingA != null) rankingA.Text = $"A ({safeA:N0} VND)";
-            if (rankingB != null) rankingB.Text = $"B ({safeB:N0} VND)";
-            if (rankingC != null) rankingC.Text = $"C ({safeC:N0} VND)";
+            if (rankingA != null) rankingA.Text = $"A ({safeA:C0} VND)";
+            if (rankingB != null) rankingB.Text = $"B ({safeB:C0} VND)";
+            if (rankingC != null) rankingC.Text = $"C ({safeC:C0} VND)";
         }
 
         private void OpenRankingEditForm(Button button, CheckBox rankingA, CheckBox rankingB, CheckBox rankingC)
@@ -4719,7 +4660,7 @@ namespace SalaryCalculator
                 }
                 if (insurancePercent < 0) insurancePercent = 0;
                 decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
+                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 decimal regularSalary = payableDays * dailySalaryForMeal;
                 decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);

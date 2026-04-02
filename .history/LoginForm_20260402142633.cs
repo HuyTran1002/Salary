@@ -484,7 +484,7 @@ namespace SalaryCalculator
                     !decimal.TryParse(travelPerDay, out decimal travelPerDayValue) ||
                     !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền cert, chuyên cần/tháng, đi lại/tháng và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 

@@ -4166,7 +4166,7 @@ namespace SalaryCalculator
                 }
                 if (certificateBonus > 0)
                 {
-                    incentiveInfo += $"\n    - Tiền cert: {certificateBonus:N0} VND";
+                    incentiveInfo += $"\n    - Tiền chứng chỉ: {certificateBonus:N0} VND";
                 }
                 if (otherBonus > 0)
                 {

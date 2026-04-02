@@ -3342,7 +3342,7 @@ namespace SalaryCalculator
             // the daily travel/housing/attendance fields already default to nonzero
             // when a user is registered, so we don't bother warning about them.
             if (u.CertificateBonus <= 0)
-                missing.Add("Tiền cert");
+                missing.Add("Tiền chứng chỉ");
             // rating is selected on the calculation form, not stored as part of the
             // "profile" the user edits, so we no longer include it here.
 
@@ -3488,7 +3488,7 @@ namespace SalaryCalculator
 
             // Certificate Bonus
             Label certLabel = new Label();
-            certLabel.Text = "Tiền cert:";
+            certLabel.Text = "Tiền chứng chỉ:";
             certLabel.Location = new System.Drawing.Point(30, startY + gapY * 8);
             certLabel.Width = 120;
             editForm.Controls.Add(certLabel);
@@ -3583,7 +3583,7 @@ namespace SalaryCalculator
                     !decimal.TryParse(certificate, out decimal certificateBonus) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue) ||
                     !decimal.TryParse(attendancePerMonth, out decimal attendancePerMonthValue) || !decimal.TryParse(travelPerMonth, out decimal travelPerMonthValue) || !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền cert, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
@@ -4166,7 +4166,7 @@ namespace SalaryCalculator
                 }
                 if (certificateBonus > 0)
                 {
-                    incentiveInfo += $"\n    - Tiền cert: {certificateBonus:N0} VND";
+                    incentiveInfo += $"\n    - Tiền chứng chỉ: {certificateBonus:N0} VND";
                 }
                 if (otherBonus > 0)
                 {
@@ -4719,7 +4719,7 @@ namespace SalaryCalculator
                 }
                 if (insurancePercent < 0) insurancePercent = 0;
                 decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
+                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, insuranceDeduction);
 
                 decimal regularSalary = payableDays * dailySalaryForMeal;
                 decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);

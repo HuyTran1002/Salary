@@ -9,9 +9,6 @@ namespace SalaryCalculator
     {
         private UserDataManager userDataManager = new UserDataManager();
         private bool isRegistering = false;
-        private static bool hasCheckedUpdateThisSession = false;
-        private static bool hasShownUpdateDialogThisSession = false;
-        private bool isCheckingForUpdate = false;
 
         public LoginForm()
         {
@@ -21,23 +18,12 @@ namespace SalaryCalculator
 
         private async void CheckForUpdate()
         {
-            if (hasCheckedUpdateThisSession || isCheckingForUpdate)
-            {
-                return;
-            }
-
-            isCheckingForUpdate = true;
-            hasCheckedUpdateThisSession = true;
-
             var result = await UpdateChecker.CheckForUpdateAsync();
-            if (result.hasUpdate && !hasShownUpdateDialogThisSession)
+            if (result.hasUpdate)
             {
                 string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
                 UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
-                hasShownUpdateDialogThisSession = true;
             }
-
-            isCheckingForUpdate = false;
         }
 
         private void InitializeComponent()
@@ -235,7 +221,7 @@ namespace SalaryCalculator
 
             // Certificate Bonus (hidden by default)
             Label certLabel = new Label();
-            certLabel.Text = "Tiền cert:";
+            certLabel.Text = "Tiền chứng chỉ:";
             certLabel.Location = new Point(contentStartX, formInputsY + 312);
             certLabel.Width = 150;
             certLabel.Height = 18;
@@ -484,7 +470,7 @@ namespace SalaryCalculator
                     !decimal.TryParse(travelPerDay, out decimal travelPerDayValue) ||
                     !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền cert, chuyên cần/tháng, đi lại/tháng và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng và tiền nhà ở phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 

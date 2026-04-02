@@ -3488,7 +3488,7 @@ namespace SalaryCalculator
 
             // Certificate Bonus
             Label certLabel = new Label();
-            certLabel.Text = "Tiền cert:";
+            certLabel.Text = "Tiền chứng chỉ:";
             certLabel.Location = new System.Drawing.Point(30, startY + gapY * 8);
             certLabel.Width = 120;
             editForm.Controls.Add(certLabel);
@@ -3583,7 +3583,7 @@ namespace SalaryCalculator
                     !decimal.TryParse(certificate, out decimal certificateBonus) || !decimal.TryParse(taxThreshold, out decimal taxThresholdValue) ||
                     !decimal.TryParse(attendancePerMonth, out decimal attendancePerMonthValue) || !decimal.TryParse(travelPerMonth, out decimal travelPerMonthValue) || !decimal.TryParse(housingAllowance, out decimal housingAllowanceValue))
                 {
-                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền cert, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Tuổi phải là số, Lương, tiền ăn, tiền chứng chỉ, chuyên cần/tháng, đi lại/tháng, tiền nhà ở và mốc lương tính thuế phải là số!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
 
@@ -4166,7 +4166,7 @@ namespace SalaryCalculator
                 }
                 if (certificateBonus > 0)
                 {
-                    incentiveInfo += $"\n    - Tiền cert: {certificateBonus:N0} VND";
+                    incentiveInfo += $"\n    - Tiền chứng chỉ: {certificateBonus:N0} VND";
                 }
                 if (otherBonus > 0)
                 {
