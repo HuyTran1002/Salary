@@ -804,7 +804,7 @@ namespace SalaryCalculator
 
             CheckBox autoCalcWorkingDaysCheck = new CheckBox();
             autoCalcWorkingDaysCheck.Text = "Tự động tính";
-            autoCalcWorkingDaysCheck.Location = new System.Drawing.Point(305, leftY -10);
+            autoCalcWorkingDaysCheck.Location = new System.Drawing.Point(305, leftY - 10);
             autoCalcWorkingDaysCheck.AutoSize = true;
             autoCalcWorkingDaysCheck.Checked = true;
             autoCalcWorkingDaysCheck.Name = "autoCalcWorkingDaysCheck";
@@ -939,9 +939,31 @@ namespace SalaryCalculator
             otTitle.Text = "TIỀN TĂNG CA";
             otTitle.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
             otTitle.Location = new System.Drawing.Point(10, rightY);
-            otTitle.Width = 400;
+            otTitle.Width = 140;
             otTitle.Height = 20;
             otTitle.ForeColor = System.Drawing.Color.DarkGreen;
+
+            Button syncOTBtn = new Button();
+            syncOTBtn.Text = "🔄";
+            syncOTBtn.Location = new System.Drawing.Point(333, rightY - 15);
+            syncOTBtn.Width = 40;
+            syncOTBtn.Height = 26;
+            syncOTBtn.AutoSize = true;
+            syncOTBtn.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            syncOTBtn.Padding = new System.Windows.Forms.Padding(0);
+            syncOTBtn.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Bold);
+            syncOTBtn.BackColor = System.Drawing.Color.LightSkyBlue;
+            syncOTBtn.Name = "syncOTBtn";
+            syncOTBtn.Click += async (s, e) => {
+                if (syncOTBtn.Tag?.ToString() == "syncing") return;
+                syncOTBtn.Tag = "syncing";
+                syncOTBtn.Text = "Đồng bộ...";
+                await LoadOTDataFromSheetAsync(currentUsername);
+                syncOTBtn.Text = "🔄";
+                syncOTBtn.Tag = null;
+            };
+
+            rightPanel.Controls.Add(syncOTBtn);
 
             rightY += sectionGap;
 
@@ -1632,6 +1654,8 @@ namespace SalaryCalculator
                 LoadUserData(nameTextBox, salaryTextBox, mealTextBox);
                 // Auto-calculate working days for current month
                 CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+                // Auto-load OT data from Google Sheets
+                LoadOTDataFromSheetAsync(currentUsername);
             }
 
             // Setup edit button handlers
@@ -2428,6 +2452,78 @@ namespace SalaryCalculator
                 File.WriteAllText(aiLearningFile, json);
             }
             catch { }
+        }
+
+        private async System.Threading.Tasks.Task LoadOTDataFromSheetAsync(string username)
+        {
+            try
+            {
+                using (var client = new System.Net.Http.HttpClient())
+                {
+                    string csvUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
+                    string csvData = await client.GetStringAsync(csvUrl);
+                    var lines = csvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    
+                    string currentFullName = "";
+                    var nameTbFound = this.Controls.Find("nameTextBox", true);
+                    if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
+                    {
+                        currentFullName = nameTb.Text.Trim();
+                    }
+
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        var row = lines[i].Split(',');
+                        if (row.Length >= 5)
+                        {
+                            string sheetUsername = row[0].Trim();
+                            string sheetFullName = row[1].Trim();
+                            
+                            // Match by fullName or username
+                            if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
+                                (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                var ot2TbFound = this.Controls.Find("overtime2xTextBox", true);
+                                var ot3TbFound = this.Controls.Find("overtime3xTextBox", true);
+                                var ot15TbFound = this.Controls.Find("overtime15xTextBox", true);
+
+                                if (ot2TbFound.Length > 0 && ot2TbFound[0] is TextBox ot2Tb)
+                                {
+                                    string valStr = row[2].Replace(",", ".");
+                                    if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot2x))
+                                        ot2Tb.Text = ot2x.ToString("0.##");
+                                    else
+                                        ot2Tb.Text = "0";
+                                }
+
+                                if (ot3TbFound.Length > 0 && ot3TbFound[0] is TextBox ot3Tb)
+                                {
+                                    string valStr = row[3].Replace(",", ".");
+                                    if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot3x))
+                                        ot3Tb.Text = ot3x.ToString("0.##");
+                                    else
+                                        ot3Tb.Text = "0";
+                                }
+
+                                if (ot15TbFound.Length > 0 && ot15TbFound[0] is TextBox ot15Tb)
+                                {
+                                    string valStr = row[4].Replace(",", ".");
+                                    if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot15x))
+                                        ot15Tb.Text = ot15x.ToString("0.##");
+                                    else
+                                        ot15Tb.Text = "0";
+                                }
+                                
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore network/parsing errors
+            }
         }
 
         private class AILearningData
