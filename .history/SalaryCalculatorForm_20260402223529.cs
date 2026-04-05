@@ -794,7 +794,7 @@ namespace SalaryCalculator
 
             TextBox workingDaysTextBox = new TextBox();
             workingDaysTextBox.Location = new System.Drawing.Point(130, leftY + 1);
-            workingDaysTextBox.Width = 165;
+            workingDaysTextBox.Width = 275;
             workingDaysTextBox.Height = 20;
             workingDaysTextBox.Name = "workingDaysTextBox";
             workingDaysTextBox.ReadOnly = true;
@@ -802,26 +802,9 @@ namespace SalaryCalculator
             workingDaysTextBox.Font = new System.Drawing.Font("Arial", 8);
             workingDaysTextBox.Text = "0";
 
-            CheckBox autoCalcWorkingDaysCheck = new CheckBox();
-            autoCalcWorkingDaysCheck.Text = "Tự động tính";
-            autoCalcWorkingDaysCheck.Location = new System.Drawing.Point(305, leftY -10);
-            autoCalcWorkingDaysCheck.AutoSize = true;
-            autoCalcWorkingDaysCheck.Checked = true;
-            autoCalcWorkingDaysCheck.Name = "autoCalcWorkingDaysCheck";
-            autoCalcWorkingDaysCheck.CheckedChanged += (s, e) => {
-                if (autoCalcWorkingDaysCheck.Checked) {
-                    workingDaysTextBox.ReadOnly = true;
-                    workingDaysTextBox.BackColor = System.Drawing.Color.LightGray;
-                    CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
-                } else {
-                    workingDaysTextBox.ReadOnly = false;
-                    workingDaysTextBox.BackColor = System.Drawing.Color.White;
-                }
-            };
-
             // Auto-calculate working days when month/year changes
-            monthTextBox.Leave += (s, e) => { if (autoCalcWorkingDaysCheck.Checked) CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox); };
-            yearTextBox.Leave += (s, e) => { if (autoCalcWorkingDaysCheck.Checked) CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox); };
+            monthTextBox.Leave += (s, e) => CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+            yearTextBox.Leave += (s, e) => CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
 
             leftY += 28;
 
@@ -916,8 +899,8 @@ namespace SalaryCalculator
 
             Label taxThresholdLabel = new Label();
             taxThresholdLabel.Text = "Mốc lương tính thuế:";
-            taxThresholdLabel.Location = new System.Drawing.Point(140, leftY + 2);
-            taxThresholdLabel.Width = 129;
+            taxThresholdLabel.Location = new System.Drawing.Point(145, leftY);
+            taxThresholdLabel.Width = 126;
             taxThresholdLabel.Height = 18;
 
             TextBox taxThresholdTextBox = new TextBox();
@@ -947,7 +930,7 @@ namespace SalaryCalculator
 
             Label overtime2xLabel = new Label();
             overtime2xLabel.Text = "Số Giờ (x2):";
-            overtime2xLabel.Location = new System.Drawing.Point(10, rightY + 5);
+            overtime2xLabel.Location = new System.Drawing.Point(10, rightY);
             overtime2xLabel.Width = 90;
             overtime2xLabel.Height = 18;
             overtime2xLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
@@ -1032,7 +1015,7 @@ namespace SalaryCalculator
 
             Label overtime15xLabel = new Label();
             overtime15xLabel.Text = "Số Giờ (x1.5):";
-            overtime15xLabel.Location = new System.Drawing.Point(10, rightY + 5);
+            overtime15xLabel.Location = new System.Drawing.Point(10, rightY);
             overtime15xLabel.Width = 90;
             overtime15xLabel.Height = 18;
             overtime15xLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Regular);
@@ -1267,7 +1250,7 @@ namespace SalaryCalculator
                 monthLabel, monthTextBox, yearLabel, yearTextBox,
                 salaryLabel, salaryTextBox,
                 mealLabel, mealTextBox,
-                workingDaysLabel, workingDaysTextBox, autoCalcWorkingDaysCheck,
+                workingDaysLabel, workingDaysTextBox,
                 slDaysOffLabel, slDaysOffTextBox,
                 alDaysOffLabel, alDaysOffTextBox,
                 divider1,
