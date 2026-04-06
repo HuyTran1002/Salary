@@ -3807,9 +3807,19 @@ namespace SalaryCalculator
                     hourlyRate = Math.Round(dailySalary / 8, 3, MidpointRounding.AwayFromZero);
                 }
 
-                // Split OT x2 into OT FWD (<=24 hours) and OT x2 (remaining)
-                decimal otFwdHours = Math.Min(overtime2xHours, 24);
-                decimal ot2xHours = Math.Max(0, overtime2xHours - 24);
+                // Split OT x2 into OT FWD and OT x2
+                decimal otFwdHours = 0;
+                decimal ot2xHours = 0;
+                if (overtime2xHours <= 24)
+                {
+                    otFwdHours = Math.Min(overtime2xHours, 16m);
+                    ot2xHours = overtime2xHours - otFwdHours;
+                }
+                else
+                {
+                    otFwdHours = 24m;
+                    ot2xHours = overtime2xHours - 24m;
+                }
 
                 // Calculate salaries (both OT FWD and OT x2 are paid at 2x rate)
                 decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
@@ -4181,8 +4191,18 @@ namespace SalaryCalculator
                 if (regularSalary < 0) regularSalary = 0;
                 
                 // Split OT x2 into OT FWD (<=24 hours at 2x rate) and OT x2 (remaining at 2x rate)
-                decimal otFwdHours = Math.Min(overtime2xHours, 24);
-                decimal ot2xHours = Math.Max(0, overtime2xHours - 24);
+                decimal otFwdHours = 0;
+                decimal ot2xHours = 0;
+                if (overtime2xHours <= 24)
+                {
+                    otFwdHours = Math.Min(overtime2xHours, 16m);
+                    ot2xHours = overtime2xHours - otFwdHours;
+                }
+                else
+                {
+                    otFwdHours = 24m;
+                    ot2xHours = overtime2xHours - 24m;
+                }
                 decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal overtime2xSalary = otFwdSalary + ot2xSalary;
