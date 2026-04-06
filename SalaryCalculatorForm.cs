@@ -12,6 +12,23 @@ namespace SalaryCalculator
 {
     public partial class SalaryCalculatorForm : Form
     {
+            private static readonly System.Net.Http.HttpClient _sharedHttpClient = new System.Net.Http.HttpClient();
+            private readonly Dictionary<string, Control> _controlCache = new Dictionary<string, Control>(StringComparer.OrdinalIgnoreCase);
+
+            private Control[] GetCachedControls(string name, bool searchAllChildren)
+            {
+                if (_controlCache.TryGetValue(name, out Control c) && c != null && !c.IsDisposed)
+                    return new Control[] { c };
+
+                var found = base.Controls.Find(name, searchAllChildren);
+                if (found.Length > 0)
+                {
+                    _controlCache[name] = found[0];
+                    return found;
+                }
+                return new Control[0];
+            }
+
             // Đúng vị trí bên trong class
             private string currentUsername;
             private UserDataManager userDataManager = new UserDataManager();
@@ -1445,9 +1462,9 @@ namespace SalaryCalculator
                 // checkboxes on the main salary form. If the user hasn't picked one
                 // yet, warn and abort, but don't open the profile editor.
                 {
-                    var rankingA = this.Controls.Find("rankingACheckBox", true).FirstOrDefault() as CheckBox;
-                    var rankingB = this.Controls.Find("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
-                    var rankingC = this.Controls.Find("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
+                    var rankingA = this.GetCachedControls("rankingACheckBox", true).FirstOrDefault() as CheckBox;
+                    var rankingB = this.GetCachedControls("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
+                    var rankingC = this.GetCachedControls("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
                     bool ratingSelected = (rankingA?.Checked == true) || (rankingB?.Checked == true) || (rankingC?.Checked == true);
                     if (!ratingSelected)
                     {
@@ -2393,7 +2410,7 @@ namespace SalaryCalculator
         {
             try
             {
-                var found = this.Controls.Find(controlName, true);
+                var found = this.GetCachedControls(controlName, true);
                 if (found.Length == 0) return 0m;
 
                 string text = string.Empty;
@@ -2458,64 +2475,61 @@ namespace SalaryCalculator
         {
             try
             {
-                using (var client = new System.Net.Http.HttpClient())
+                string csvUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
+                string csvData = await _sharedHttpClient.GetStringAsync(csvUrl);
+                var lines = csvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                string currentFullName = "";
+                var nameTbFound = this.GetCachedControls("nameTextBox", true);
+                if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
                 {
-                    string csvUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
-                    string csvData = await client.GetStringAsync(csvUrl);
-                    var lines = csvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    
-                    string currentFullName = "";
-                    var nameTbFound = this.Controls.Find("nameTextBox", true);
-                    if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
-                    {
-                        currentFullName = nameTb.Text.Trim();
-                    }
+                    currentFullName = nameTb.Text.Trim();
+                }
 
-                    for (int i = 1; i < lines.Length; i++)
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    var row = lines[i].Split(',');
+                    if (row.Length >= 5)
                     {
-                        var row = lines[i].Split(',');
-                        if (row.Length >= 5)
+                        string sheetUsername = row[0].Trim();
+                        string sheetFullName = row[1].Trim();
+                        
+                        // Match by fullName or username
+                        if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
+                            (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            string sheetUsername = row[0].Trim();
-                            string sheetFullName = row[1].Trim();
-                            
-                            // Match by fullName or username
-                            if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
-                                (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
+                            var ot2TbFound = this.GetCachedControls("overtime2xTextBox", true);
+                            var ot3TbFound = this.GetCachedControls("overtime3xTextBox", true);
+                            var ot15TbFound = this.GetCachedControls("overtime15xTextBox", true);
+
+                            if (ot2TbFound.Length > 0 && ot2TbFound[0] is TextBox ot2Tb)
                             {
-                                var ot2TbFound = this.Controls.Find("overtime2xTextBox", true);
-                                var ot3TbFound = this.Controls.Find("overtime3xTextBox", true);
-                                var ot15TbFound = this.Controls.Find("overtime15xTextBox", true);
-
-                                if (ot2TbFound.Length > 0 && ot2TbFound[0] is TextBox ot2Tb)
-                                {
-                                    string valStr = row[2].Replace(",", ".");
-                                    if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot2x))
-                                        ot2Tb.Text = ot2x.ToString("0.##");
-                                    else
-                                        ot2Tb.Text = "0";
-                                }
-
-                                if (ot3TbFound.Length > 0 && ot3TbFound[0] is TextBox ot3Tb)
-                                {
-                                    string valStr = row[3].Replace(",", ".");
-                                    if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot3x))
-                                        ot3Tb.Text = ot3x.ToString("0.##");
-                                    else
-                                        ot3Tb.Text = "0";
-                                }
-
-                                if (ot15TbFound.Length > 0 && ot15TbFound[0] is TextBox ot15Tb)
-                                {
-                                    string valStr = row[4].Replace(",", ".");
-                                    if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot15x))
-                                        ot15Tb.Text = ot15x.ToString("0.##");
-                                    else
-                                        ot15Tb.Text = "0";
-                                }
-                                
-                                break;
+                                string valStr = row[2].Replace(",", ".");
+                                if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot2x))
+                                    ot2Tb.Text = ot2x.ToString("0.##");
+                                else
+                                    ot2Tb.Text = "0";
                             }
+
+                            if (ot3TbFound.Length > 0 && ot3TbFound[0] is TextBox ot3Tb)
+                            {
+                                string valStr = row[3].Replace(",", ".");
+                                if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot3x))
+                                    ot3Tb.Text = ot3x.ToString("0.##");
+                                else
+                                    ot3Tb.Text = "0";
+                            }
+
+                            if (ot15TbFound.Length > 0 && ot15TbFound[0] is TextBox ot15Tb)
+                            {
+                                string valStr = row[4].Replace(",", ".");
+                                if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot15x))
+                                    ot15Tb.Text = ot15x.ToString("0.##");
+                                else
+                                    ot15Tb.Text = "0";
+                            }
+                            
+                            break;
                         }
                     }
                 }
@@ -2808,7 +2822,7 @@ namespace SalaryCalculator
                 return stickMood == "Phấn khích" ? "Bấm phát là mình chạy full combo!" : "Bấm nút này để mình phân tích kết quả nè";
             }
 
-            var netFound = this.Controls.Find("netLabel", true);
+            var netFound = this.GetCachedControls("netLabel", true);
             if (netFound.Length > 0 && netFound[0] is Label netLabel && !string.IsNullOrWhiteSpace(netLabel.Text))
             {
                 return "Kết quả đang đẹp lắm 💙";
@@ -2864,7 +2878,7 @@ namespace SalaryCalculator
             int emptyCount = 0;
             foreach (var key in keys)
             {
-                var found = this.Controls.Find(key, true);
+                var found = this.GetCachedControls(key, true);
                 if (found.Length == 0 || !(found[0] is TextBox tb))
                 {
                     continue;
@@ -3331,7 +3345,7 @@ namespace SalaryCalculator
 
             foreach (var name in readonlyNames)
             {
-                var found = this.Controls.Find(name, true);
+                var found = this.GetCachedControls(name, true);
                 if (found.Length > 0 && found[0] is TextBox tb)
                 {
                     tb.ReadOnly = true;
@@ -3351,29 +3365,29 @@ namespace SalaryCalculator
                 mealTextBox.Text = NumberFormatter.FormatNumberDisplay(user.MealAllowance.ToString());
                 
                 // Load phone and age
-                Control[] phoneFound = this.Controls.Find("phoneTextBox", true);
+                Control[] phoneFound = this.GetCachedControls("phoneTextBox", true);
                 if (phoneFound.Length > 0 && phoneFound[0] is TextBox phoneTextBox)
                 {
                     phoneTextBox.Text = user.Phone;
                 }
                 
-                Control[] ageFound = this.Controls.Find("ageTextBox", true);
+                Control[] ageFound = this.GetCachedControls("ageTextBox", true);
                 if (ageFound.Length > 0 && ageFound[0] is TextBox ageTextBox)
                 {
                     ageTextBox.Text = user.Age.ToString();
                 }
                 
                 // Load incentive data - find in form controls
-                Control[] found = this.Controls.Find("allowanceTextBox", true);
+                Control[] found = this.GetCachedControls("allowanceTextBox", true);
                 if (found.Length > 0 && found[0] is TextBox allowanceTextBox)
                 {
                     allowanceTextBox.Text = "Tự động tính và hiển thị";
                 }
 
-                var rankingA = this.Controls.Find("rankingACheckBox", true).FirstOrDefault() as CheckBox;
-                var rankingB = this.Controls.Find("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
-                var rankingC = this.Controls.Find("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
-                var editRankingBtn = this.Controls.Find("editRankingBtn", true).FirstOrDefault() as Button;
+                var rankingA = this.GetCachedControls("rankingACheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingB = this.GetCachedControls("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingC = this.GetCachedControls("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
+                var editRankingBtn = this.GetCachedControls("editRankingBtn", true).FirstOrDefault() as Button;
                 if (rankingA != null && rankingB != null && rankingC != null)
                 {
                     rankingA.Checked = (user.RatingBonus == "A");
@@ -3387,7 +3401,7 @@ namespace SalaryCalculator
                 }
 
                 // Insurance percent
-                Control[] insuranceFound = this.Controls.Find("insuranceTextBox", true);
+                Control[] insuranceFound = this.GetCachedControls("insuranceTextBox", true);
                 if (insuranceFound.Length > 0 && insuranceFound[0] is TextBox insuranceTextBox)
                 {
                     insuranceTextBox.Text = user.InsurancePercent.ToString();
@@ -3395,7 +3409,7 @@ namespace SalaryCalculator
                 
                 // Don't auto-load recognize count - let user input monthly
                 // Load tax threshold
-                Control[] taxThresholdFound = this.Controls.Find("taxThresholdTextBox", true);
+                Control[] taxThresholdFound = this.GetCachedControls("taxThresholdTextBox", true);
                 if (taxThresholdFound.Length > 0 && taxThresholdFound[0] is TextBox taxThresholdTextBox)
                 {
                     decimal thresholdToShow = user.TaxThreshold > 0 ? user.TaxThreshold : BaseTaxThreshold;
@@ -3405,8 +3419,8 @@ namespace SalaryCalculator
                 }
 
                 // Load OT meal editable amounts to buttons and labels
-                var editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
-                var meal12DisplayLabelRef = this.Controls.Find("meal12DisplayLabel", true).FirstOrDefault() as Label;
+                var editMeal12Btn = this.GetCachedControls("editMeal12Btn", true).FirstOrDefault() as Button;
+                var meal12DisplayLabelRef = this.GetCachedControls("meal12DisplayLabel", true).FirstOrDefault() as Label;
                 if (editMeal12Btn != null)
                 {
                     editMeal12Btn.Tag = user.OtMeal12Amount;
@@ -3415,8 +3429,8 @@ namespace SalaryCalculator
                         meal12DisplayLabelRef.Text = $"× {(user.OtMeal12Amount/1000m):F1}k";
                     }
                 }
-                var editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
-                var meal8DisplayLabelRef = this.Controls.Find("meal8DisplayLabel", true).FirstOrDefault() as Label;
+                var editMeal8Btn = this.GetCachedControls("editMeal8Btn", true).FirstOrDefault() as Button;
+                var meal8DisplayLabelRef = this.GetCachedControls("meal8DisplayLabel", true).FirstOrDefault() as Label;
                 if (editMeal8Btn != null)
                 {
                     editMeal8Btn.Tag = user.OtMeal8Amount;
@@ -3767,7 +3781,7 @@ namespace SalaryCalculator
                     decimal mealDailySalary = mealAllowancePerDay / workingDays;
                     decimal dailySalaryForMeal = basicDailySalary + mealDailySalary;
 
-                    Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
+                    Label dayRateLabel = this.GetCachedControls("dayRateLabel", true)[0] as Label;
                     dayRateLabel.Text = $"Tổng lương 1 ngày công: {dailySalaryForMeal:N0} VND";
                 }
             }
@@ -3782,11 +3796,11 @@ namespace SalaryCalculator
             try
             {
                 // Get controls
-                TextBox salaryTextBox = this.Controls.Find("salaryTextBox", true).FirstOrDefault() as TextBox;
-                TextBox workingDaysTextBox = this.Controls.Find("workingDaysTextBox", true).FirstOrDefault() as TextBox;
-                TextBox overtime2xTextBox = this.Controls.Find("overtime2xTextBox", true).FirstOrDefault() as TextBox;
-                Label overtime2xFwdLabel = this.Controls.Find("overtime2xFwdLabel", true).FirstOrDefault() as Label;
-                Label overtime2xResultLabel = this.Controls.Find("overtime2xResultLabel", true).FirstOrDefault() as Label;
+                TextBox salaryTextBox = this.GetCachedControls("salaryTextBox", true).FirstOrDefault() as TextBox;
+                TextBox workingDaysTextBox = this.GetCachedControls("workingDaysTextBox", true).FirstOrDefault() as TextBox;
+                TextBox overtime2xTextBox = this.GetCachedControls("overtime2xTextBox", true).FirstOrDefault() as TextBox;
+                Label overtime2xFwdLabel = this.GetCachedControls("overtime2xFwdLabel", true).FirstOrDefault() as Label;
+                Label overtime2xResultLabel = this.GetCachedControls("overtime2xResultLabel", true).FirstOrDefault() as Label;
 
                 if (salaryTextBox == null || workingDaysTextBox == null || overtime2xTextBox == null || overtime2xFwdLabel == null || overtime2xResultLabel == null)
                     return;
@@ -3848,10 +3862,10 @@ namespace SalaryCalculator
             try
             {
                 // Get controls
-                TextBox salaryTextBox = this.Controls.Find("salaryTextBox", true).FirstOrDefault() as TextBox;
-                TextBox workingDaysTextBox = this.Controls.Find("workingDaysTextBox", true).FirstOrDefault() as TextBox;
-                TextBox overtime3xTextBox = this.Controls.Find("overtime3xTextBox", true).FirstOrDefault() as TextBox;
-                Label overtime3xResultLabel = this.Controls.Find("overtime3xResultLabel", true).FirstOrDefault() as Label;
+                TextBox salaryTextBox = this.GetCachedControls("salaryTextBox", true).FirstOrDefault() as TextBox;
+                TextBox workingDaysTextBox = this.GetCachedControls("workingDaysTextBox", true).FirstOrDefault() as TextBox;
+                TextBox overtime3xTextBox = this.GetCachedControls("overtime3xTextBox", true).FirstOrDefault() as TextBox;
+                Label overtime3xResultLabel = this.GetCachedControls("overtime3xResultLabel", true).FirstOrDefault() as Label;
 
                 if (salaryTextBox == null || workingDaysTextBox == null || overtime3xTextBox == null || overtime3xResultLabel == null)
                     return;
@@ -3896,10 +3910,10 @@ namespace SalaryCalculator
             try
             {
                 // Get controls
-                TextBox salaryTextBox = this.Controls.Find("salaryTextBox", true).FirstOrDefault() as TextBox;
-                TextBox workingDaysTextBox = this.Controls.Find("workingDaysTextBox", true).FirstOrDefault() as TextBox;
-                TextBox overtime15xTextBox = this.Controls.Find("overtime15xTextBox", true).FirstOrDefault() as TextBox;
-                Label overtime15xResultLabel = this.Controls.Find("overtime15xResultLabel", true).FirstOrDefault() as Label;
+                TextBox salaryTextBox = this.GetCachedControls("salaryTextBox", true).FirstOrDefault() as TextBox;
+                TextBox workingDaysTextBox = this.GetCachedControls("workingDaysTextBox", true).FirstOrDefault() as TextBox;
+                TextBox overtime15xTextBox = this.GetCachedControls("overtime15xTextBox", true).FirstOrDefault() as TextBox;
+                Label overtime15xResultLabel = this.GetCachedControls("overtime15xResultLabel", true).FirstOrDefault() as Label;
 
                 if (salaryTextBox == null || workingDaysTextBox == null || overtime15xTextBox == null || overtime15xResultLabel == null)
                     return;
@@ -3992,12 +4006,12 @@ namespace SalaryCalculator
                 // Clear previous results before calculating new ones
                 try
                 {
-                    var resultTitleFound = this.Controls.Find("resultTitleLabel", true);
+                    var resultTitleFound = this.GetCachedControls("resultTitleLabel", true);
                     if (resultTitleFound.Length > 0 && resultTitleFound[0] is Label resultTitle)
                     {
                         resultTitle.Visible = false;
                     }
-                    var detailTitleFound = this.Controls.Find("detailTitleLabel", true);
+                    var detailTitleFound = this.GetCachedControls("detailTitleLabel", true);
                     if (detailTitleFound.Length > 0 && detailTitleFound[0] is Label detailTitle)
                     {
                         detailTitle.Visible = false;
@@ -4010,7 +4024,7 @@ namespace SalaryCalculator
                     };
                     foreach (var labelName in resultLabels)
                     {
-                        var foundLabels = this.Controls.Find(labelName, true);
+                        var foundLabels = this.GetCachedControls(labelName, true);
                         if (foundLabels.Length > 0 && foundLabels[0] is Label label)
                         {
                             label.Text = "";
@@ -4065,8 +4079,8 @@ namespace SalaryCalculator
                 }
 
                 // Get editable meal amounts from edit button Tags
-                Button editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
-                Button editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
+                Button editMeal12Btn = this.GetCachedControls("editMeal12Btn", true).FirstOrDefault() as Button;
+                Button editMeal8Btn = this.GetCachedControls("editMeal8Btn", true).FirstOrDefault() as Button;
                 decimal meal12Amount = editMeal12Btn != null && decimal.TryParse(editMeal12Btn.Tag.ToString(), out decimal m12) ? m12 : 30000;
                 decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
 
@@ -4098,14 +4112,14 @@ namespace SalaryCalculator
                 // Get user data to retrieve rating and certificate
                 var user = userDataManager.Login(currentUsername);
                 string selectedRating = "";
-                var rankingA = this.Controls.Find("rankingACheckBox", true).FirstOrDefault() as CheckBox;
-                var rankingB = this.Controls.Find("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
-                var rankingC = this.Controls.Find("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingA = this.GetCachedControls("rankingACheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingB = this.GetCachedControls("rankingBCheckBox", true).FirstOrDefault() as CheckBox;
+                var rankingC = this.GetCachedControls("rankingCCheckBox", true).FirstOrDefault() as CheckBox;
                 if (rankingA?.Checked == true) selectedRating = "A";
                 else if (rankingB?.Checked == true) selectedRating = "B";
                 else if (rankingC?.Checked == true) selectedRating = "C";
 
-                var editRankingBtn = this.Controls.Find("editRankingBtn", true).FirstOrDefault() as Button;
+                var editRankingBtn = this.GetCachedControls("editRankingBtn", true).FirstOrDefault() as Button;
                 if (editRankingBtn != null)
                 {
                     var parts = (editRankingBtn.Tag?.ToString() ?? "").Split('|');
@@ -4145,7 +4159,7 @@ namespace SalaryCalculator
                 // Display incentive components in textboxes
                 try
                 {
-                    var allowanceTB = this.Controls.Find("allowanceTextBox", true).FirstOrDefault() as TextBox;
+                    var allowanceTB = this.GetCachedControls("allowanceTextBox", true).FirstOrDefault() as TextBox;
                     decimal allowanceDisplayTotal = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus;
                     if (allowanceTB != null) allowanceTB.Text = allowanceDisplayTotal.ToString("N0");
                 }
@@ -4328,10 +4342,10 @@ namespace SalaryCalculator
                 userDataManager.UpdateLastCalculation(currentUsername, month, year, netSalary, resultDetail);
 
                 // Update OT result labels - only show if hours > 0
-                Label overtime2xFwdLabel = this.Controls.Find("overtime2xFwdLabel", true)[0] as Label;
-                Label overtime2xResultLabel = this.Controls.Find("overtime2xResultLabel", true)[0] as Label;
-                Label overtime3xResultLabel = this.Controls.Find("overtime3xResultLabel", true)[0] as Label;
-                Label overtime15xResultLabel = this.Controls.Find("overtime15xResultLabel", true)[0] as Label;
+                Label overtime2xFwdLabel = this.GetCachedControls("overtime2xFwdLabel", true)[0] as Label;
+                Label overtime2xResultLabel = this.GetCachedControls("overtime2xResultLabel", true)[0] as Label;
+                Label overtime3xResultLabel = this.GetCachedControls("overtime3xResultLabel", true)[0] as Label;
+                Label overtime15xResultLabel = this.GetCachedControls("overtime15xResultLabel", true)[0] as Label;
                 
                 if (overtime2xHours > 0)
                 {
@@ -4363,22 +4377,22 @@ namespace SalaryCalculator
                 }
 
                 // Get label references for typing effect
-                Label empNameLabel = this.Controls.Find("empNameLabel", true)[0] as Label;
-                Label grossLabel = this.Controls.Find("grossLabel", true)[0] as Label;
-                Label insuranceDeductLabel = this.Controls.Find("insuranceDeductLabel", true)[0] as Label;
-                Label taxDeductLabel = this.Controls.Find("taxDeductLabel", true)[0] as Label;
-                Label taxThresholdResultLabel = this.Controls.Find("taxThresholdResultLabel", true)[0] as Label;
-                Label netLabel = this.Controls.Find("netLabel", true)[0] as Label;
-                Label detailLabel = this.Controls.Find("detailLabel", true)[0] as Label;
-                Label dayRate8hLabel = this.Controls.Find("dayRate8hLabel", true)[0] as Label;
-                Label mealDayLabel = this.Controls.Find("mealDayLabel", true)[0] as Label;
-                Label dayRateLabel = this.Controls.Find("dayRateLabel", true)[0] as Label;
-                var resultTitleFoundAfterCalc = this.Controls.Find("resultTitleLabel", true);
+                Label empNameLabel = this.GetCachedControls("empNameLabel", true)[0] as Label;
+                Label grossLabel = this.GetCachedControls("grossLabel", true)[0] as Label;
+                Label insuranceDeductLabel = this.GetCachedControls("insuranceDeductLabel", true)[0] as Label;
+                Label taxDeductLabel = this.GetCachedControls("taxDeductLabel", true)[0] as Label;
+                Label taxThresholdResultLabel = this.GetCachedControls("taxThresholdResultLabel", true)[0] as Label;
+                Label netLabel = this.GetCachedControls("netLabel", true)[0] as Label;
+                Label detailLabel = this.GetCachedControls("detailLabel", true)[0] as Label;
+                Label dayRate8hLabel = this.GetCachedControls("dayRate8hLabel", true)[0] as Label;
+                Label mealDayLabel = this.GetCachedControls("mealDayLabel", true)[0] as Label;
+                Label dayRateLabel = this.GetCachedControls("dayRateLabel", true)[0] as Label;
+                var resultTitleFoundAfterCalc = this.GetCachedControls("resultTitleLabel", true);
                 if (resultTitleFoundAfterCalc.Length > 0 && resultTitleFoundAfterCalc[0] is Label resultTitleAfterCalc)
                 {
                     resultTitleAfterCalc.Visible = true;
                 }
-                var detailTitleFoundAfterCalc = this.Controls.Find("detailTitleLabel", true);
+                var detailTitleFoundAfterCalc = this.GetCachedControls("detailTitleLabel", true);
                 if (detailTitleFoundAfterCalc.Length > 0 && detailTitleFoundAfterCalc[0] is Label detailTitleAfterCalc)
                 {
                     detailTitleAfterCalc.Visible = true;
@@ -4792,8 +4806,8 @@ namespace SalaryCalculator
                     baseTaxThresholdInput = userInputThreshold;
                 }
 
-                Button editMeal12Btn = this.Controls.Find("editMeal12Btn", true).FirstOrDefault() as Button;
-                Button editMeal8Btn = this.Controls.Find("editMeal8Btn", true).FirstOrDefault() as Button;
+                Button editMeal12Btn = this.GetCachedControls("editMeal12Btn", true).FirstOrDefault() as Button;
+                Button editMeal8Btn = this.GetCachedControls("editMeal8Btn", true).FirstOrDefault() as Button;
                 decimal meal12Amount = editMeal12Btn != null && decimal.TryParse(editMeal12Btn.Tag.ToString(), out decimal m12) ? m12 : 30000;
                 decimal meal8Amount = editMeal8Btn != null && decimal.TryParse(editMeal8Btn.Tag.ToString(), out decimal m8) ? m8 : 20000;
 
@@ -5209,7 +5223,7 @@ namespace SalaryCalculator
 
             foreach (var tbName in textBoxes)
             {
-                var tb = this.Controls.Find(tbName, true).FirstOrDefault() as TextBox;
+                var tb = this.GetCachedControls(tbName, true).FirstOrDefault() as TextBox;
                 if (tb != null)
                 {
                     tb.TextChanged -= AI_TextChanged;
@@ -5273,4 +5287,5 @@ namespace SalaryCalculator
 
     // Custom transparent panel for stick figure overlay
 }
+
 
