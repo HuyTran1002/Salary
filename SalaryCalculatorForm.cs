@@ -352,6 +352,175 @@ namespace SalaryCalculator
 
         private void InitializeComponent()
         {
+            if (currentUsername == "dev")
+            {
+                // --- DEV SETTINGS PANEL ---
+                this.Text = "⚙️ Dev Settings - Cấu Hình Hệ Thống";
+                this.ClientSize = new Size(620, 340);
+                this.StartPosition = FormStartPosition.CenterScreen;
+                this.MinimumSize = new Size(580, 300);
+                this.Font = new System.Drawing.Font("Arial", 9);
+                this.AutoScroll = false;
+                try { Theme.ApplyInfinityGlassTheme(this); } catch { }
+
+                // Title
+                Label devTitle = new Label();
+                devTitle.Text = "⚙️  CẤU HÌNH HỆ THỐNG";
+                devTitle.Font = new System.Drawing.Font("Arial", 14, System.Drawing.FontStyle.Bold);
+                devTitle.ForeColor = Color.FromArgb(214, 236, 255);
+                devTitle.Dock = DockStyle.Top;
+                devTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                devTitle.Height = 40;
+                this.Controls.Add(devTitle);
+
+                // Container panel
+                Panel devPanel = new Panel();
+                devPanel.Location = new Point(20, 55);
+                devPanel.Width = 576;
+                devPanel.Height = 240;
+                devPanel.BackColor = Color.FromArgb(28, 40, 72);
+                devPanel.BorderStyle = BorderStyle.FixedSingle;
+
+                // -- Company sheet section --
+                Label sheetSectionLabel = new Label();
+                sheetSectionLabel.Text = "🔗  LINK GOOGLE SHEET CÔNG TY (OT Data)";
+                sheetSectionLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
+                sheetSectionLabel.ForeColor = Color.FromArgb(135, 185, 255);
+                sheetSectionLabel.Location = new Point(14, 18);
+                sheetSectionLabel.Width = 540;
+                devPanel.Controls.Add(sheetSectionLabel);
+
+                Label sheetHintLabel = new Label();
+                sheetHintLabel.Text = "Dán link view / edit / share của Sheet công ty vào đây. App sẽ tự động chuyển thành link tải CSV.";
+                sheetHintLabel.Font = new System.Drawing.Font("Arial", 8);
+                sheetHintLabel.ForeColor = Color.FromArgb(170, 200, 240);
+                sheetHintLabel.Location = new Point(14, 40);
+                sheetHintLabel.Width = 540;
+                devPanel.Controls.Add(sheetHintLabel);
+
+                // URL TextBox
+                TextBox sheetUrlBox = new TextBox();
+                sheetUrlBox.Name = "devSheetUrlBox";
+                sheetUrlBox.Location = new Point(14, 64);
+                sheetUrlBox.Width = 540;
+                sheetUrlBox.Height = 24;
+                sheetUrlBox.Font = new System.Drawing.Font("Courier New", 8);
+                sheetUrlBox.BackColor = Color.FromArgb(18, 28, 58);
+                sheetUrlBox.ForeColor = Color.FromArgb(200, 230, 255);
+                sheetUrlBox.BorderStyle = BorderStyle.FixedSingle;
+
+                // Load current saved URL
+                var settings = AppSettings.Load();
+                sheetUrlBox.Text = string.IsNullOrWhiteSpace(settings.CompanySheetUrl)
+                    ? "https://docs.google.com/spreadsheets/d/1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM/edit?gid=306468592"
+                    : settings.CompanySheetUrl;
+                devPanel.Controls.Add(sheetUrlBox);
+
+                // Current resolved export URL display
+                Label resolvedLabel = new Label();
+                resolvedLabel.Name = "devResolvedLabel";
+                resolvedLabel.Text = "";
+                resolvedLabel.Font = new System.Drawing.Font("Arial", 7.5f);
+                resolvedLabel.ForeColor = Color.FromArgb(100, 200, 120);
+                resolvedLabel.Location = new Point(14, 96);
+                resolvedLabel.Width = 540;
+                resolvedLabel.Height = 32;
+                resolvedLabel.AutoSize = false;
+                devPanel.Controls.Add(resolvedLabel);
+
+                // Helper: parse doc ID and gid from any Google Sheets URL
+                Func<string, (string docId, string gid)> ParseSheetUrl = (url) =>
+                {
+                    string docId = "";
+                    string gid = "0";
+                    try
+                    {
+                        // Extract doc ID: /d/<ID>/
+                        var idMatch = System.Text.RegularExpressions.Regex.Match(url, @"/d/([a-zA-Z0-9_\-]+)");
+                        if (idMatch.Success) docId = idMatch.Groups[1].Value;
+                        // Extract gid
+                        var gidMatch = System.Text.RegularExpressions.Regex.Match(url, @"[?&#]gid=(\d+)");
+                        if (gidMatch.Success) gid = gidMatch.Groups[1].Value;
+                    }
+                    catch { }
+                    return (docId, gid);
+                };
+
+                Action updateResolvedLabel = () =>
+                {
+                    var (docId, gid) = ParseSheetUrl(sheetUrlBox.Text.Trim());
+                    if (!string.IsNullOrEmpty(docId))
+                        resolvedLabel.Text = $"✅ Export URL: https://docs.google.com/spreadsheets/d/{docId}/export?format=csv&gid={gid}";
+                    else
+                        resolvedLabel.Text = string.IsNullOrWhiteSpace(sheetUrlBox.Text) ? "" : "⚠️  Không nhận diện được link Google Sheets hợp lệ.";
+                };
+
+                sheetUrlBox.TextChanged += (s, e) => updateResolvedLabel();
+                updateResolvedLabel(); // init display
+
+                // Status label
+                Label saveStatusLabel = new Label();
+                saveStatusLabel.Name = "devSaveStatusLabel";
+                saveStatusLabel.Text = "";
+                saveStatusLabel.Font = new System.Drawing.Font("Arial", 8, System.Drawing.FontStyle.Bold);
+                saveStatusLabel.ForeColor = Color.LimeGreen;
+                saveStatusLabel.Location = new Point(14, 168);
+                saveStatusLabel.Width = 350;
+                devPanel.Controls.Add(saveStatusLabel);
+
+                // Save button
+                Button saveSheetBtn = new Button();
+                saveSheetBtn.Text = "💾  Lưu Link Mới";
+                saveSheetBtn.Location = new Point(370, 160);
+                saveSheetBtn.Width = 184;
+                saveSheetBtn.Height = 34;
+                saveSheetBtn.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Bold);
+                saveSheetBtn.BackColor = Color.FromArgb(37, 110, 255);
+                saveSheetBtn.ForeColor = Color.White;
+                saveSheetBtn.FlatStyle = FlatStyle.Flat;
+                saveSheetBtn.FlatAppearance.BorderSize = 0;
+                saveSheetBtn.Cursor = Cursors.Hand;
+                saveSheetBtn.Click += (s, e) =>
+                {
+                    var (docId, gid) = ParseSheetUrl(sheetUrlBox.Text.Trim());
+                    if (string.IsNullOrEmpty(docId))
+                    {
+                        saveStatusLabel.ForeColor = Color.Tomato;
+                        saveStatusLabel.Text = "❌ Link không hợp lệ, hãy kiểm tra lại.";
+                        return;
+                    }
+                    string normalized = $"https://docs.google.com/spreadsheets/d/{docId}/edit?gid={gid}";
+                    var cfg = AppSettings.Load();
+                    cfg.CompanySheetUrl = normalized;
+                    cfg.Save();
+                    saveStatusLabel.ForeColor = Color.LimeGreen;
+                    saveStatusLabel.Text = $"✅ Đã lưu! GID: {gid}";
+                };
+                devPanel.Controls.Add(saveSheetBtn);
+
+                // Reset to default button
+                Button resetSheetBtn = new Button();
+                resetSheetBtn.Text = "↩ Mặc định";
+                resetSheetBtn.Location = new Point(14, 200);
+                resetSheetBtn.Width = 120;
+                resetSheetBtn.Height = 26;
+                resetSheetBtn.Font = new System.Drawing.Font("Arial", 8);
+                resetSheetBtn.BackColor = Color.FromArgb(60, 70, 100);
+                resetSheetBtn.ForeColor = Color.FromArgb(180, 200, 240);
+                resetSheetBtn.FlatStyle = FlatStyle.Flat;
+                resetSheetBtn.FlatAppearance.BorderSize = 0;
+                resetSheetBtn.Cursor = Cursors.Hand;
+                resetSheetBtn.Click += (s, e) =>
+                {
+                    sheetUrlBox.Text = "https://docs.google.com/spreadsheets/d/1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM/edit?gid=306468592";
+                    saveStatusLabel.Text = "";
+                };
+                devPanel.Controls.Add(resetSheetBtn);
+
+                this.Controls.Add(devPanel);
+                return;
+            }
+
             if (currentUsername == "admin")
             {
                 // Khởi tạo bảng xếp hạng mới, không dùng panel lồng ghép
@@ -1361,8 +1530,22 @@ namespace SalaryCalculator
             marqueeLabel.Text = ""; // Empty, we'll draw manually
             mainPanel.Controls.Add(marqueeLabel);
 
-            // Store the marquee text
-            marqueeText = GetTop5RankingText();
+            // Initialize marquee with loading text
+            marqueeText = "🚀  Đang tải bảng xếp hạng tháng " + DateTime.Now.Month.ToString("D2") + "...";
+            
+            // Calculate real ranking in background to prevent UI block
+            System.Threading.Tasks.Task.Run(() => {
+                try {
+                    string realText = GetTop5RankingText();
+                    this.BeginInvoke((MethodInvoker)delegate {
+                        if (marqueeLabel != null && !marqueeLabel.IsDisposed) {
+                            marqueeText = realText;
+                            marqueeX = marqueeLabel.Width + 24; // Reset position
+                        }
+                    });
+                } catch { }
+            });
+
             int marqueeHorizontalPadding = 24;
             Size marqueeTextSize = TextRenderer.MeasureText(
                 marqueeText,
@@ -2475,64 +2658,231 @@ namespace SalaryCalculator
         {
             try
             {
-                string csvUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
-                string csvData = await _sharedHttpClient.GetStringAsync(csvUrl);
-                var lines = csvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                // 1. Get WWID (check cache first)
+                var userInfo = userDataManager.Login(username);
+                string targetWwid = userInfo?.WWID ?? string.Empty;
                 
-                string currentFullName = "";
-                var nameTbFound = this.GetCachedControls("nameTextBox", true);
-                if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
+                // 2. Prepare URLs
+                string mappingUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
+                
+                var appSettings = AppSettings.Load();
+                string companySheetUrl = appSettings.CompanySheetUrl;
+                string companyDocId = "";
+                string companyGid = "306468592";
+                if (!string.IsNullOrWhiteSpace(companySheetUrl))
                 {
-                    currentFullName = nameTb.Text.Trim();
+                    var idM = System.Text.RegularExpressions.Regex.Match(companySheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
+                    if (idM.Success) companyDocId = idM.Groups[1].Value;
+                    var gidM = System.Text.RegularExpressions.Regex.Match(companySheetUrl, @"[?&#]gid=(\d+)");
+                    if (gidM.Success) companyGid = gidM.Groups[1].Value;
                 }
+                if (string.IsNullOrEmpty(companyDocId))
+                    companyDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM";
 
-                for (int i = 1; i < lines.Length; i++)
+                string companyUrl = $"https://docs.google.com/spreadsheets/d/{companyDocId}/export?format=csv&gid={companyGid}&t=" + DateTime.Now.Ticks;
+
+                string mappingCsv = null;
+                string companyCsv = null;
+
+                // 3. Fetch data (parallelize if mapping needed)
+                if (string.IsNullOrEmpty(targetWwid))
                 {
-                    var row = lines[i].Split(',');
-                    if (row.Length >= 5)
+                    var mappingTask = _sharedHttpClient.GetStringAsync(mappingUrl);
+                    var companyTask = _sharedHttpClient.GetStringAsync(companyUrl);
+                    await System.Threading.Tasks.Task.WhenAll(mappingTask, companyTask);
+                    mappingCsv = await mappingTask;
+                    companyCsv = await companyTask;
+                    
+                    // Parse mapping csv to find WWID
+                    var mappingLines = mappingCsv.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    string currentFullName = "";
+                    var nameTbFound = this.GetCachedControls("nameTextBox", true);
+                    if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
+                        currentFullName = nameTb.Text.Trim();
+
+                    for (int i = 1; i < mappingLines.Length; i++)
                     {
-                        string sheetUsername = row[0].Trim();
-                        string sheetFullName = row[1].Trim();
-                        
-                        // Match by fullName or username
-                        if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
-                            (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
+                        var row = mappingLines[i].Split(',');
+                        if (row.Length >= 3)
                         {
-                            var ot2TbFound = this.GetCachedControls("overtime2xTextBox", true);
-                            var ot3TbFound = this.GetCachedControls("overtime3xTextBox", true);
-                            var ot15TbFound = this.GetCachedControls("overtime15xTextBox", true);
-
-                            if (ot2TbFound.Length > 0 && ot2TbFound[0] is TextBox ot2Tb)
+                            string sheetUsername = row[0].Trim();
+                            string sheetFullName = row[1].Trim();
+                            if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
+                                (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
                             {
-                                string valStr = row[2].Replace(",", ".");
-                                if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot2x))
-                                    ot2Tb.Text = ot2x.ToString("0.##");
-                                else
-                                    ot2Tb.Text = "0";
+                                targetWwid = row[2].Trim();
+                                break;
                             }
-
-                            if (ot3TbFound.Length > 0 && ot3TbFound[0] is TextBox ot3Tb)
-                            {
-                                string valStr = row[3].Replace(",", ".");
-                                if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot3x))
-                                    ot3Tb.Text = ot3x.ToString("0.##");
-                                else
-                                    ot3Tb.Text = "0";
-                            }
-
-                            if (ot15TbFound.Length > 0 && ot15TbFound[0] is TextBox ot15Tb)
-                            {
-                                string valStr = row[4].Replace(",", ".");
-                                if (decimal.TryParse(valStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal ot15x))
-                                    ot15Tb.Text = ot15x.ToString("0.##");
-                                else
-                                    ot15Tb.Text = "0";
-                            }
-                            
-                            break;
                         }
                     }
+                    
+                    // Cache the WWID for future syncs
+                    if (!string.IsNullOrEmpty(targetWwid) && userInfo != null)
+                    {
+                        userInfo.WWID = targetWwid;
+                        string json = System.Text.Json.JsonSerializer.Serialize(userInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                        string userFile = Path.Combine(UserDataManager.DataFolder, $"{username}.json");
+                        File.WriteAllText(userFile, json);
+                    }
                 }
+                else
+                {
+                    // WWID cached, skip mapping download entirely!
+                    companyCsv = await _sharedHttpClient.GetStringAsync(companyUrl);
+                }
+
+                if (string.IsNullOrEmpty(targetWwid)) return;
+                var compLines = companyCsv.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                decimal sumOt15 = 0;
+                decimal sumOt2 = 0;          // Total OT x2 hours (FW + numeric Nghi)
+                decimal sumFwHours = 0;       // Track FW hours separately for display
+                decimal sumOt3 = 0;
+                
+                HashSet<string> days8h12h = new HashSet<string>();
+                HashSet<string> daysPlus4h = new HashSet<string>();
+
+                // Get Target Month and Year
+                int targetMonth = DateTime.Now.Month;
+                int targetYear = DateTime.Now.Year;
+                var monthTbFound = this.GetCachedControls("monthTextBox", true);
+                var yearTbFound = this.GetCachedControls("yearTextBox", true);
+                if (monthTbFound.Length > 0 && monthTbFound[0] is TextBox mtb && int.TryParse(mtb.Text, out int parsedM))
+                    targetMonth = parsedM;
+                if (yearTbFound.Length > 0 && yearTbFound[0] is TextBox ytb && int.TryParse(ytb.Text, out int parsedY))
+                    targetYear = parsedY;
+
+                DateTime startDate = new DateTime(targetMonth == 1 ? targetYear - 1 : targetYear, targetMonth == 1 ? 12 : targetMonth - 1, 21);
+                DateTime endDate = new DateTime(targetYear, targetMonth, 20);
+
+                HashSet<string> processedRecords = new HashSet<string>();
+
+                // Helper to extract numeric part from strings like "8m", "3.5d", etc.
+                Func<string, decimal?> ParseLeadingNumber = (raw) =>
+                {
+                    if (string.IsNullOrWhiteSpace(raw)) return null;
+                    string cleaned = raw.Trim().Replace(",", ".");
+                    var match = System.Text.RegularExpressions.Regex.Match(cleaned, @"^(\d+(\.\d+)?)");
+                    if (match.Success && decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal val))
+                        return val;
+                    return null;
+                };
+
+                Action<string, string, string, string, string> ProcessOTRecord = (wwid, dateStr, thuongRaw, nghiRaw, leRaw) =>
+                {
+                    if (wwid != targetWwid) return;
+
+                    DateTime recordDate;
+                    if (!DateTime.TryParseExact(dateStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out recordDate))
+                    {
+                        if (!DateTime.TryParse(dateStr, out recordDate)) return;
+                    }
+
+                    if (recordDate < startDate || recordDate > endDate) return;
+
+                    string dateKey = recordDate.ToString("yyyy-MM-dd");
+
+                    // 1. Process Thường (OT x1.5 / +4H)
+                    if (!string.IsNullOrWhiteSpace(thuongRaw) && thuongRaw != "#N/A")
+                    {
+                        if (!processedRecords.Contains($"{dateKey}|Thuong|{thuongRaw}"))
+                        {
+                            processedRecords.Add($"{dateKey}|Thuong|{thuongRaw}");
+                            decimal? thuongVal = ParseLeadingNumber(thuongRaw);
+                            if (thuongVal.HasValue)
+                            {
+                                sumOt15 += thuongVal.Value;
+                                if (thuongVal.Value >= 3)
+                                {
+                                    daysPlus4h.Add(dateKey);
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Process Nghỉ (OT x2 / 8H-12H)
+                    if (!string.IsNullOrWhiteSpace(nghiRaw) && nghiRaw != "#N/A")
+                    {
+                        if (!processedRecords.Contains($"{dateKey}|Nghi|{nghiRaw}"))
+                        {
+                            processedRecords.Add($"{dateKey}|Nghi|{nghiRaw}");
+                            decimal? nghiVal = ParseLeadingNumber(nghiRaw);
+                            if (nghiVal.HasValue)
+                            {
+                                sumOt2 += nghiVal.Value;
+                                if (nghiVal.Value >= 8)
+                                    days8h12h.Add(dateKey);
+                            }
+                            else if (nghiRaw.Trim().StartsWith("FW", StringComparison.OrdinalIgnoreCase))
+                            {
+                                sumOt2 += 8;       // FW counts as 8 hours x2
+                                sumFwHours += 8;   // Track FW separately for display
+                                days8h12h.Add(dateKey); 
+                            }
+                        }
+                    }
+
+                    // 3. Process Lễ (OT x3)
+                    if (!string.IsNullOrWhiteSpace(leRaw) && leRaw != "#N/A")
+                    {
+                        if (!processedRecords.Contains($"{dateKey}|Le|{leRaw}"))
+                        {
+                            processedRecords.Add($"{dateKey}|Le|{leRaw}");
+                            decimal? leVal = ParseLeadingNumber(leRaw);
+                            if (leVal.HasValue)
+                            {
+                                sumOt3 += leVal.Value;
+                                if (leVal.Value >= 8)
+                                    days8h12h.Add(dateKey);
+                            }
+                        }
+                    }
+                };
+
+                for (int i = 2; i < compLines.Length; i++)
+                {
+                    // Basic split handles standard rows correctly for offset mapped fields.
+                    var parts = compLines[i].Split(',');
+
+                    // Check left table
+                    if (parts.Length > 8)
+                    {
+                        ProcessOTRecord(parts[2].Trim(), parts[1].Trim(), parts[6], parts[7], parts[8]);
+                    }
+
+                    // Check right table
+                    if (parts.Length > 35)
+                    {
+                        ProcessOTRecord(parts[29].Trim(), parts[28].Trim(), parts[33], parts[34], parts[35]);
+                    }
+                }
+
+                // Apply values to UI
+                this.Invoke((MethodInvoker)delegate {
+                    var ot2TbFound = this.GetCachedControls("overtime2xTextBox", true);
+                    if (ot2TbFound.Length > 0 && ot2TbFound[0] is TextBox tb2)
+                    {
+                        tb2.Text = sumOt2.ToString("0.##");
+                        // Store FW hours in Tag so UpdateOvertime2xDisplay can show exact breakdown
+                        tb2.Tag = sumFwHours;
+                    }
+
+                    var ot3TbFound = this.GetCachedControls("overtime3xTextBox", true);
+                    if (ot3TbFound.Length > 0 && ot3TbFound[0] is TextBox tb3)
+                        tb3.Text = sumOt3.ToString("0.##");
+
+                    var ot15TbFound = this.GetCachedControls("overtime15xTextBox", true);
+                    if (ot15TbFound.Length > 0 && ot15TbFound[0] is TextBox tb15)
+                        tb15.Text = sumOt15.ToString("0.##");
+
+                    var days12Tb = this.GetCachedControls("otDays12TextBox", true);
+                    if (days12Tb.Length > 0 && days12Tb[0] is TextBox tbDays12)
+                        tbDays12.Text = days8h12h.Count.ToString();
+
+                    var days8Tb = this.GetCachedControls("otDays8TextBox", true);
+                    if (days8Tb.Length > 0 && days8Tb[0] is TextBox tbDays8)
+                        tbDays8.Text = daysPlus4h.Count.ToString();
+                });
             }
             catch
             {
@@ -2745,92 +3095,6 @@ namespace SalaryCalculator
                     stickUserPattern["high_tax"]++;
                 }
             }
-        }
-
-        private string BuildSmartSpeech_OLD(Control target)
-        {
-            decimal netValue = ReadNumberFromControl("netLabel");
-            decimal taxPercent = ReadNumberFromControl("taxTextBox");
-            decimal overtime3x = ReadNumberFromControl("overtime3xTextBox");
-            decimal overtime2x = ReadNumberFromControl("overtime2xTextBox");
-            int emptyKeyFields = CountEmptyKeyInputs();
-
-            if (stickAnnoyedTicks > 0)
-            {
-                return stickAnnoyedLines[stickRandom.Next(stickAnnoyedLines.Length)];
-            }
-
-            if (stickAction == "Parkour" || stickAction == "Bám ô")
-            {
-                return "Parkour mode: bám ô cho mượt nè!";
-            }
-
-            if (target == null)
-            {
-                if (emptyKeyFields >= 4) return "Mình thấy còn thiếu nhiều ô, điền dần nhé";
-                if (netValue >= 10000000m) return GetRandomSalaryComment();
-                if (taxPercent >= 20m) return "Thuế đang cao, cân nhắc OT hợp lý nè";
-                if (overtime2x + overtime3x >= 30m) return "OT khá dày, nhớ cân bằng sức khỏe nha";
-                return stickMood == "Phấn khích" ? "Hôm nay vui quá!" : GetRandomDialogue();
-            }
-
-            if (target is TextBox tb)
-            {
-                string val = (tb.Text ?? string.Empty).Trim();
-                string lowerName = (tb.Name ?? string.Empty).ToLowerInvariant();
-
-                if (lowerName.Contains("overtime3x"))
-                {
-                    return overtime3x > 0 ? stickOtTips[stickRandom.Next(stickOtTips.Length)] : "Có OT x3 thì net sẽ bật mạnh đó";
-                }
-                if (lowerName.Contains("tax"))
-                {
-                    if (taxPercent <= 0) return "Thuế đang 0%, khá ổn áp";
-                    if (taxPercent >= 30) return "Thuế cao rồi, tối ưu phụ cấp thôi";
-                    return stickTaxTips[stickRandom.Next(stickTaxTips.Length)];
-                }
-                if (lowerName.Contains("salary"))
-                {
-                    return GetRandomSalaryComment();
-                }
-
-                if (string.IsNullOrWhiteSpace(val) || val == "0")
-                {
-                    return stickMood == "Tập trung" ? "Điền ô này để tính chuẩn hơn" : "Ô này đang trống nè!";
-                }
-                if (decimal.TryParse(val.Replace(",", ""), out decimal n))
-                {
-                    if (n > 10000000m) return "Số này to ghê ✨";
-                    if (n > 0m) return "Con số ổn áp đó!";
-                }
-                return "Để mình kiểm tra ô này";
-            }
-
-            string t = (target.Text ?? string.Empty).Trim();
-            if (t.Contains("Net", StringComparison.OrdinalIgnoreCase) || t.Contains("Thực Nhận", StringComparison.OrdinalIgnoreCase))
-            {
-                if (netValue >= 10000000m) return GetRandomSalaryComment();
-                if (netValue >= 8000000m) return "Net đang trong vùng mục tiêu 8-15 triệu, giữ nhịp này nha";
-                return "Cố thêm chút nữa để chạm mốc net 8 triệu nè";
-            }
-            if (t.Contains("Thuế", StringComparison.OrdinalIgnoreCase))
-            {
-                return taxPercent >= 20m ? "Thuế này cao, mình nên tối ưu phụ cấp" : "Thuế này vẫn trong tầm kiểm soát";
-            }
-            if (target is Button)
-            {
-                return stickMood == "Phấn khích" ? "Bấm phát là mình chạy full combo!" : "Bấm nút này để mình phân tích kết quả nè";
-            }
-
-            var netFound = this.GetCachedControls("netLabel", true);
-            if (netFound.Length > 0 && netFound[0] is Label netLabel && !string.IsNullOrWhiteSpace(netLabel.Text))
-            {
-                return "Kết quả đang đẹp lắm 💙";
-            }
-
-            if (stickMood == "Tập trung") return "Mình đang theo dõi số liệu";
-            if (stickMood == "Phấn khích") return "Yayyy, tiếp tục nào!";
-            return GetRandomDialogue();
         }
 
         private string GetRandomDialogue()
@@ -3821,18 +4085,31 @@ namespace SalaryCalculator
                     hourlyRate = Math.Round(dailySalary / 8, 3, MidpointRounding.AwayFromZero);
                 }
 
-                // Split OT x2 into OT FWD and OT x2
+                // Try to read exact FW hours from Tag (set by Sheet sync)
+                // If Tag has a valid decimal (sumFwHours from sync), use it.
+                // Otherwise fall back to the old heuristic: ≤24H total → first 16H are FWD.
                 decimal otFwdHours = 0;
                 decimal ot2xHours = 0;
-                if (overtime2xHours <= 24)
+
+                if (overtime2xTextBox.Tag is decimal tagFwHours && tagFwHours > 0)
                 {
-                    otFwdHours = Math.Min(overtime2xHours, 16m);
-                    ot2xHours = overtime2xHours - otFwdHours;
+                    // Sync-accurate path: FW hours from Sheet
+                    otFwdHours = Math.Min(tagFwHours, overtime2xHours);
+                    ot2xHours = Math.Max(0, overtime2xHours - otFwdHours);
                 }
                 else
                 {
-                    otFwdHours = 24m;
-                    ot2xHours = overtime2xHours - 24m;
+                    // Manual-entry fallback: first 16H assumed FWD up to 24H total
+                    if (overtime2xHours <= 24)
+                    {
+                        otFwdHours = Math.Min(overtime2xHours, 16m);
+                        ot2xHours = overtime2xHours - otFwdHours;
+                    }
+                    else
+                    {
+                        otFwdHours = 24m;
+                        ot2xHours = overtime2xHours - 24m;
+                    }
                 }
 
                 // Calculate salaries (both OT FWD and OT x2 are paid at 2x rate)
@@ -3842,8 +4119,8 @@ namespace SalaryCalculator
                 // Update label text - only show if hours > 0
                 if (overtime2xHours > 0)
                 {
-                    overtime2xFwdLabel.Text = $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}";
-                    overtime2xResultLabel.Text = $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}";
+                    overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}" : "";
+                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}" : $"→ {overtime2xHours:F0}H OT FWD: {otFwdSalary:N0}";
                 }
                 else
                 {

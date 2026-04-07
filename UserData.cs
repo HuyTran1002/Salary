@@ -8,9 +8,46 @@ using System.Text.Json.Serialization;
 namespace SalaryCalculator
 {
 
+    // Cấu hình toàn ứng dụng (dùng chung, không phụ thuộc account)
+    public class AppSettings
+    {
+        public string CompanySheetUrl { get; set; } = "";
+
+        private static readonly string DataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SalaryCalculator");
+        private static readonly string SettingsFile = Path.Combine(DataFolder, "_app_settings.json");
+
+        public static AppSettings Load()
+        {
+            try
+            {
+                if (File.Exists(SettingsFile))
+                {
+                    string json = File.ReadAllText(SettingsFile);
+                    return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                }
+            }
+            catch { }
+            return new AppSettings();
+        }
+
+        public void Save()
+        {
+            try
+            {
+                if (!Directory.Exists(DataFolder))
+                    Directory.CreateDirectory(DataFolder);
+                string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(SettingsFile, json);
+            }
+            catch { }
+        }
+    }
+
     public class UserInfo
     {
         public string Username { get; set; }
+        public string WWID { get; set; } = string.Empty;
         public string FullName { get; set; }
         public string Phone { get; set; }
         public int Age { get; set; }
@@ -45,7 +82,7 @@ namespace SalaryCalculator
 
     public class UserDataManager
     {
-        private static readonly string DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SalaryCalculator");
+        public static readonly string DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SalaryCalculator");
         private static readonly string UsersFile = Path.Combine(DataFolder, "users.json");
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 

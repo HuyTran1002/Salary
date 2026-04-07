@@ -521,6 +521,12 @@ namespace SalaryCalculator
                     OpenCalculatorForm("admin");
                     return;
                 }
+                // Cho phép dev đăng nhập để cấu hình hệ thống (không cần đăng ký)
+                if (username == "dev")
+                {
+                    OpenCalculatorForm("dev");
+                    return;
+                }
                 var user = userDataManager.Login(username);
                 if (user != null)
                 {
