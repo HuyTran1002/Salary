@@ -13,6 +13,7 @@ namespace SalaryCalculator
     public partial class SalaryCalculatorForm : Form
     {
             private static readonly System.Net.Http.HttpClient _sharedHttpClient = new System.Net.Http.HttpClient();
+            private static readonly System.Text.RegularExpressions.Regex _numericPrefixRegex = new System.Text.RegularExpressions.Regex(@"^(\d+(\.\d+)?)", System.Text.RegularExpressions.RegexOptions.Compiled);
             private readonly Dictionary<string, Control> _controlCache = new Dictionary<string, Control>(StringComparer.OrdinalIgnoreCase);
 
             private Control[] GetCachedControls(string name, bool searchAllChildren)
@@ -2663,12 +2664,11 @@ namespace SalaryCalculator
                 string targetWwid = userInfo?.WWID ?? string.Empty;
                 
                 // 2. Prepare URLs
-                string mappingUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
-                
                 var appSettings = AppSettings.Load();
                 string companySheetUrl = appSettings.CompanySheetUrl;
-                string companyDocId = "";
+                string companyDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM";
                 string companyGid = "306468592";
+                
                 if (!string.IsNullOrWhiteSpace(companySheetUrl))
                 {
                     var idM = System.Text.RegularExpressions.Regex.Match(companySheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
@@ -2676,13 +2676,12 @@ namespace SalaryCalculator
                     var gidM = System.Text.RegularExpressions.Regex.Match(companySheetUrl, @"[?&#]gid=(\d+)");
                     if (gidM.Success) companyGid = gidM.Groups[1].Value;
                 }
-                if (string.IsNullOrEmpty(companyDocId))
-                    companyDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM";
 
                 string companyUrl = $"https://docs.google.com/spreadsheets/d/{companyDocId}/export?format=csv&gid={companyGid}&t=" + DateTime.Now.Ticks;
+                string mappingUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
 
-                string mappingCsv = null;
                 string companyCsv = null;
+                string mappingCsv = null;
 
                 // 3. Fetch data (parallelize if mapping needed)
                 if (string.IsNullOrEmpty(targetWwid))
@@ -2692,202 +2691,150 @@ namespace SalaryCalculator
                     await System.Threading.Tasks.Task.WhenAll(mappingTask, companyTask);
                     mappingCsv = await mappingTask;
                     companyCsv = await companyTask;
-                    
-                    // Parse mapping csv to find WWID
-                    var mappingLines = mappingCsv.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    string currentFullName = "";
-                    var nameTbFound = this.GetCachedControls("nameTextBox", true);
-                    if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
-                        currentFullName = nameTb.Text.Trim();
-
-                    for (int i = 1; i < mappingLines.Length; i++)
-                    {
-                        var row = mappingLines[i].Split(',');
-                        if (row.Length >= 3)
-                        {
-                            string sheetUsername = row[0].Trim();
-                            string sheetFullName = row[1].Trim();
-                            if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
-                                (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
-                            {
-                                targetWwid = row[2].Trim();
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // Cache the WWID for future syncs
-                    if (!string.IsNullOrEmpty(targetWwid) && userInfo != null)
-                    {
-                        userInfo.WWID = targetWwid;
-                        string json = System.Text.Json.JsonSerializer.Serialize(userInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                        string userFile = Path.Combine(UserDataManager.DataFolder, $"{username}.json");
-                        File.WriteAllText(userFile, json);
-                    }
                 }
                 else
                 {
-                    // WWID cached, skip mapping download entirely!
                     companyCsv = await _sharedHttpClient.GetStringAsync(companyUrl);
                 }
 
-                if (string.IsNullOrEmpty(targetWwid)) return;
-                var compLines = companyCsv.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                decimal sumOt15 = 0;
-                decimal sumOt2 = 0;          // Total OT x2 hours (FW + numeric Nghi)
-                decimal sumFwHours = 0;       // Track FW hours separately for display
-                decimal sumOt3 = 0;
-                
-                HashSet<string> days8h12h = new HashSet<string>();
-                HashSet<string> daysPlus4h = new HashSet<string>();
-
-                // Get Target Month and Year
-                int targetMonth = DateTime.Now.Month;
-                int targetYear = DateTime.Now.Year;
-                var monthTbFound = this.GetCachedControls("monthTextBox", true);
-                var yearTbFound = this.GetCachedControls("yearTextBox", true);
-                if (monthTbFound.Length > 0 && monthTbFound[0] is TextBox mtb && int.TryParse(mtb.Text, out int parsedM))
-                    targetMonth = parsedM;
-                if (yearTbFound.Length > 0 && yearTbFound[0] is TextBox ytb && int.TryParse(ytb.Text, out int parsedY))
-                    targetYear = parsedY;
-
-                DateTime startDate = new DateTime(targetMonth == 1 ? targetYear - 1 : targetYear, targetMonth == 1 ? 12 : targetMonth - 1, 21);
-                DateTime endDate = new DateTime(targetYear, targetMonth, 20);
-
-                HashSet<string> processedRecords = new HashSet<string>();
-
-                // Helper to extract numeric part from strings like "8m", "3.5d", etc.
-                Func<string, decimal?> ParseLeadingNumber = (raw) =>
-                {
-                    if (string.IsNullOrWhiteSpace(raw)) return null;
-                    string cleaned = raw.Trim().Replace(",", ".");
-                    var match = System.Text.RegularExpressions.Regex.Match(cleaned, @"^(\d+(\.\d+)?)");
-                    if (match.Success && decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal val))
-                        return val;
-                    return null;
-                };
-
-                Action<string, string, string, string, string> ProcessOTRecord = (wwid, dateStr, thuongRaw, nghiRaw, leRaw) =>
-                {
-                    if (wwid != targetWwid) return;
-
-                    DateTime recordDate;
-                    if (!DateTime.TryParseExact(dateStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out recordDate))
+                // 4. Run heavy parsing in background
+                await System.Threading.Tasks.Task.Run(() => {
+                    if (string.IsNullOrEmpty(targetWwid) && !string.IsNullOrEmpty(mappingCsv))
                     {
-                        if (!DateTime.TryParse(dateStr, out recordDate)) return;
-                    }
-
-                    if (recordDate < startDate || recordDate > endDate) return;
-
-                    string dateKey = recordDate.ToString("yyyy-MM-dd");
-
-                    // 1. Process Thường (OT x1.5 / +4H)
-                    if (!string.IsNullOrWhiteSpace(thuongRaw) && thuongRaw != "#N/A")
-                    {
-                        if (!processedRecords.Contains($"{dateKey}|Thuong|{thuongRaw}"))
+                        // Parse mapping to find WWID
+                        using (var reader = new StringReader(mappingCsv))
                         {
-                            processedRecords.Add($"{dateKey}|Thuong|{thuongRaw}");
-                            decimal? thuongVal = ParseLeadingNumber(thuongRaw);
-                            if (thuongVal.HasValue)
+                            string currentFullName = "";
+                            this.Invoke((MethodInvoker)delegate {
+                                var nameTbFound = this.GetCachedControls("nameTextBox", true);
+                                if (nameTbFound.Length > 0 && nameTbFound[0] is TextBox nameTb)
+                                    currentFullName = nameTb.Text.Trim();
+                            });
+
+                            string line;
+                            bool isHeader = true;
+                            while ((line = reader.ReadLine()) != null)
                             {
-                                sumOt15 += thuongVal.Value;
-                                if (thuongVal.Value >= 3)
+                                if (isHeader) { isHeader = false; continue; }
+                                var row = line.Split(',');
+                                if (row.Length >= 3)
                                 {
-                                    daysPlus4h.Add(dateKey);
+                                    string sheetUsername = row[0].Trim();
+                                    string sheetFullName = row[1].Trim();
+                                    if (sheetUsername.Equals(username, StringComparison.OrdinalIgnoreCase) || 
+                                        (!string.IsNullOrWhiteSpace(currentFullName) && sheetFullName.Equals(currentFullName, StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        targetWwid = row[2].Trim();
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // 2. Process Nghỉ (OT x2 / 8H-12H)
-                    if (!string.IsNullOrWhiteSpace(nghiRaw) && nghiRaw != "#N/A")
-                    {
-                        if (!processedRecords.Contains($"{dateKey}|Nghi|{nghiRaw}"))
+                        // Save WWID for future
+                        if (!string.IsNullOrEmpty(targetWwid) && userInfo != null)
                         {
-                            processedRecords.Add($"{dateKey}|Nghi|{nghiRaw}");
-                            decimal? nghiVal = ParseLeadingNumber(nghiRaw);
-                            if (nghiVal.HasValue)
-                            {
-                                sumOt2 += nghiVal.Value;
-                                if (nghiVal.Value >= 8)
-                                    days8h12h.Add(dateKey);
-                            }
-                            else if (nghiRaw.Trim().StartsWith("FW", StringComparison.OrdinalIgnoreCase))
-                            {
-                                sumOt2 += 8;       // FW counts as 8 hours x2
-                                sumFwHours += 8;   // Track FW separately for display
-                                days8h12h.Add(dateKey); 
-                            }
+                            userInfo.WWID = targetWwid;
+                            string userFile = Path.Combine(UserDataManager.DataFolder, $"{username}.json");
+                            File.WriteAllText(userFile, System.Text.Json.JsonSerializer.Serialize(userInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
                         }
                     }
 
-                    // 3. Process Lễ (OT x3)
-                    if (!string.IsNullOrWhiteSpace(leRaw) && leRaw != "#N/A")
+                    if (string.IsNullOrEmpty(targetWwid) || string.IsNullOrEmpty(companyCsv)) return;
+
+                    // Get Target Month/Year from UI once
+                    int targetMonth = 0, targetYear = 0;
+                    this.Invoke((MethodInvoker)delegate {
+                        int m = DateTime.Now.Month, y = DateTime.Now.Year;
+                        var monthTbFound = this.GetCachedControls("monthTextBox", true);
+                        var yearTbFound = this.GetCachedControls("yearTextBox", true);
+                        if (monthTbFound.Length > 0 && monthTbFound[0] is TextBox mtb && int.TryParse(mtb.Text, out int pm)) m = pm;
+                        if (yearTbFound.Length > 0 && yearTbFound[0] is TextBox ytb && int.TryParse(ytb.Text, out int py)) y = py;
+                        targetMonth = m; targetYear = y;
+                    });
+
+                    DateTime startDate = new DateTime(targetMonth == 1 ? targetYear - 1 : targetYear, targetMonth == 1 ? 12 : targetMonth - 1, 21);
+                    DateTime endDate = new DateTime(targetYear, targetMonth, 20);
+
+                    decimal sumOt15 = 0, sumOt2 = 0, sumFwHours = 0, sumOt3 = 0;
+                    HashSet<string> days8h12h = new HashSet<string>(), daysPlus4h = new HashSet<string>();
+                    HashSet<string> processedRecords = new HashSet<string>();
+
+                    // Efficient line-by-line parsing
+                    using (var reader = new StringReader(companyCsv))
                     {
-                        if (!processedRecords.Contains($"{dateKey}|Le|{leRaw}"))
+                        string line;
+                        int lineCount = 0;
+                        while ((line = reader.ReadLine()) != null)
                         {
-                            processedRecords.Add($"{dateKey}|Le|{leRaw}");
-                            decimal? leVal = ParseLeadingNumber(leRaw);
-                            if (leVal.HasValue)
-                            {
-                                sumOt3 += leVal.Value;
-                                if (leVal.Value >= 8)
-                                    days8h12h.Add(dateKey);
+                            if (lineCount++ < 2) continue; // Skip headers
+
+                            // ULTRA FAST CHECK: If targetWwid isn't in the line at all, skip without splitting
+                            if (!line.Contains(targetWwid)) continue;
+
+                            var parts = line.Split(',');
+                            
+                            // Nested helper to process record efficiently
+                            void ProcessRow(int dateIdx, int wwidIdx, int tIdx, int nIdx, int lIdx) {
+                                if (parts.Length <= Math.Max(dateIdx, Math.Max(wwidIdx, Math.Max(tIdx, Math.Max(nIdx, lIdx))))) return;
+                                if (parts[wwidIdx].Trim() != targetWwid) return;
+
+                                string dateStr = parts[dateIdx].Trim();
+                                if (!DateTime.TryParseExact(dateStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime recordDate))
+                                    if (!DateTime.TryParse(dateStr, out recordDate)) return;
+
+                                if (recordDate < startDate || recordDate > endDate) return;
+                                string dateKey = recordDate.ToString("yyyy-MM-dd");
+
+                                decimal? ParseNum(string raw) {
+                                    if (string.IsNullOrWhiteSpace(raw) || raw == "#N/A") return null;
+                                    var m = _numericPrefixRegex.Match(raw.Trim().Replace(',', '.'));
+                                    if (m.Success && decimal.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal v)) return v;
+                                    return null;
+                                }
+
+                                // OT 1.5
+                                string tRaw = parts[tIdx];
+                                if (!string.IsNullOrWhiteSpace(tRaw) && tRaw != "#N/A" && processedRecords.Add($"{dateKey}|T|{tRaw}")) {
+                                    decimal? v = ParseNum(tRaw);
+                                    if (v.HasValue) { sumOt15 += v.Value; if (v.Value >= 3) daysPlus4h.Add(dateKey); }
+                                }
+                                // OT 2.0
+                                string nRaw = parts[nIdx];
+                                if (!string.IsNullOrWhiteSpace(nRaw) && nRaw != "#N/A" && processedRecords.Add($"{dateKey}|N|{nRaw}")) {
+                                    decimal? v = ParseNum(nRaw);
+                                    if (v.HasValue) { sumOt2 += v.Value; if (v.Value >= 8) days8h12h.Add(dateKey); }
+                                    else if (nRaw.Trim().StartsWith("FW", StringComparison.OrdinalIgnoreCase)) { sumOt2 += 8; sumFwHours += 8; days8h12h.Add(dateKey); }
+                                }
+                                // OT 3.0
+                                string lRaw = parts[lIdx];
+                                if (!string.IsNullOrWhiteSpace(lRaw) && lRaw != "#N/A" && processedRecords.Add($"{dateKey}|L|{lRaw}")) {
+                                    decimal? v = ParseNum(lRaw);
+                                    if (v.HasValue) { sumOt3 += v.Value; if (v.Value >= 8) days8h12h.Add(dateKey); }
+                                }
                             }
+
+                            ProcessRow(1, 2, 6, 7, 8);    // Left table
+                            ProcessRow(28, 29, 33, 34, 35); // Right table
                         }
                     }
-                };
 
-                for (int i = 2; i < compLines.Length; i++)
-                {
-                    // Basic split handles standard rows correctly for offset mapped fields.
-                    var parts = compLines[i].Split(',');
-
-                    // Check left table
-                    if (parts.Length > 8)
-                    {
-                        ProcessOTRecord(parts[2].Trim(), parts[1].Trim(), parts[6], parts[7], parts[8]);
-                    }
-
-                    // Check right table
-                    if (parts.Length > 35)
-                    {
-                        ProcessOTRecord(parts[29].Trim(), parts[28].Trim(), parts[33], parts[34], parts[35]);
-                    }
-                }
-
-                // Apply values to UI
-                this.Invoke((MethodInvoker)delegate {
-                    var ot2TbFound = this.GetCachedControls("overtime2xTextBox", true);
-                    if (ot2TbFound.Length > 0 && ot2TbFound[0] is TextBox tb2)
-                    {
-                        tb2.Text = sumOt2.ToString("0.##");
-                        // Store FW hours in Tag so UpdateOvertime2xDisplay can show exact breakdown
-                        tb2.Tag = sumFwHours;
-                    }
-
-                    var ot3TbFound = this.GetCachedControls("overtime3xTextBox", true);
-                    if (ot3TbFound.Length > 0 && ot3TbFound[0] is TextBox tb3)
-                        tb3.Text = sumOt3.ToString("0.##");
-
-                    var ot15TbFound = this.GetCachedControls("overtime15xTextBox", true);
-                    if (ot15TbFound.Length > 0 && ot15TbFound[0] is TextBox tb15)
-                        tb15.Text = sumOt15.ToString("0.##");
-
-                    var days12Tb = this.GetCachedControls("otDays12TextBox", true);
-                    if (days12Tb.Length > 0 && days12Tb[0] is TextBox tbDays12)
-                        tbDays12.Text = days8h12h.Count.ToString();
-
-                    var days8Tb = this.GetCachedControls("otDays8TextBox", true);
-                    if (days8Tb.Length > 0 && days8Tb[0] is TextBox tbDays8)
-                        tbDays8.Text = daysPlus4h.Count.ToString();
+                    // Final UI Update
+                    this.Invoke((MethodInvoker)delegate {
+                        var o2 = GetCachedControls("overtime2xTextBox", true);
+                        if (o2.Length > 0 && o2[0] is TextBox t2) { t2.Text = sumOt2.ToString("0.##"); t2.Tag = sumFwHours; }
+                        var o3 = GetCachedControls("overtime3xTextBox", true);
+                        if (o3.Length > 0 && o3[0] is TextBox t3) t3.Text = sumOt3.ToString("0.##");
+                        var o15 = GetCachedControls("overtime15xTextBox", true);
+                        if (o15.Length > 0 && o15[0] is TextBox t15) t15.Text = sumOt15.ToString("0.##");
+                        var d12 = GetCachedControls("otDays12TextBox", true);
+                        if (d12.Length > 0 && d12[0] is TextBox t12) t12.Text = days8h12h.Count.ToString();
+                        var d8 = GetCachedControls("otDays8TextBox", true);
+                        if (d8.Length > 0 && d8[0] is TextBox t8) t8.Text = daysPlus4h.Count.ToString();
+                    });
                 });
             }
-            catch
-            {
-                // Ignore network/parsing errors
-            }
+            catch { }
         }
 
         private class AILearningData
@@ -4120,7 +4067,7 @@ namespace SalaryCalculator
                 if (overtime2xHours > 0)
                 {
                     overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}" : "";
-                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}" : $"→ {overtime2xHours:F0}H OT FWD: {otFwdSalary:N0}";
+                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}" : "";
                 }
                 else
                 {
@@ -4626,8 +4573,8 @@ namespace SalaryCalculator
                 
                 if (overtime2xHours > 0)
                 {
-                    overtime2xFwdLabel.Text = $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}";
-                    overtime2xResultLabel.Text = $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}";
+                    overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}" : "";
+                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}" : "";
                 }
                 else
                 {
