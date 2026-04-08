@@ -12,6 +12,7 @@ namespace SalaryCalculator
     public class AppSettings
     {
         public string CompanySheetUrl { get; set; } = "";
+        public string LeaveSheetUrl { get; set; } = "";
 
         private static readonly string DataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SalaryCalculator");
