@@ -2682,24 +2682,20 @@ namespace SalaryCalculator
                 string targetWwid = userInfo?.WWID ?? string.Empty;
                 var appSettings = AppSettings.Load();
 
-                string companySheetUrl = appSettings.CompanySheetUrl;
-                string companyDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM";
-                string companyGid = "306468592";
-                if (!string.IsNullOrWhiteSpace(companySheetUrl)) {
-                    var idM = System.Text.RegularExpressions.Regex.Match(companySheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
-                    if (idM.Success) companyDocId = idM.Groups[1].Value;
-                    var gidM = System.Text.RegularExpressions.Regex.Match(companySheetUrl, @"[?&#]gid=(\d+)");
-                    if (gidM.Success) companyGid = gidM.Groups[1].Value;
+                string companyDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM", companyGid = "306468592";
+                if (!string.IsNullOrWhiteSpace(appSettings.CompanySheetUrl)) {
+                    var mI = System.Text.RegularExpressions.Regex.Match(appSettings.CompanySheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
+                    if (mI.Success) companyDocId = mI.Groups[1].Value;
+                    var mG = System.Text.RegularExpressions.Regex.Match(appSettings.CompanySheetUrl, @"[?&#]gid=(\d+)");
+                    if (mG.Success) companyGid = mG.Groups[1].Value;
                 }
 
-                string leaveSheetUrl = appSettings.LeaveSheetUrl;
-                string leaveDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM";
-                string leaveGid = "1352234165";
-                if (!string.IsNullOrWhiteSpace(leaveSheetUrl)) {
-                    var idM = System.Text.RegularExpressions.Regex.Match(leaveSheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
-                    if (idM.Success) leaveDocId = idM.Groups[1].Value;
-                    var gidM = System.Text.RegularExpressions.Regex.Match(leaveSheetUrl, @"[?&#]gid=(\d+)");
-                    if (gidM.Success) leaveGid = gidM.Groups[1].Value;
+                string leaveDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM", leaveGid = "1352234165";
+                if (!string.IsNullOrWhiteSpace(appSettings.LeaveSheetUrl)) {
+                    var mI = System.Text.RegularExpressions.Regex.Match(appSettings.LeaveSheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
+                    if (mI.Success) leaveDocId = mI.Groups[1].Value;
+                    var mG = System.Text.RegularExpressions.Regex.Match(appSettings.LeaveSheetUrl, @"[?&#]gid=(\d+)");
+                    if (mG.Success) leaveGid = mG.Groups[1].Value;
                 }
 
                 string companyUrl = $"https://docs.google.com/spreadsheets/d/{companyDocId}/export?format=csv&gid={companyGid}&t=" + DateTime.Now.Ticks;
@@ -2707,8 +2703,7 @@ namespace SalaryCalculator
                 string mappingUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
 
                 // 0. Pre-fetch shared UI values
-                int m = 0, y = 0;
-                string fullName = "";
+                int m = 0, y = 0; string fullName = "";
                 this.Invoke((MethodInvoker)delegate {
                     var mtb = GetCachedControls("monthTextBox", true);
                     var ytb = GetCachedControls("yearTextBox", true);
@@ -2720,7 +2715,7 @@ namespace SalaryCalculator
                 if (m == 0) m = DateTime.Now.Month;
                 if (y == 0) y = DateTime.Now.Year;
 
-                // 1. Resolve WWID (Streaming if missing)
+                // 1. Resolve WWID (Streaming)
                 if (string.IsNullOrEmpty(targetWwid)) {
                     try {
                         using (var stream = await _sharedHttpClient.GetStreamAsync(mappingUrl))
@@ -2751,7 +2746,6 @@ namespace SalaryCalculator
                 // 2. Parallel Streaming Parsing
                 decimal sumOt15 = 0, sumOt2 = 0, sumFw = 0, sumOt3 = 0, sAl = 0, sSl = 0;
                 HashSet<string> d12 = new HashSet<string>(), d8 = new HashSet<string>();
-
                 var parsingTasks = new List<System.Threading.Tasks.Task>();
 
                 // OT Parsing Stream
@@ -2764,7 +2758,7 @@ namespace SalaryCalculator
                             HashSet<string> records = new HashSet<string>();
                             string line; int lineCount = 0;
                             while ((line = await reader.ReadLineAsync()) != null) {
-                                if (lineCount++ < 2) continue;
+                                if (lineCount++ < 2) continue; // Standard Google CSV has 2 header rows
                                 if (!line.Contains(targetWwid)) continue;
                                 var parts = line.Split(',');
 
@@ -2776,10 +2770,10 @@ namespace SalaryCalculator
                                         if (!DateTime.TryParse(dStr, out d)) return;
                                     if (d < start || d > end) return;
                                     string key = d.ToString("yyyyMMdd");
-
+                                    
                                     decimal? P(string r) {
                                         if (string.IsNullOrWhiteSpace(r) || r == "#N/A") return null;
-                                        var match = _numericPrefixRegex.Match(r.Trim().Replace(',', '.'));
+                                        var match = _numericPrefixRegex.Match(r.Trim('"', ' ', '\t').Replace(',', '.'));
                                         if (match.Success && decimal.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal v)) return v;
                                         return null;
                                     }
@@ -2826,7 +2820,7 @@ namespace SalaryCalculator
                                         if (v == "AL") sAl += 1;
                                         else if (v == "SL" || v == "NP") sSl += 1;
                                     }
-                                    break; // Early exit
+                                    break;
                                 }
                             }
                         }
