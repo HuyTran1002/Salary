@@ -32,8 +32,7 @@ namespace SalaryCalculator
             var result = await UpdateChecker.CheckForUpdateAsync();
             if (result.hasUpdate && !hasShownUpdateDialogThisSession)
             {
-                string exeUrl = await UpdateChecker.GetLatestExeDownloadUrlAsync();
-                UpdateChecker.ShowManualUpdateDialog(result.latestVersion, exeUrl);
+                UpdateChecker.ShowManualUpdateDialog(result.latestVersion, result.downloadUrl);
                 hasShownUpdateDialogThisSession = true;
             }
 
