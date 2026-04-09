@@ -158,9 +158,16 @@ namespace SalaryCalculator
                     this.Refresh();
                     await Task.Delay(500);
 
+                    // Robust executable path detection
+                    string originalExePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                    
+                    // Escape single quotes for PowerShell strings
+                    string escapedNewPath = newExePath.Replace("'", "''");
+                    string escapedOriginalPath = originalExePath.Replace("'", "''");
+
                     // Create PowerShell command for silent execution
                     // We use PowerShell as it handles UTF-8 better and can be run hidden
-                    string psCommand = $"Start-Sleep -s 2; $success = $false; for ($i=1; $i -le 10; $i++) {{ try {{ Copy-Item -Path '{newExePath}' -Destination '{originalExePath}' -Force -ErrorAction Stop; $success = $true; break; }} catch {{ Start-Sleep -s 1; }} }}; if ($success) {{ Start-Process -FilePath '{originalExePath}'; }}; Remove-Item -Path '{newExePath}';";
+                    string psCommand = $"Start-Sleep -s 2; $success = $false; for ($i=1; $i -le 10; $i++) {{ try {{ Copy-Item -Path '{escapedNewPath}' -Destination '{escapedOriginalPath}' -Force -ErrorAction Stop; $success = $true; break; }} catch {{ Start-Sleep -s 1; }} }}; if ($success) {{ Start-Process -FilePath '{escapedOriginalPath}'; }}; Remove-Item -Path '{escapedNewPath}';";
 
                     // Start PowerShell silently
                     Process.Start(new ProcessStartInfo
