@@ -158,54 +158,17 @@ namespace SalaryCalculator
                     this.Refresh();
                     await Task.Delay(500);
 
-                    // Robust executable path detection
-                    string originalExePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-                    string exeDir = Path.GetDirectoryName(originalExePath);
-                    string exeName = Path.GetFileName(originalExePath);
-                    
-                    // Create VBScript for silent execution
-                    string vbsPath = Path.Combine(tempPath, "update_silent.vbs");
-                    string vbsContent = $@"
-Set shell = CreateObject(""WScript.Shell"")
-Set fso = CreateObject(""Scripting.FileSystemObject"")
+                    // Create PowerShell command for silent execution
+                    // We use PowerShell as it handles UTF-8 better and can be run hidden
+                    string psCommand = $"Start-Sleep -s 2; $success = $false; for ($i=1; $i -le 10; $i++) {{ try {{ Copy-Item -Path '{newExePath}' -Destination '{originalExePath}' -Force -ErrorAction Stop; $success = $true; break; }} catch {{ Start-Sleep -s 1; }} }}; if ($success) {{ Start-Process -FilePath '{originalExePath}'; }}; Remove-Item -Path '{newExePath}';";
 
-' Wait for application to exit
-WScript.Sleep 2000
-
-' Retry loop for copying (handles file locking)
-Dim success, i
-success = False
-For i = 1 To 10
-    On Error Resume Next
-    fso.CopyFile ""{newExePath.Replace("\\", "\\\\")}"", ""{originalExePath.Replace("\\", "\\\\")}"", True
-    If Err.Number = 0 Then
-        success = True
-        Exit For
-    End If
-    On Error GoTo 0
-    WScript.Sleep 1000
-Next
-
-' Restart application if copy was successful
-If success Then
-    shell.Run """"{originalExePath.Replace("\\", "\\\\")}"""", 1, False
-End If
-
-' Self-deletion
-fso.DeleteFile ""{newExePath.Replace("\\", "\\\\")}"", True
-fso.DeleteFile WScript.ScriptPosition, True
-";
-                    File.WriteAllText(vbsPath, vbsContent, System.Text.Encoding.UTF8);
-
-                    // Start VBScript silently
+                    // Start PowerShell silently
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = "wscript.exe",
-                        Arguments = $"\"{vbsPath}\"",
+                        FileName = "powershell.exe",
+                        Arguments = $"-NoProfile -WindowStyle Hidden -Command \"{psCommand}\"",
                         UseShellExecute = true,
-                        Verb = "runas",
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        CreateNoWindow = true
+                        Verb = "runas"
                     });
                     
                     Application.Exit();
