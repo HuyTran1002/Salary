@@ -195,7 +195,7 @@ End If
 fso.DeleteFile ""{newExePath.Replace("\\", "\\\\")}"", True
 fso.DeleteFile WScript.ScriptPosition, True
 ";
-                    File.WriteAllText(vbsPath, vbsContent, System.Text.Encoding.GetEncoding("Windows-1258")); // Use local encoding
+                    File.WriteAllText(vbsPath, vbsContent, System.Text.Encoding.UTF8);
 
                     // Start VBScript silently
                     Process.Start(new ProcessStartInfo
