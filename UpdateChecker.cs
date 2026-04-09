@@ -38,14 +38,23 @@ namespace SalaryCalculator
         {
             get
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                var version = assembly.GetName().Version;
-                return version ?? new Version(1, 0, 0);
+                try
+                {
+                    // Use EntryAssembly to get the version of the main EXE, even if called from a DLL
+                    var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                    var version = assembly.GetName().Version;
+                    return version ?? new Version(1, 0, 0, 0);
+                }
+                catch
+                {
+                    return new Version(1, 0, 0, 0);
+                }
             }
         }
 
         public static async Task<(bool hasUpdate, string latestVersion, string downloadUrl)> CheckForUpdateAsync()
         {
+            string logPath = Path.Combine(Path.GetTempPath(), "SalaryCalculator_update_debug.log");
             try
             {
                 using var client = new System.Net.Http.HttpClient();
@@ -54,7 +63,6 @@ namespace SalaryCalculator
 
                 var response = await client.GetStringAsync(GITHUB_API_RELEASE_URL);
                 
-                // Extract version from tag_name (e.g. "v2.0.1.0" or "2.0.1.0")
                 string tagName = ExtractValueFromJson(response, "tag_name");
                 string versionString = tagName.TrimStart('v', 'V');
                 string downloadUrl = ExtractExeUrlFromJson(response);
@@ -62,12 +70,16 @@ namespace SalaryCalculator
                 if (Version.TryParse(versionString, out var latestVersion))
                 {
                     bool hasUpdate = latestVersion > CurrentVersion;
+                    
+                    // Log details for debugging the update loop
+                    string logEntry = $"[{DateTime.Now}] Check: Local={CurrentVersion}, Remote={latestVersion}, HasUpdate={hasUpdate}, URL={downloadUrl}\n";
+                    File.AppendAllText(logPath, logEntry);
+
                     return (hasUpdate, versionString, downloadUrl);
                 }
             }
             catch (Exception ex)
             {
-                string logPath = Path.Combine(Path.GetTempPath(), "SalaryCalculator_update.log");
                 File.AppendAllText(logPath, $"[{DateTime.Now}] Error during version check: {ex.Message}\n");
             }
             return (false, CurrentVersion.ToString(), null);

@@ -151,66 +151,63 @@ namespace SalaryCalculator
                 string newExePath = Path.Combine(tempPath, "SalaryCalculator_new.exe");
                 await DownloadFileAsync(downloadUrl, newExePath);
 
-                // Step 2: After download completes, run batch file để ghi đè exe gốc
+                // Step 2: After download completes, run silent script to replace exe
                 if (File.Exists(newExePath))
                 {
-                    statusLabel.Text = "Tải xong! Đang cập nhật...";
+                    statusLabel.Text = "Tải xong! Đang cập nhật ẩn...";
                     this.Refresh();
                     await Task.Delay(500);
 
-                    // Tạo file batch để copy đè exe và khởi động lại app
-                    string batchPath = Path.Combine(tempPath, "update_salary.bat");
+                    // Robust executable path detection
+                    string originalExePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+                    string exeDir = Path.GetDirectoryName(originalExePath);
+                    string exeName = Path.GetFileName(originalExePath);
+                    
+                    // Create VBScript for silent execution
+                    string vbsPath = Path.Combine(tempPath, "update_silent.vbs");
+                    string vbsContent = $@"
+Set shell = CreateObject(""WScript.Shell"")
+Set fso = CreateObject(""Scripting.FileSystemObject"")
 
-                    // Xác định đường dẫn file gốc thông minh
-                    string originalExePath = Application.ExecutablePath;
-                    string exeName = Path.GetFileNameWithoutExtension(originalExePath);
-                    // Nếu app chạy từ thư mục tạm, thử tìm shortcut trên desktop
-                    string tempPathRoot = Path.GetTempPath().TrimEnd('\\');
-                    if (originalExePath.StartsWith(tempPathRoot, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Tìm shortcut trên desktop
-                        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                        string shortcutPath = Path.Combine(desktop, "SalaryCalculator.lnk");
-                        if (File.Exists(shortcutPath))
-                        {
-                            try
-                            {
-                                // Lấy TargetPath từ shortcut
-                                var shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
-                                var shortcut = shell.GetType().InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, shell, new object[] { shortcutPath });
-                                var targetPath = shortcut.GetType().InvokeMember("TargetPath", System.Reflection.BindingFlags.GetProperty, null, shortcut, null) as string;
-                                if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath))
-                                {
-                                    originalExePath = targetPath;
-                                    exeName = Path.GetFileNameWithoutExtension(originalExePath);
-                                }
-                            }
-                            catch { /* Nếu lỗi thì giữ nguyên Application.ExecutablePath */ }
-                        }
-                    }
-                    string batchContent = string.Join("\r\n", new[] {
-                        "@echo off",
-                        "timeout /t 2 >nul",
-                        ":loop",
-                        $"tasklist | findstr /i \"{exeName}.exe\" >nul",
-                        "if not errorlevel 1 (",
-                        "    timeout /t 1 >nul",
-                        "    goto loop",
-                        ")",
-                        $"copy /y \"{newExePath}\" \"{originalExePath}\"",
-                        $"start \"\" \"{originalExePath}\"",
-                        $"del \"{newExePath}\"",
-                        "del \"%~f0\""
-                    });
-                    File.WriteAllText(batchPath, batchContent);
+' Wait for application to exit
+WScript.Sleep 2000
 
-                    // Chạy batch file và thoát app
+' Retry loop for copying (handles file locking)
+Dim success, i
+success = False
+For i = 1 To 10
+    On Error Resume Next
+    fso.CopyFile ""{newExePath.Replace("\\", "\\\\")}"", ""{originalExePath.Replace("\\", "\\\\")}"", True
+    If Err.Number = 0 Then
+        success = True
+        Exit For
+    End If
+    On Error GoTo 0
+    WScript.Sleep 1000
+Next
+
+' Restart application if copy was successful
+If success Then
+    shell.Run """"{originalExePath.Replace("\\", "\\\\")}"""", 1, False
+End If
+
+' Self-deletion
+fso.DeleteFile ""{newExePath.Replace("\\", "\\\\")}"", True
+fso.DeleteFile WScript.ScriptPosition, True
+";
+                    File.WriteAllText(vbsPath, vbsContent, System.Text.Encoding.GetEncoding("Windows-1258")); // Use local encoding
+
+                    // Start VBScript silently
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = batchPath,
+                        FileName = "wscript.exe",
+                        Arguments = $"\"{vbsPath}\"",
                         UseShellExecute = true,
-                        Verb = "runas"
+                        Verb = "runas",
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        CreateNoWindow = true
                     });
+                    
                     Application.Exit();
                     Environment.Exit(0);
                 }
