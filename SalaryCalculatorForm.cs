@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using SalaryCalculator;
 using System.Globalization;
@@ -1687,20 +1688,41 @@ namespace SalaryCalculator
             };
             mainPanel.Controls.Add(calculateBtn);
 
+            // Diagnostic Button (Small icon in the left corner)
+            Button diagBtn = new Button();
+            diagBtn.Text = "🔍";
+            diagBtn.Location = new System.Drawing.Point(12, actionY + 7);
+            diagBtn.Width = 32;
+            diagBtn.Height = 32;
+            diagBtn.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+            diagBtn.BackColor = Color.FromArgb(45, 62, 80);
+            diagBtn.ForeColor = System.Drawing.Color.White;
+            diagBtn.FlatStyle = FlatStyle.Flat;
+            diagBtn.FlatAppearance.BorderSize = 0;
+            diagBtn.Cursor = Cursors.Hand;
+            diagBtn.Click += async (s, e) => {
+                diagBtn.Enabled = false;
+                diagBtn.Text = "⏳";
+                await PerformSystemDiagnosticAsync();
+                diagBtn.Enabled = true;
+                diagBtn.Text = "🔍";
+            };
+            mainPanel.Controls.Add(diagBtn);
+
             // Place calculator launcher inside mainPanel near the bottom-right corner
             try
             {
                 // Position it to the right of logout button area; anchor keeps it at bottom-right
                 calculatorLauncher.Location = new Point(mainPanel.Width - calculatorLauncher.Width - 12, actionY + 22);
-                mainPanel.Controls.Add(calculatorLauncher);
             }
-            catch { mainPanel.Controls.Add(calculatorLauncher); }
+            catch { }
+            mainPanel.Controls.Add(calculatorLauncher);
 
             // Logout Button
             Button logoutBtn = new Button();
             logoutBtn.Text = "🚪 ĐĂNG XUẤT";
             logoutBtn.Location = new System.Drawing.Point(actionStartX + calcWidth + actionGap, actionY);
-            logoutBtn.Width = 175;
+            logoutBtn.Width = logoutWidth;
             logoutBtn.Height = 40;
             logoutBtn.Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold);
             logoutBtn.BackColor = Color.FromArgb(88, 63, 130);
@@ -2849,6 +2871,125 @@ namespace SalaryCalculator
                 });
             }
             catch { }
+        }
+
+        private async System.Threading.Tasks.Task PerformSystemDiagnosticAsync()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("🔍 --- KẾT QUẢ CHẨN ĐOÁN HỆ THỐNG ---");
+            sb.AppendLine($"Ngày giờ: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+            sb.AppendLine();
+
+            // 1. Kiểm tra Phiên bản
+            string currentVer = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            sb.AppendLine($"📌 1. Phiên bản hiện tại: {currentVer}");
+
+            // 2. Kiểm tra Cập nhật (GitHub API)
+            sb.AppendLine("\n🌐 2. Kiểm tra máy chủ Cập nhật (GitHub):");
+            try
+            {
+                var updateResult = await UpdateChecker.CheckForUpdateAsync();
+                if (updateResult.hasUpdate)
+                    sb.AppendLine($"   ✅ Kết nối OK. Có bản mới: {updateResult.latestVersion}");
+                else
+                    sb.AppendLine("   ✅ Kết nối OK. Bạn đang dùng bản mới nhất.");
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"   ❌ Lỗi kết nối GitHub: {ex.Message}");
+            }
+
+            // 3. Kiểm tra mã nhân viên (WWID)
+            sb.AppendLine("\n🆔 3. Kiểm tra Định danh (WWID):");
+            var userInfo = userDataManager.Login(currentUsername);
+            string cachedWwid = userInfo?.WWID ?? "Chưa có";
+            sb.AppendLine($"   - Username: {currentUsername}");
+            sb.AppendLine($"   - WWID trong máy: {cachedWwid}");
+
+            string mappingUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
+            string foundWwid = null;
+            try
+            {
+                using (var stream = await _sharedHttpClient.GetStreamAsync(mappingUrl))
+                using (var reader = new StreamReader(stream))
+                {
+                    string line; bool isHeader = true;
+                    while ((line = await reader.ReadLineAsync()) != null)
+                    {
+                        if (isHeader) { isHeader = false; continue; }
+                        var parts = line.Split(',');
+                        if (parts.Length >= 3)
+                        {
+                            if (parts[0].Trim().Equals(currentUsername, StringComparison.OrdinalIgnoreCase))
+                            {
+                                foundWwid = parts[2].Trim();
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (foundWwid != null)
+                {
+                    sb.AppendLine($"   ✅ Tìm thấy WWID trên Server: {foundWwid}");
+                    if (foundWwid != cachedWwid && cachedWwid != "Chưa có")
+                        sb.AppendLine("   ⚠️ Cảnh báo: WWID trên Server khác với trên máy!");
+                }
+                else
+                {
+                    sb.AppendLine("   ❌ Không tìm thấy Username này trên file Mapping của hệ thống.");
+                    sb.AppendLine("   👉 Vui lòng liên hệ Admin để thêm mã nhân viên.");
+                }
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"   ❌ Lỗi truy cập file Mapping: {ex.Message}");
+            }
+
+            // 4. Kiểm tra kết nối dữ liệu Google Sheets
+            sb.AppendLine("\n📊 4. Kiểm tra kết nối dữ liệu (Google Sheets):");
+            var settings = AppSettings.Load();
+            
+            async System.Threading.Tasks.Task CheckUrl(string name, string url)
+            {
+                try
+                {
+                    var response = await _sharedHttpClient.GetAsync(url, System.Net.Http.HttpCompletionOption.ResponseHeadersRead);
+                    if (response.IsSuccessStatusCode)
+                        sb.AppendLine($"   ✅ {name}: Kết nối tốt.");
+                    else
+                        sb.AppendLine($"   ❌ {name}: Lỗi {response.StatusCode}");
+                }
+                catch (Exception ex)
+                {
+                    sb.AppendLine($"   ❌ {name}: Không thể kết nối. ({ex.Message})");
+                }
+            }
+
+            string companyDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM", companyGid = "306468592";
+            if (!string.IsNullOrWhiteSpace(settings.CompanySheetUrl)) {
+                var mI = System.Text.RegularExpressions.Regex.Match(settings.CompanySheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
+                if (mI.Success) companyDocId = mI.Groups[1].Value;
+                var mG = System.Text.RegularExpressions.Regex.Match(settings.CompanySheetUrl, @"[?&#]gid=(\d+)");
+                if (mG.Success) companyGid = mG.Groups[1].Value;
+            }
+            string companyTestUrl = $"https://docs.google.com/spreadsheets/d/{companyDocId}/export?format=csv&gid={companyGid}";
+            
+            await CheckUrl("Dữ liệu OT (Company)", companyTestUrl);
+            
+            string leaveDocId = "1msmu_9Cy8JxwyDYAgEGAJ82qy5cWGOzXQpDzqyE2lWM", leaveGid = "1352234165";
+            if (!string.IsNullOrWhiteSpace(settings.LeaveSheetUrl)) {
+                var mI = System.Text.RegularExpressions.Regex.Match(settings.LeaveSheetUrl, @"/d/([a-zA-Z0-9_\-]+)");
+                if (mI.Success) leaveDocId = mI.Groups[1].Value;
+                var mG = System.Text.RegularExpressions.Regex.Match(settings.LeaveSheetUrl, @"[?&#]gid=(\d+)");
+                if (mG.Success) leaveGid = mG.Groups[1].Value;
+            }
+            string leaveTestUrl = $"https://docs.google.com/spreadsheets/d/{leaveDocId}/export?format=csv&gid={leaveGid}";
+            
+            await CheckUrl("Dữ liệu Nghỉ phép (Leave)", leaveTestUrl);
+
+            sb.AppendLine("\n--- HẾT ---");
+
+            MessageBox.Show(sb.ToString(), "Chẩn đoán hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private class AILearningData
