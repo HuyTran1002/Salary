@@ -71,8 +71,8 @@ namespace SalaryCalculator
             TextBox travelPerDayTextBox = new TextBox();
             Label housingAllowanceLabel = new Label();
             TextBox housingAllowanceTextBox = new TextBox();
-            Label phoneLabel = new Label();
-            TextBox phoneTextBox = new TextBox();
+            Label wwidLabel = new Label();
+            TextBox wwidTextBox = new TextBox();
             Label ageLabel = new Label();
             TextBox ageTextBox = new TextBox();
             Button loginBtn = new Button();
@@ -121,7 +121,7 @@ namespace SalaryCalculator
             usernameTextBox.Name = "usernameTextBox";
             usernameTextBox.KeyDown += (s, e) => {
                 if (e.KeyCode == Keys.Enter) {
-                    HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
+                    HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, wwidTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
                 }
             };
             this.Controls.Add(usernameTextBox);
@@ -250,21 +250,22 @@ namespace SalaryCalculator
             NumberFormatter.FormatNumberInput(certTextBox);
             this.Controls.Add(certTextBox);
 
-            // Phone/Zalo (hidden by default)
-            phoneLabel.Text = "Số điện thoại/Zalo:";
-            phoneLabel.Location = new Point(contentStartX, formInputsY + 364);
-            phoneLabel.Width = 150;
-            phoneLabel.Height = 18;
-            phoneLabel.Name = "phoneLabel";
-            phoneLabel.Visible = false;
-            this.Controls.Add(phoneLabel);
+            // WWID (hidden by default)
+            wwidLabel.Text = "WWID:";
+            wwidLabel.Location = new Point(contentStartX, formInputsY + 364);
+            wwidLabel.Width = 150;
+            wwidLabel.Height = 18;
+            wwidLabel.Name = "wwidLabel";
+            wwidLabel.Visible = false;
+            this.Controls.Add(wwidLabel);
 
-            phoneTextBox.Location = new Point(contentStartX, formInputsY + 386);
-            phoneTextBox.Width = contentWidth;
-            phoneTextBox.Height = 24;
-            phoneTextBox.Name = "phoneTextBox";
-            phoneTextBox.Visible = false;
-            this.Controls.Add(phoneTextBox);
+            wwidTextBox.Location = new Point(contentStartX, formInputsY + 386);
+            wwidTextBox.Width = contentWidth;
+            wwidTextBox.Height = 24;
+            wwidTextBox.Name = "wwidTextBox";
+            wwidTextBox.MaxLength = 8;
+            wwidTextBox.Visible = false;
+            this.Controls.Add(wwidTextBox);
 
             // Age (hidden by default)
             ageLabel.Text = "Tuổi:";
@@ -322,7 +323,7 @@ namespace SalaryCalculator
             loginBtn.TextAlign = ContentAlignment.MiddleCenter;
             loginBtn.Name = "loginBtn";
             loginBtn.Click += (s, e) => {
-                HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, phoneTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
+                HandleLogin(usernameTextBox.Text, fullNameTextBox.Text, wwidTextBox.Text, ageTextBox.Text, salaryTextBox.Text, mealTextBox.Text, certTextBox.Text, attendancePerDayTextBox.Text, travelPerDayTextBox.Text, housingAllowanceTextBox.Text);
             };
             this.Controls.Add(loginBtn);
 
@@ -337,8 +338,8 @@ namespace SalaryCalculator
             toggleBtn.TextAlign = ContentAlignment.MiddleCenter;
             toggleBtn.Name = "toggleBtn";
             toggleBtn.Click += (s, e) => {
-                ToggleRegisterMode(usernameTextBox, fullNameTextBox, phoneTextBox, ageTextBox, salaryTextBox, mealTextBox, certTextBox, attendancePerDayTextBox, travelPerDayTextBox, housingAllowanceTextBox,
-                    fullNameLabel, phoneLabel, ageLabel, salaryLabel, mealLabel, certLabel, attendancePerDayLabel, travelPerDayLabel, housingAllowanceLabel, loginBtn, toggleBtn);
+                ToggleRegisterMode(usernameTextBox, fullNameTextBox, wwidTextBox, ageTextBox, salaryTextBox, mealTextBox, certTextBox, attendancePerDayTextBox, travelPerDayTextBox, housingAllowanceTextBox,
+                    fullNameLabel, wwidLabel, ageLabel, salaryLabel, mealLabel, certLabel, attendancePerDayLabel, travelPerDayLabel, housingAllowanceLabel, loginBtn, toggleBtn);
                 // Show/hide tax threshold controls theo isRegistering
                 taxThresholdLabel.Visible = isRegistering;
                 taxThresholdTextBox.Visible = isRegistering;
@@ -348,17 +349,17 @@ namespace SalaryCalculator
             try { Theme.ApplyInfinityGlassTheme(this); } catch { }
         }
 
-        private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox phoneTextBox, TextBox ageTextBox, TextBox salaryTextBox,
+        private void ToggleRegisterMode(TextBox usernameTextBox, TextBox fullNameTextBox, TextBox wwidTextBox, TextBox ageTextBox, TextBox salaryTextBox,
              TextBox mealTextBox, TextBox certTextBox, TextBox attendancePerDayTextBox, TextBox travelPerDayTextBox, TextBox housingAllowanceTextBox,
-             Label fullNameLabel, Label phoneLabel, Label ageLabel, Label salaryLabel, Label mealLabel, Label certLabel, Label attendancePerDayLabel, Label travelPerDayLabel, Label housingAllowanceLabel,
+             Label fullNameLabel, Label wwidLabel, Label ageLabel, Label salaryLabel, Label mealLabel, Label certLabel, Label attendancePerDayLabel, Label travelPerDayLabel, Label housingAllowanceLabel,
                Button loginBtn, Button toggleBtn)
         {
             isRegistering = !isRegistering;
 
             fullNameLabel.Visible = isRegistering;
             fullNameTextBox.Visible = isRegistering;
-            phoneLabel.Visible = isRegistering;
-            phoneTextBox.Visible = isRegistering;
+            wwidLabel.Visible = isRegistering;
+            wwidTextBox.Visible = isRegistering;
             ageLabel.Visible = isRegistering;
             ageTextBox.Visible = isRegistering;
             salaryLabel.Visible = isRegistering;
@@ -417,7 +418,7 @@ namespace SalaryCalculator
                 toggleBtn.Location = new Point(actionStartXLoginLocal + calcWidthLocal + actionGapLocal, actionYLoginLocal);
                 this.CenterToScreen();
                 fullNameTextBox.Clear();
-                phoneTextBox.Clear();
+                wwidTextBox.Clear();
                 ageTextBox.Clear();
                 salaryTextBox.Clear();
                 mealTextBox.Clear();
@@ -428,7 +429,7 @@ namespace SalaryCalculator
             }
         }
 
-        private void HandleLogin(string username, string fullName, string phone, string age, string salary, string meal, string cert, string attendancePerDay, string travelPerDay, string housingAllowance)
+        private void HandleLogin(string username, string fullName, string wwid, string age, string salary, string meal, string cert, string attendancePerDay, string travelPerDay, string housingAllowance)
         {
             if (string.IsNullOrEmpty(username))
             {
@@ -439,9 +440,9 @@ namespace SalaryCalculator
             if (isRegistering)
             {
                 // Register mode
-                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age))
+                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(wwid) || string.IsNullOrEmpty(age))
                 {
-                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, SĐT, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, WWID, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -468,11 +469,15 @@ namespace SalaryCalculator
                     return;
                 }
 
-                // Validate phone number: must be exactly 10 digits
-                string phoneDigits = new string(phone.Where(char.IsDigit).ToArray());
-                if (phoneDigits.Length != 10)
+                // Validate WWID: must be exactly 8 characters
+                if (string.IsNullOrWhiteSpace(wwid))
                 {
-                    MessageBox.Show("Vui lòng điền đúng số điện thoại đang sử dụng (10 số)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng nhập WWID!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (wwid.Length != 8)
+                {
+                    MessageBox.Show("WWID phải đúng 8 ký tự!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -500,7 +505,7 @@ namespace SalaryCalculator
                 }
 
                 int taxThresholdInt = (int)taxThreshold;
-                if (userDataManager.Register(username, fullName, phone, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThreshold, "", certBonus, attendancePerDayValue, travelPerDayValue, housingAllowanceValue))
+                if (userDataManager.Register(username, fullName, wwid, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThreshold, "", certBonus, attendancePerDayValue, travelPerDayValue, housingAllowanceValue))
                 {
                     // Bỏ popup chào mừng, vào thẳng form tính lương
                     OpenCalculatorForm(username);
@@ -564,8 +569,8 @@ namespace SalaryCalculator
 
             var fullNameLabel = Find("fullNameLabel");
             var fullNameTextBox = Find("fullNameTextBox");
-            var phoneLabel = Find("phoneLabel");
-            var phoneTextBox = Find("phoneTextBox");
+            var wwidLabel = Find("wwidLabel");
+            var wwidTextBox = Find("wwidTextBox");
             var ageLabel = Find("ageLabel");
             var ageTextBox = Find("ageTextBox");
             var salaryLabel = Find("salaryLabel");
@@ -582,7 +587,7 @@ namespace SalaryCalculator
             var toggleBtn = Find("toggleBtn");
 
             // Ẩn các trường đăng ký
-            foreach (var c in new[] { fullNameLabel, fullNameTextBox, phoneLabel, phoneTextBox, ageLabel, ageTextBox, salaryLabel, salaryTextBox, mealLabel, mealTextBox, attendancePerDayLabel, attendancePerDayTextBox, travelPerDayLabel, travelPerDayTextBox, housingAllowanceLabel, housingAllowanceTextBox })
+            foreach (var c in new[] { fullNameLabel, fullNameTextBox, wwidLabel, wwidTextBox, ageLabel, ageTextBox, salaryLabel, salaryTextBox, mealLabel, mealTextBox, attendancePerDayLabel, attendancePerDayTextBox, travelPerDayLabel, travelPerDayTextBox, housingAllowanceLabel, housingAllowanceTextBox })
             {
                 if (c != null) c.Visible = false;
             }

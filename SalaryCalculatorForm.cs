@@ -874,23 +874,23 @@ namespace SalaryCalculator
 
             leftY += rowGap;
 
-            // Phone/Zalo
-            Label phoneLabel = new Label();
-            phoneLabel.Text = "SĐT/Zalo:";
-            phoneLabel.Location = new System.Drawing.Point(10, leftY);
-            phoneLabel.Width = 120;
-            phoneLabel.Height = 20;
+            // WWID display
+            Label wwidLabel = new Label();
+            wwidLabel.Text = "WWID:";
+            wwidLabel.Location = new System.Drawing.Point(10, leftY);
+            wwidLabel.Width = 120;
+            wwidLabel.Height = 20;
 
-            TextBox phoneTextBox = new TextBox();
-            phoneTextBox.Location = new System.Drawing.Point(130, leftY + 1);
-            phoneTextBox.Width = 230;
-            phoneTextBox.Height = 20;
-            phoneTextBox.Name = "phoneTextBox";
-            phoneTextBox.Font = new System.Drawing.Font("Arial", 9);
-            phoneTextBox.TextAlign = HorizontalAlignment.Left;
-            phoneTextBox.BorderStyle = BorderStyle.Fixed3D;
-            phoneTextBox.ReadOnly = true;
-            phoneTextBox.BackColor = System.Drawing.Color.LightGray;
+            TextBox wwidTextBox = new TextBox();
+            wwidTextBox.Location = new System.Drawing.Point(130, leftY + 1);
+            wwidTextBox.Width = 230;
+            wwidTextBox.Height = 20;
+            wwidTextBox.Name = "wwidTextBox";
+            wwidTextBox.Font = new System.Drawing.Font("Arial", 9);
+            wwidTextBox.TextAlign = HorizontalAlignment.Left;
+            wwidTextBox.BorderStyle = BorderStyle.Fixed3D;
+            wwidTextBox.ReadOnly = true;
+            wwidTextBox.BackColor = System.Drawing.Color.LightGray;
 
             leftY += rowGap;
 
@@ -1491,7 +1491,7 @@ namespace SalaryCalculator
             // Add all controls to left panel
             leftPanel.Controls.AddRange(new Control[] {
                 nameLabel, nameTextBox, editInfoBtn,
-                phoneLabel, phoneTextBox,
+                wwidLabel, wwidTextBox,
                 ageLabel, ageTextBox,
                 monthLabel, monthTextBox, yearLabel, yearTextBox,
                 salaryLabel, salaryTextBox,
@@ -2737,30 +2737,9 @@ namespace SalaryCalculator
                 if (m == 0) m = DateTime.Now.Month;
                 if (y == 0) y = DateTime.Now.Year;
 
-                // 1. Resolve WWID (Streaming)
+                // 1. Use WWID directly from user data (no mapping needed)
                 if (string.IsNullOrEmpty(targetWwid)) {
-                    try {
-                        using (var stream = await _sharedHttpClient.GetStreamAsync(mappingUrl))
-                        using (var reader = new StreamReader(stream)) {
-                            string line; bool isHeader = true;
-                            while ((line = await reader.ReadLineAsync()) != null) {
-                                if (isHeader) { isHeader = false; continue; }
-                                var parts = line.Split(',');
-                                if (parts.Length >= 3) {
-                                    if (parts[0].Trim().Equals(username, StringComparison.OrdinalIgnoreCase) || 
-                                        (!string.IsNullOrEmpty(fullName) && parts[1].Trim().Equals(fullName, StringComparison.OrdinalIgnoreCase))) {
-                                        targetWwid = parts[2].Trim();
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(targetWwid) && userInfo != null) {
-                            userInfo.WWID = targetWwid;
-                            File.WriteAllText(Path.Combine(UserDataManager.DataFolder, $"{username}.json"), 
-                                System.Text.Json.JsonSerializer.Serialize(userInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-                        }
-                    } catch { }
+                    targetWwid = userInfo?.WWID ?? string.Empty;
                 }
 
                 if (string.IsNullOrEmpty(targetWwid)) return;
@@ -2768,6 +2747,7 @@ namespace SalaryCalculator
                 // 2. Parallel Streaming Parsing
                 decimal sumOt15 = 0, sumOt2 = 0, sumFw = 0, sumOt3 = 0, sAl = 0, sSl = 0;
                 HashSet<string> d12 = new HashSet<string>(), d8 = new HashSet<string>();
+                int parsedCount = 0;
                 var parsingTasks = new List<System.Threading.Tasks.Task>();
 
                 // OT Parsing Stream
@@ -2781,12 +2761,14 @@ namespace SalaryCalculator
                             string line; int lineCount = 0;
                             while ((line = await reader.ReadLineAsync()) != null) {
                                 if (lineCount++ < 2) continue; // Standard Google CSV has 2 header rows
-                                if (!line.Contains(targetWwid)) continue;
                                 var parts = line.Split(',');
+                                if (parts.Length <= 2) continue; // Ensure has WWID column
+                                if (parts[2].Trim() != targetWwid) continue; // Direct WWID check
 
                                 void ProcessRow(int dateIdx, int wwidIdx, int tIdx, int nIdx, int lIdx) {
                                     if (parts.Length <= Math.Max(dateIdx, Math.Max(wwidIdx, Math.Max(tIdx, Math.Max(nIdx, lIdx))))) return;
                                     if (parts[wwidIdx].Trim() != targetWwid) return;
+                                    parsedCount++;
                                     string dStr = parts[dateIdx].Trim();
                                     if (!DateTime.TryParseExact(dStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime d))
                                         if (!DateTime.TryParse(dStr, out d)) return;
@@ -2832,10 +2814,16 @@ namespace SalaryCalculator
                         using (var reader = new StreamReader(stream)) {
                             string line;
                             while ((line = await reader.ReadLineAsync()) != null) {
-                                if (!line.Contains(targetWwid)) continue;
                                 var parts = line.Split(',');
                                 bool match = false;
-                                for (int i = 0; i < Math.Min(parts.Length, 15); i++) if (parts[i].Trim() == targetWwid) { match = true; break; }
+                                for (int i = 0; i < Math.Min(parts.Length, 15); i++)
+                                {
+                                    if (parts[i].Trim() == targetWwid)
+                                    {
+                                        match = true;
+                                        break;
+                                    }
+                                }
                                 if (match) {
                                     for (int i = 3; i <= 35 && i < parts.Length; i++) {
                                         string v = parts[i].Trim().ToUpperInvariant();
@@ -2850,6 +2838,11 @@ namespace SalaryCalculator
                 }));
 
                 await System.Threading.Tasks.Task.WhenAll(parsingTasks);
+
+                if (parsedCount == 0) {
+                    MessageBox.Show("WWID không đúng hoặc không có dữ liệu trong khoảng thời gian này. Vui lòng kiểm tra lại WWID.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 // 3. Update UI
                 this.Invoke((MethodInvoker)delegate {
@@ -2899,50 +2892,19 @@ namespace SalaryCalculator
                 sb.AppendLine($"   ❌ Lỗi kết nối GitHub: {ex.Message}");
             }
 
-            // 3. Kiểm tra mã nhân viên (WWID)
+            // 3. Kiểm tra mã nhân viên (WWID) - now directly from user input
             sb.AppendLine("\n🆔 3. Kiểm tra Định danh (WWID):");
             var userInfo = userDataManager.Login(currentUsername);
             string cachedWwid = userInfo?.WWID ?? "Chưa có";
             sb.AppendLine($"   - Username: {currentUsername}");
-            sb.AppendLine($"   - WWID trong máy: {cachedWwid}");
-
-            string mappingUrl = "https://docs.google.com/spreadsheets/d/1YRL5SwRYphTENI9a6v3dq5WS0-fmqLvpHuf3p38xOOQ/export?format=csv&gid=0&t=" + DateTime.Now.Ticks;
-            string foundWwid = null;
-            try
+            sb.AppendLine($"   📝 WWID đã lưu: {cachedWwid}");
+            if (string.IsNullOrEmpty(cachedWwid) || cachedWwid == "Chưa có")
             {
-                using (var stream = await _sharedHttpClient.GetStreamAsync(mappingUrl))
-                using (var reader = new StreamReader(stream))
-                {
-                    string line; bool isHeader = true;
-                    while ((line = await reader.ReadLineAsync()) != null)
-                    {
-                        if (isHeader) { isHeader = false; continue; }
-                        var parts = line.Split(',');
-                        if (parts.Length >= 3)
-                        {
-                            if (parts[0].Trim().Equals(currentUsername, StringComparison.OrdinalIgnoreCase))
-                            {
-                                foundWwid = parts[2].Trim();
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (foundWwid != null)
-                {
-                    sb.AppendLine($"   ✅ Tìm thấy WWID trên Server: {foundWwid}");
-                    if (foundWwid != cachedWwid && cachedWwid != "Chưa có")
-                        sb.AppendLine("   ⚠️ Cảnh báo: WWID trên Server khác với trên máy!");
-                }
-                else
-                {
-                    sb.AppendLine("   ❌ Không tìm thấy Username này trên file Mapping của hệ thống.");
-                    sb.AppendLine("   👉 Vui lòng liên hệ Admin để thêm mã nhân viên.");
-                }
+                sb.AppendLine("   ❌ Chưa có WWID. Vui lòng đăng ký lại và nhập WWID.");
             }
-            catch (Exception ex)
+            else
             {
-                sb.AppendLine($"   ❌ Lỗi truy cập file Mapping: {ex.Message}");
+                sb.AppendLine("   ✅ WWID đã được nhập trực tiếp khi đăng ký.");
             }
 
             // 4. Kiểm tra kết nối dữ liệu Google Sheets
@@ -3704,7 +3666,7 @@ namespace SalaryCalculator
         {
             string[] readonlyNames = new[]
             {
-                "nameTextBox", "phoneTextBox", "ageTextBox",
+                "nameTextBox", "wwidTextBox", "ageTextBox",
                 "salaryTextBox", "mealTextBox", "workingDaysTextBox",
                 "allowanceTextBox", "taxThresholdTextBox"
             };
@@ -3730,11 +3692,11 @@ namespace SalaryCalculator
                 salaryTextBox.Text = NumberFormatter.FormatNumberDisplay(user.BasicSalary.ToString());
                 mealTextBox.Text = NumberFormatter.FormatNumberDisplay(user.MealAllowance.ToString());
                 
-                // Load phone and age
-                Control[] phoneFound = this.GetCachedControls("phoneTextBox", true);
-                if (phoneFound.Length > 0 && phoneFound[0] is TextBox phoneTextBox)
+                // Load WWID and age
+                Control[] wwidFound = this.GetCachedControls("wwidTextBox", true);
+                if (wwidFound.Length > 0 && wwidFound[0] is TextBox wwidTextBox)
                 {
-                    phoneTextBox.Text = user.Phone;
+                    wwidTextBox.Text = user.WWID;
                 }
                 
                 Control[] ageFound = this.GetCachedControls("ageTextBox", true);
@@ -3822,8 +3784,8 @@ namespace SalaryCalculator
 
             if (string.IsNullOrWhiteSpace(u.FullName))
                 missing.Add("Tên đầy đủ");
-            if (string.IsNullOrWhiteSpace(u.Phone))
-                missing.Add("SĐT/Zalo");
+            if (string.IsNullOrWhiteSpace(u.WWID))
+                missing.Add("WWID");
             if (u.Age <= 0)
                 missing.Add("Tuổi");
             if (u.BasicSalary <= 0)
@@ -3882,18 +3844,19 @@ namespace SalaryCalculator
             nameEditBox.Text = user.FullName;
             editForm.Controls.Add(nameEditBox);
 
-            // Phone/Zalo
-            Label phoneLabel = new Label();
-            phoneLabel.Text = "SĐT/Zalo:";
-            phoneLabel.Location = new System.Drawing.Point(30, startY + gapY);
-            phoneLabel.Width = 120;
-            editForm.Controls.Add(phoneLabel);
+            // WWID
+            Label wwidLabel = new Label();
+            wwidLabel.Text = "WWID:";
+            wwidLabel.Location = new System.Drawing.Point(30, startY + gapY);
+            wwidLabel.Width = 120;
+            editForm.Controls.Add(wwidLabel);
 
-            TextBox phoneEditBox = new TextBox();
-            phoneEditBox.Location = new System.Drawing.Point(160, startY + gapY - 3);
-            phoneEditBox.Width = 250;
-            phoneEditBox.Text = user.Phone;
-            editForm.Controls.Add(phoneEditBox);
+            TextBox wwidEditBox = new TextBox();
+            wwidEditBox.Location = new System.Drawing.Point(160, startY + gapY - 3);
+            wwidEditBox.Width = 250;
+            wwidEditBox.Text = user.WWID;
+            wwidEditBox.MaxLength = 8;
+            editForm.Controls.Add(wwidEditBox);
 
             // Age
             Label ageLabel = new Label();
@@ -4024,7 +3987,7 @@ namespace SalaryCalculator
             saveBtn.Location = new System.Drawing.Point(btnStartX, btnY);
             saveBtn.Click += (s, e) =>
             {
-                if (UpdateUserData(nameEditBox.Text, phoneEditBox.Text, ageEditBox.Text, salaryEditBox.Text, mealEditBox.Text, certEditBox.Text, taxThresholdEditBox.Text, attendancePerDayEditBox.Text, travelPerDayEditBox.Text, housingEditBox.Text))
+                if (UpdateUserData(nameEditBox.Text, wwidEditBox.Text, ageEditBox.Text, salaryEditBox.Text, mealEditBox.Text, certEditBox.Text, taxThresholdEditBox.Text, attendancePerDayEditBox.Text, travelPerDayEditBox.Text, housingEditBox.Text))
                 {
                     LoadUserData(nameTextBox, salaryTextBox, mealTextBox);
                     MessageBox.Show("Cập nhật thông tin thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -4052,13 +4015,19 @@ namespace SalaryCalculator
             editForm.ShowDialog();
         }
 
-        private bool UpdateUserData(string fullName, string phone, string age, string salary, string meal, string certificate, string taxThreshold, string attendancePerMonth, string travelPerMonth, string housingAllowance)
+        private bool UpdateUserData(string fullName, string wwid, string age, string salary, string meal, string certificate, string taxThreshold, string attendancePerMonth, string travelPerMonth, string housingAllowance)
         {
             try
             {
-                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(phone) || string.IsNullOrEmpty(age))
+                if (string.IsNullOrEmpty(fullName) || string.IsNullOrEmpty(wwid) || string.IsNullOrEmpty(age))
                 {
-                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, SĐT, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("Vui lòng điền đầy đủ thông tin (Tên, WWID, Tuổi)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+
+                if (wwid.Length != 8)
+                {
+                    MessageBox.Show("WWID phải đúng 8 ký tự!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return false;
                 }
 
@@ -4092,7 +4061,7 @@ namespace SalaryCalculator
                     return false;
                 }
 
-                return userDataManager.Register(currentUsername, fullName, phone, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThresholdValue, "", certificateBonus, attendancePerMonthValue, travelPerMonthValue, housingAllowanceValue);
+                return userDataManager.Register(currentUsername, fullName, wwid, userAge, basicSalary, mealAllowance, 0, 0, 0, taxThresholdValue, "", certificateBonus, attendancePerMonthValue, travelPerMonthValue, housingAllowanceValue);
             }
             catch
             {

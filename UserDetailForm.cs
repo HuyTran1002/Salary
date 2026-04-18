@@ -155,7 +155,7 @@ namespace SalaryCalculator
 
             // Pair related fields on each row so both columns look balanced and aligned.
             AddInfoRow(leftInfoTable, 0, "Tên đăng nhập:", user.Username, true);
-            AddInfoRow(rightInfoTable, 0, "Số điện thoại:", user.Phone);
+            AddInfoRow(rightInfoTable, 0, "WWID:", user.WWID);
 
             AddInfoRow(leftInfoTable, 1, "Họ tên:", user.FullName, true);
             AddInfoRow(rightInfoTable, 1, "Tuổi:", user.Age.ToString());

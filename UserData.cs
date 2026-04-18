@@ -50,7 +50,6 @@ namespace SalaryCalculator
         public string Username { get; set; }
         public string WWID { get; set; } = string.Empty;
         public string FullName { get; set; }
-        public string Phone { get; set; }
         public int Age { get; set; }
         public decimal BasicSalary { get; set; }
         public decimal MealAllowance { get; set; }
@@ -93,7 +92,7 @@ namespace SalaryCalculator
                 Directory.CreateDirectory(DataFolder);
         }
 
-        public bool Register(string username, string fullName, string phone, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 195500m, decimal travelAllowancePerDay = 195500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
+        public bool Register(string username, string fullName, string wwid, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 195500m, decimal travelAllowancePerDay = 195500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
         {
             try
             {
@@ -102,7 +101,7 @@ namespace SalaryCalculator
                 UserInfo user = existing ?? new UserInfo();
                 user.Username = username;
                 user.FullName = fullName;
-                user.Phone = phone;
+                user.WWID = wwid;  // Now storing WWID
                 user.Age = age;
                 user.BasicSalary = basicSalary;
                 user.MealAllowance = mealAllowance;
