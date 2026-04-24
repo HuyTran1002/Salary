@@ -2696,6 +2696,69 @@ namespace SalaryCalculator
             catch { }
         }
 
+        // Lưu dữ liệu ngày nghỉ theo tháng/năm
+        private void SaveLeaveDataCache(string username, int month, int year, decimal al, decimal sl)
+        {
+            try
+            {
+                string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SalaryCalculator");
+                if (!Directory.Exists(appDataPath)) Directory.CreateDirectory(appDataPath);
+                
+                string cacheFile = Path.Combine(appDataPath, "leave_cache.json");
+                var cache = new Dictionary<string, Dictionary<string, Dictionary<string, decimal>>>();
+                
+                if (File.Exists(cacheFile))
+                {
+                    try
+                    {
+                        string json = File.ReadAllText(cacheFile);
+                        cache = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, decimal>>>>(json) 
+                            ?? new Dictionary<string, Dictionary<string, Dictionary<string, decimal>>>();
+                    }
+                    catch { }
+                }
+                
+                if (!cache.ContainsKey(username))
+                    cache[username] = new Dictionary<string, Dictionary<string, decimal>>();
+                
+                string key = $"{year}_{month:D2}";
+                cache[username][key] = new Dictionary<string, decimal> { { "al", al }, { "sl", sl } };
+                
+                string output = System.Text.Json.JsonSerializer.Serialize(cache, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(cacheFile, output);
+            }
+            catch { }
+        }
+
+        // Tải dữ liệu ngày nghỉ từ cache theo tháng/năm
+        private bool LoadLeaveDataCache(string username, int month, int year, out decimal al, out decimal sl)
+        {
+            al = 0;
+            sl = 0;
+            try
+            {
+                string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SalaryCalculator");
+                string cacheFile = Path.Combine(appDataPath, "leave_cache.json");
+                
+                if (!File.Exists(cacheFile)) return false;
+                
+                string json = File.ReadAllText(cacheFile);
+                var cache = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, decimal>>>>(json);
+                
+                if (cache == null || !cache.ContainsKey(username)) return false;
+                
+                string key = $"{year}_{month:D2}";
+                if (!cache[username].ContainsKey(key)) return false;
+                
+                var data = cache[username][key];
+                al = data.ContainsKey("al") ? data["al"] : 0;
+                sl = data.ContainsKey("sl") ? data["sl"] : 0;
+                return true;
+            }
+            catch { }
+            return false;
+        }
+
         private async System.Threading.Tasks.Task SyncDataFromSheetAsync(string username)
         {
             try
@@ -2821,29 +2884,40 @@ namespace SalaryCalculator
                                 targetYear++;
                             }
                         }
-                        if (m != targetMonth || y != targetYear) return;
-                        using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
-                        using (var reader = new StreamReader(stream)) {
-                            string line;
-                            while ((line = await reader.ReadLineAsync()) != null) {
-                                var parts = line.Split(',');
-                                bool match = false;
-                                for (int i = 0; i < Math.Min(parts.Length, 15); i++)
-                                {
-                                    if (parts[i].Trim() == targetWwid)
+                        
+                        // Nếu tháng tính lương == tháng mục tiêu, đồng bộ từ sheet
+                        if (m == targetMonth && y == targetYear) {
+                            using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
+                            using (var reader = new StreamReader(stream)) {
+                                string line;
+                                while ((line = await reader.ReadLineAsync()) != null) {
+                                    var parts = line.Split(',');
+                                    bool match = false;
+                                    for (int i = 0; i < Math.Min(parts.Length, 15); i++)
                                     {
-                                        match = true;
+                                        if (parts[i].Trim() == targetWwid)
+                                        {
+                                            match = true;
+                                            break;
+                                        }
+                                    }
+                                    if (match) {
+                                        for (int i = 3; i <= 35 && i < parts.Length; i++) {
+                                            string v = parts[i].Trim().ToUpperInvariant();
+                                            if (v == "AL") sAl += 1;
+                                            else if (v == "SL" || v == "NP") sSl += 1;
+                                        }
                                         break;
                                     }
                                 }
-                                if (match) {
-                                    for (int i = 3; i <= 35 && i < parts.Length; i++) {
-                                        string v = parts[i].Trim().ToUpperInvariant();
-                                        if (v == "AL") sAl += 1;
-                                        else if (v == "SL" || v == "NP") sSl += 1;
-                                    }
-                                    break;
-                                }
+                            }
+                            // Lưu dữ liệu vào cache
+                            SaveLeaveDataCache(username, m, y, sAl, sSl);
+                        } else {
+                            // Nếu tháng tính lương != tháng mục tiêu, tải từ cache
+                            if (LoadLeaveDataCache(username, m, y, out decimal cachedAl, out decimal cachedSl)) {
+                                sAl = cachedAl;
+                                sSl = cachedSl;
                             }
                         }
                     } catch { }
