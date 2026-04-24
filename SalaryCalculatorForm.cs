@@ -2809,7 +2809,19 @@ namespace SalaryCalculator
                 // Leave Parsing Stream
                 parsingTasks.Add(System.Threading.Tasks.Task.Run(async () => {
                     try {
-                        if (m != DateTime.Now.Month || y != DateTime.Now.Year) return;
+                        // Xác định tháng để lấy dữ liệu leave dựa trên ngày hiện tại
+                        DateTime now = DateTime.Now;
+                        int targetMonth = now.Month;
+                        int targetYear = now.Year;
+                        if (now.Day >= 21) {
+                            // Nếu ngày >= 21, dữ liệu trong bảng là cho tháng tiếp theo
+                            targetMonth++;
+                            if (targetMonth > 12) {
+                                targetMonth = 1;
+                                targetYear++;
+                            }
+                        }
+                        if (m != targetMonth || y != targetYear) return;
                         using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
                         using (var reader = new StreamReader(stream)) {
                             string line;
