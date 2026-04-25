@@ -1026,9 +1026,19 @@ namespace SalaryCalculator
                 }
             };
 
-            // Auto-calculate working days when month/year changes
-            monthTextBox.Leave += (s, e) => { if (autoCalcWorkingDaysCheck.Checked) CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox); };
-            yearTextBox.Leave += (s, e) => { if (autoCalcWorkingDaysCheck.Checked) CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox); };
+            // Auto-calculate working days and auto-sync when month/year changes
+            monthTextBox.Leave += async (s, e) => {
+                if (autoCalcWorkingDaysCheck.Checked) CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+                if (int.TryParse(monthTextBox.Text, out int newMonth) && int.TryParse(yearTextBox.Text, out int newYear)) {
+                    await SyncDataFromSheetAsync(currentUsername);
+                }
+            };
+            yearTextBox.Leave += async (s, e) => {
+                if (autoCalcWorkingDaysCheck.Checked) CalculateWorkingDays(monthTextBox, yearTextBox, workingDaysTextBox);
+                if (int.TryParse(monthTextBox.Text, out int newMonth) && int.TryParse(yearTextBox.Text, out int newYear)) {
+                    await SyncDataFromSheetAsync(currentUsername);
+                }
+            };
 
             leftY += 28;
 
@@ -2759,6 +2769,90 @@ namespace SalaryCalculator
             return false;
         }
 
+        // Lưu dữ liệu OT theo tháng/năm
+        private void SaveOTDataCache(string username, int month, int year, decimal ot15, decimal ot2, decimal fw, decimal ot3, int d12Count, int d8Count)
+        {
+            try
+            {
+                string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SalaryCalculator");
+                if (!Directory.Exists(appDataPath)) Directory.CreateDirectory(appDataPath);
+                
+                string cacheFile = Path.Combine(appDataPath, "ot_cache.json");
+                var cache = new Dictionary<string, Dictionary<string, Dictionary<string, object>>>();
+                
+                if (File.Exists(cacheFile))
+                {
+                    try
+                    {
+                        string json = File.ReadAllText(cacheFile);
+                        cache = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, object>>>>(json) 
+                            ?? new Dictionary<string, Dictionary<string, Dictionary<string, object>>>();
+                    }
+                    catch { }
+                }
+                
+                if (!cache.ContainsKey(username))
+                    cache[username] = new Dictionary<string, Dictionary<string, object>>();
+                
+                string key = $"{year}_{month:D2}";
+                cache[username][key] = new Dictionary<string, object>
+                {
+                    { "ot15", ot15 }, { "ot2", ot2 }, { "fw", fw }, { "ot3", ot3 }, 
+                    { "d12", d12Count }, { "d8", d8Count }
+                };
+                
+                string output = System.Text.Json.JsonSerializer.Serialize(cache, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(cacheFile, output);
+            }
+            catch { }
+        }
+
+        // Tải dữ liệu OT từ cache theo tháng/năm
+        private bool LoadOTDataCache(string username, int month, int year, out decimal ot15, out decimal ot2, out decimal fw, out decimal ot3, out int d12Count, out int d8Count)
+        {
+            ot15 = 0;
+            ot2 = 0;
+            fw = 0;
+            ot3 = 0;
+            d12Count = 0;
+            d8Count = 0;
+            try
+            {
+                string appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SalaryCalculator");
+                string cacheFile = Path.Combine(appDataPath, "ot_cache.json");
+                
+                if (!File.Exists(cacheFile)) return false;
+                
+                string json = File.ReadAllText(cacheFile);
+                var cache = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, object>>>>(json);
+                
+                if (cache == null || !cache.ContainsKey(username)) return false;
+                
+                string key = $"{year}_{month:D2}";
+                if (!cache[username].ContainsKey(key)) return false;
+                
+                var data = cache[username][key];
+                
+                // Parse JSON elements
+                if (data.ContainsKey("ot15") && data["ot15"] is System.Text.Json.JsonElement jOt15) 
+                    ot15 = jOt15.GetDecimal();
+                if (data.ContainsKey("ot2") && data["ot2"] is System.Text.Json.JsonElement jOt2) 
+                    ot2 = jOt2.GetDecimal();
+                if (data.ContainsKey("fw") && data["fw"] is System.Text.Json.JsonElement jFw) 
+                    fw = jFw.GetDecimal();
+                if (data.ContainsKey("ot3") && data["ot3"] is System.Text.Json.JsonElement jOt3) 
+                    ot3 = jOt3.GetDecimal();
+                if (data.ContainsKey("d12") && data["d12"] is System.Text.Json.JsonElement jD12) 
+                    d12Count = jD12.GetInt32();
+                if (data.ContainsKey("d8") && data["d8"] is System.Text.Json.JsonElement jD8) 
+                    d8Count = jD8.GetInt32();
+                
+                return true;
+            }
+            catch { }
+            return false;
+        }
+
         private async System.Threading.Tasks.Task SyncDataFromSheetAsync(string username)
         {
             try
@@ -2816,6 +2910,7 @@ namespace SalaryCalculator
                 // OT Parsing Stream
                 parsingTasks.Add(System.Threading.Tasks.Task.Run(async () => {
                     try {
+                        int otParsedCount = 0;  // Track if OT data was found
                         using (var stream = await _sharedHttpClient.GetStreamAsync(companyUrl))
                         using (var reader = new StreamReader(stream)) {
                             DateTime start = new DateTime(m == 1 ? y - 1 : y, m == 1 ? 12 : m - 1, 21);
@@ -2832,6 +2927,7 @@ namespace SalaryCalculator
                                     if (parts.Length <= Math.Max(dateIdx, Math.Max(wwidIdx, Math.Max(tIdx, Math.Max(nIdx, lIdx))))) return;
                                     if (parts[wwidIdx].Trim() != targetWwid) return;
                                     parsedCount++;
+                                    otParsedCount++;
                                     string dStr = parts[dateIdx].Trim();
                                     if (!DateTime.TryParseExact(dStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime d))
                                         if (!DateTime.TryParse(dStr, out d)) return;
@@ -2866,6 +2962,24 @@ namespace SalaryCalculator
                                 ProcessRow(28, 29, 33, 34, 35);
                             }
                         }
+                        
+                        // Nếu sync được dữ liệu OT từ sheet, lưu vào cache
+                        if (otParsedCount > 0) {
+                            SaveOTDataCache(username, m, y, sumOt15, sumOt2, sumFw, sumOt3, d12.Count, d8.Count);
+                        } else {
+                            // Nếu không sync được từ sheet, tải từ cache
+                            if (LoadOTDataCache(username, m, y, out decimal cachedOt15, out decimal cachedOt2, out decimal cachedFw, out decimal cachedOt3, out int cachedD12, out int cachedD8)) {
+                                sumOt15 = cachedOt15;
+                                sumOt2 = cachedOt2;
+                                sumFw = cachedFw;
+                                sumOt3 = cachedOt3;
+                                // Reconstruct HashSet from count
+                                d12 = new HashSet<string>();
+                                d8 = new HashSet<string>();
+                                for (int i = 0; i < cachedD12; i++) d12.Add("cached" + i);
+                                for (int i = 0; i < cachedD8; i++) d8.Add("cached" + i);
+                            }
+                        }
                     } catch { }
                 }));
 
@@ -2884,7 +2998,7 @@ namespace SalaryCalculator
                                 targetYear++;
                             }
                         }
-                        
+
                         // Nếu tháng tính lương == tháng mục tiêu, đồng bộ từ sheet
                         if (m == targetMonth && y == targetYear) {
                             using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
