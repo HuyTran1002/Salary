@@ -926,7 +926,19 @@ namespace SalaryCalculator
             monthTextBox.Height = 20;
             monthTextBox.Name = "monthTextBox";
             monthTextBox.Font = new System.Drawing.Font("Arial", 8);
-            monthTextBox.Text = DateTime.Now.Month.ToString();
+
+            DateTime now = DateTime.Now;
+            int defaultMonth = now.Month;
+            int defaultYear = now.Year;
+            if (now.Day >= 21) {
+                defaultMonth++;
+                if (defaultMonth > 12) {
+                    defaultMonth = 1;
+                    defaultYear++;
+                }
+            }
+
+            monthTextBox.Text = defaultMonth.ToString();
 
             Label yearLabel = new Label();
             yearLabel.Text = "Năm:";
@@ -940,7 +952,7 @@ namespace SalaryCalculator
             yearTextBox.Height = 20;
             yearTextBox.Name = "yearTextBox";
             yearTextBox.Font = new System.Drawing.Font("Arial", 8);
-            yearTextBox.Text = DateTime.Now.Year.ToString();
+            yearTextBox.Text = defaultYear.ToString();
 
             leftY += rowGap;
 
