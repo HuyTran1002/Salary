@@ -35,9 +35,8 @@ namespace SalaryCalculator
             private string currentUsername;
             private UserDataManager userDataManager = new UserDataManager();
             private bool isCustomTaxRate = false;  // Flag để theo dõi người dùng nhập % thủ công
-            private const decimal BaseTaxThreshold = 15500000m; // Giảm trừ bản thân luật 2026
-            private const decimal DependentDeduction = 6200000m; // Giảm trừ người phụ thuộc 2026
-            private const decimal FixedThresholdAddon = 730000m; // Khoản cơm miễn thuế tối đa
+            private const decimal BaseTaxThreshold = 16230000m; // Mốc lương tính thuế cơ bản mặc định
+            private const decimal FixedThresholdAddon = 730000m; // Khoản cố định cộng vào mốc thuế
             private Timer marqueeTimer = null; // Timer for scrolling marquee
             private Label marqueeLabel = null; // Marquee label for top rankings
             private int marqueeX = 0; // Current X position of marquee text
@@ -927,19 +926,7 @@ namespace SalaryCalculator
             monthTextBox.Height = 20;
             monthTextBox.Name = "monthTextBox";
             monthTextBox.Font = new System.Drawing.Font("Arial", 8);
-
-            DateTime now = DateTime.Now;
-            int defaultMonth = now.Month;
-            int defaultYear = now.Year;
-            if (now.Day >= 21) {
-                defaultMonth++;
-                if (defaultMonth > 12) {
-                    defaultMonth = 1;
-                    defaultYear++;
-                }
-            }
-
-            monthTextBox.Text = defaultMonth.ToString();
+            monthTextBox.Text = DateTime.Now.Month.ToString();
 
             Label yearLabel = new Label();
             yearLabel.Text = "Năm:";
@@ -953,7 +940,7 @@ namespace SalaryCalculator
             yearTextBox.Height = 20;
             yearTextBox.Name = "yearTextBox";
             yearTextBox.Font = new System.Drawing.Font("Arial", 8);
-            yearTextBox.Text = defaultYear.ToString();
+            yearTextBox.Text = DateTime.Now.Year.ToString();
 
             leftY += rowGap;
 
@@ -2999,49 +2986,45 @@ namespace SalaryCalculator
                 // Leave Parsing Stream
                 parsingTasks.Add(System.Threading.Tasks.Task.Run(async () => {
                     try {
-                        // Xác định tháng để lấy dữ liệu leave dựa trên ngày hiện tại
-                        DateTime now = DateTime.Now;
-                        int targetMonth = now.Month;
-                        int targetYear = now.Year;
-                        if (now.Day >= 21) {
-                            // Nếu ngày >= 21, dữ liệu trong bảng là cho tháng tiếp theo
-                            targetMonth++;
-                            if (targetMonth > 12) {
-                                targetMonth = 1;
-                                targetYear++;
-                            }
-                        }
-
-                        // Nếu tháng tính lương == tháng mục tiêu, đồng bộ từ sheet
-                        if (m == targetMonth && y == targetYear) {
-                            using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
-                            using (var reader = new StreamReader(stream)) {
-                                string line;
-                                while ((line = await reader.ReadLineAsync()) != null) {
-                                    var parts = line.Split(',');
-                                    bool match = false;
-                                    for (int i = 0; i < Math.Min(parts.Length, 15); i++)
+                        int leaveParsedCount = 0;  // Track if leave data was found
+                        using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
+                        using (var reader = new StreamReader(stream)) {
+                            // Xác định khoảng thời gian giống như OT: 21 tháng trước đến 20 tháng hiện tại
+                            DateTime start = new DateTime(m == 1 ? y - 1 : y, m == 1 ? 12 : m - 1, 21);
+                            DateTime end = new DateTime(y, m, 20);
+                            
+                            string line;
+                            while ((line = await reader.ReadLineAsync()) != null) {
+                                var parts = line.Split(',');
+                                bool match = false;
+                                string wwid = "";
+                                for (int i = 0; i < Math.Min(parts.Length, 15); i++)
+                                {
+                                    if (parts[i].Trim() == targetWwid)
                                     {
-                                        if (parts[i].Trim() == targetWwid)
-                                        {
-                                            match = true;
-                                            break;
-                                        }
-                                    }
-                                    if (match) {
-                                        for (int i = 3; i <= 35 && i < parts.Length; i++) {
-                                            string v = parts[i].Trim().ToUpperInvariant();
-                                            if (v == "AL") sAl += 1;
-                                            else if (v == "SL" || v == "NP") sSl += 1;
-                                        }
+                                        match = true;
+                                        wwid = parts[i].Trim();
                                         break;
                                     }
                                 }
+                                if (match) {
+                                    leaveParsedCount++;
+                                    // Duyệt qua các cột ngày để tìm leave trong khoảng thời gian
+                                    for (int i = 3; i <= 35 && i < parts.Length; i++) {
+                                        string v = parts[i].Trim().ToUpperInvariant();
+                                        if (v == "AL") sAl += 1;
+                                        else if (v == "SL" || v == "NP") sSl += 1;
+                                    }
+                                    break; // Chỉ cần tìm 1 dòng match WWID
+                                }
                             }
-                            // Lưu dữ liệu vào cache
+                        }
+                        
+                        // Nếu sync được dữ liệu leave từ sheet, lưu vào cache
+                        if (leaveParsedCount > 0) {
                             SaveLeaveDataCache(username, m, y, sAl, sSl);
                         } else {
-                            // Nếu tháng tính lương != tháng mục tiêu, tải từ cache
+                            // Nếu không sync được từ sheet, tải từ cache
                             if (LoadLeaveDataCache(username, m, y, out decimal cachedAl, out decimal cachedSl)) {
                                 sAl = cachedAl;
                                 sSl = cachedSl;
@@ -4383,9 +4366,17 @@ namespace SalaryCalculator
                 }
                 else
                 {
-                    // Nếu nhập tay: Mặc định coi là OT x2 toàn bộ
-                    otFwdHours = 0;
-                    ot2xHours = overtime2xHours;
+                    // Manual-entry fallback: first 16H assumed FWD up to 24H total
+                    if (overtime2xHours <= 24)
+                    {
+                        otFwdHours = Math.Min(overtime2xHours, 16m);
+                        ot2xHours = overtime2xHours - otFwdHours;
+                    }
+                    else
+                    {
+                        otFwdHours = 24m;
+                        ot2xHours = overtime2xHours - 24m;
+                    }
                 }
 
                 // Calculate salaries (both OT FWD and OT x2 are paid at 2x rate)
@@ -4506,7 +4497,7 @@ namespace SalaryCalculator
             }
         }
 
-        private decimal ComputeTaxThreshold(decimal baseThreshold, decimal hourlyRate, decimal otFwdHours, decimal ot2xHours, decimal overtime3xHours, decimal overtime15xHours, decimal insuranceDeduction)
+        private decimal ComputeTaxThreshold(decimal baseThreshold, decimal hourlyRate, decimal overtime2xHours, decimal overtime3xHours, decimal overtime15xHours, decimal insuranceDeduction)
         {
             // Tính tiền OT miễn thuế với giới hạn 28 tiếng
             const decimal maxTaxExemptHours = 28m;
@@ -4520,35 +4511,32 @@ namespace SalaryCalculator
 
                 // Nếu còn giới hạn, tính thêm từ x2
                 decimal remainingHours = maxTaxExemptHours - x3HoursForExempt;
-                if (remainingHours > 0 && ot2xHours > 0)
+                if (remainingHours > 0 && overtime2xHours > 0)
                 {
-                    decimal x2HoursForExempt = Math.Min(ot2xHours, remainingHours);
+                    decimal x2HoursForExempt = Math.Min(overtime2xHours, remainingHours);
                     taxExemptOT += hourlyRate * x2HoursForExempt * 1m;
                 }
             }
-            else if (ot2xHours > 0)
+            else if (overtime2xHours > 0)
             {
                 // Nếu không có x3, chỉ tính x2
-                decimal x2HoursForExempt = Math.Min(ot2xHours, maxTaxExemptHours);
+                decimal x2HoursForExempt = Math.Min(overtime2xHours, maxTaxExemptHours);
                 taxExemptOT += hourlyRate * x2HoursForExempt * 1m;
             }
 
-            // Tính các thành phần bổ sung theo công thức đã khớp với thực tế
+            // Tính các thành phần bổ sung theo công thức mới
+            decimal otFwdHours = Math.Min(overtime2xHours, 24);
+            decimal ot2xHours = Math.Max(0, overtime2xHours - 24);
             decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
             decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
             decimal ot3xSalary = Math.Round(overtime3xHours * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
             decimal ot15xSalary = Math.Round(overtime15xHours * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-            // Công thức điều chỉnh để khớp với bảng lương thực tế:
-            // Theo bảng lương mẫu 04/2026: 
-            // - Mốc giảm trừ (16.23M) = 15.5M (Bản thân) + 730k (Cơm).
-            // - Khấu trừ 100% tiền OT x2 (Phần Item 15).
-            // - Trợ cấp FWD (Item 16) không thấy được khấu trừ trong bảng mẫu.
-            
-            decimal additionalOTx2 = ot2xSalary; // Khấu trừ toàn bộ 200% theo thực tế bảng lương
-            decimal additionalOTx3 = ot3xSalary * 2m / 3m; 
+            // Công thức mới: mốc lương tính thuế + tiền bảo hiểm + 730000 + ((tiền OT x2 của số tiếng OT x2)/2) + ((tiền OT x3 của số tiền OT x3)*2/3) + ((tiền OT x1.5 của số tiếng OT x1.5)*1/3) + ((tiền OT FWD)*1/12)
+            decimal additionalOTx2 = ot2xSalary / 2m;
+            decimal additionalOTx3 = ot3xSalary * 2m / 3m;
             decimal additionalOTx15 = ot15xSalary / 3m;
-            decimal additionalOTFwd = 0; // Tạm để 0 theo bảng lương mẫu (FWD không được giảm trừ)
+            decimal additionalOTFwd = otFwdSalary / 12m;
 
             return baseThreshold + insuranceDeduction + FixedThresholdAddon + additionalOTx2 + additionalOTx3 + additionalOTx15 + additionalOTFwd;
         }
@@ -4751,32 +4739,28 @@ namespace SalaryCalculator
                 if (insurancePercent < 0) insurancePercent = 0;
                 decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
 
-                // Split OT x2 into OT FWD and OT x2
-                decimal otFwdHours = 0;
-                decimal ot2xHours = 0;
-
-                // Ưu tiên sử dụng số giờ FWD chính xác từ Sheet sync (được lưu trong Tag)
-                if (overtime2xTextBox.Tag is decimal tagFwHours && tagFwHours > 0)
-                {
-                    otFwdHours = Math.Min(tagFwHours, overtime2xHours);
-                    ot2xHours = Math.Max(0, overtime2xHours - otFwdHours);
-                }
-                else
-                {
-                    // Nếu nhập tay: Mặc định coi là OT x2 toàn bộ
-                    otFwdHours = 0;
-                    ot2xHours = overtime2xHours;
-                }
-                
                 // Dynamic tax threshold = base (user input) + 730,000 + phần chênh lệch OT x2/x3 + khấu trừ BH
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, otFwdHours, ot2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
+                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
 
                 // Calculate gross salary components:
                 decimal baseRegularSalary = workingDays * dailySalaryForMeal;
                 decimal slSalaryDeduction = slDaysOff * dailySalaryForMeal;
                 decimal regularSalary = baseRegularSalary - slSalaryDeduction;
                 if (regularSalary < 0) regularSalary = 0;
-
+                
+                // Split OT x2 into OT FWD (<=24 hours at 2x rate) and OT x2 (remaining at 2x rate)
+                decimal otFwdHours = 0;
+                decimal ot2xHours = 0;
+                if (overtime2xHours <= 24)
+                {
+                    otFwdHours = Math.Min(overtime2xHours, 16m);
+                    ot2xHours = overtime2xHours - otFwdHours;
+                }
+                else
+                {
+                    otFwdHours = 24m;
+                    ot2xHours = overtime2xHours - 24m;
+                }
                 decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
                 decimal overtime2xSalary = otFwdSalary + ot2xSalary;
@@ -5426,21 +5410,7 @@ namespace SalaryCalculator
                 }
                 if (insurancePercent < 0) insurancePercent = 0;
                 decimal insuranceDeduction = Math.Round(basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
-                // Split OT x2 into OT FWD and OT x2
-                decimal otFwdHours = 0;
-                decimal ot2xHours = 0;
-                if (overtime2xTextBox.Tag is decimal tagFwHours && tagFwHours > 0)
-                {
-                    otFwdHours = Math.Min(tagFwHours, overtime2xHours);
-                    ot2xHours = Math.Max(0, overtime2xHours - otFwdHours);
-                }
-                else
-                {
-                    otFwdHours = 0;
-                    ot2xHours = overtime2xHours;
-                }
-
-                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, otFwdHours, ot2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
+                decimal taxThreshold = ComputeTaxThreshold(baseTaxThresholdInput, hourlyRate, overtime2xHours, overtime3xHours, overtime15xHours, insuranceDeduction);
 
                 decimal regularSalary = payableDays * dailySalaryForMeal;
                 decimal overtime2xSalary = Math.Round(overtime2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
