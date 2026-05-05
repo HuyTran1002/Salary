@@ -1068,7 +1068,7 @@ namespace SalaryCalculator
             slDaysOffTextBox.Name = "slDaysOffTextBox";
             slDaysOffTextBox.Font = new System.Drawing.Font("Arial", 8);
             slDaysOffTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(slDaysOffTextBox);
+
 
             leftY += 28;
 
@@ -1085,7 +1085,7 @@ namespace SalaryCalculator
             alDaysOffTextBox.Name = "alDaysOffTextBox";
             alDaysOffTextBox.Font = new System.Drawing.Font("Arial", 8);
             alDaysOffTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(alDaysOffTextBox);
+
 
             leftY += 28;
 
@@ -1140,7 +1140,7 @@ namespace SalaryCalculator
             taxTextBox.Name = "taxTextBox";
             taxTextBox.Font = new System.Drawing.Font("Arial", 8);
             taxTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(taxTextBox);
+
             // Thêm event để phát hiện khi người dùng nhập % thủ công
             taxTextBox.TextChanged += (s, e) => { isCustomTaxRate = true; };
 
@@ -1222,7 +1222,7 @@ namespace SalaryCalculator
             overtime2xTextBox.Height = 22;
             overtime2xTextBox.Name = "overtime2xTextBox";
             overtime2xTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(overtime2xTextBox);
+
             
             // Add event handler to update OT FWD/OT x2 split display
             overtime2xTextBox.TextChanged += (s, e) => {
@@ -1257,7 +1257,7 @@ namespace SalaryCalculator
             overtime3xTextBox.Height = 22;
             overtime3xTextBox.Name = "overtime3xTextBox";
             overtime3xTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(overtime3xTextBox);
+
             
             // Add event handler to update OT x3 display
             overtime3xTextBox.TextChanged += (s, e) => {
@@ -1295,7 +1295,7 @@ namespace SalaryCalculator
             overtime15xTextBox.Height = 22;
             overtime15xTextBox.Name = "overtime15xTextBox";
             overtime15xTextBox.Text = "0";
-            NumberFormatter.FormatNumberInput(overtime15xTextBox);
+
             
             // Add event handler to update OT x1.5 display
             overtime15xTextBox.TextChanged += (s, e) => {
@@ -3017,23 +3017,70 @@ namespace SalaryCalculator
                             using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
                             using (var reader = new StreamReader(stream)) {
                                 string line;
+                                string pendingLine = "";
+                                int wwidCol = -1, alCol = -1, alhCol = -1, npCol = -1, slCol = -1, lCol = -1, elCol = -1;
+                                
                                 while ((line = await reader.ReadLineAsync()) != null) {
-                                    var parts = line.Split(',');
-                                    bool match = false;
-                                    for (int i = 0; i < Math.Min(parts.Length, 15); i++)
-                                    {
-                                        if (parts[i].Trim() == targetWwid)
-                                        {
-                                            match = true;
-                                            break;
+                                    if (!string.IsNullOrEmpty(pendingLine)) {
+                                        line = pendingLine + "\n" + line;
+                                        pendingLine = "";
+                                    }
+                                    
+                                    int quoteCount = 0;
+                                    foreach (char c in line) if (c == '"') quoteCount++;
+                                    if (quoteCount % 2 != 0) {
+                                        pendingLine = line;
+                                        continue;
+                                    }
+
+                                    var parts = new System.Collections.Generic.List<string>();
+                                    bool inQuote = false;
+                                    var sb = new System.Text.StringBuilder();
+                                    for(int i = 0; i < line.Length; i++) {
+                                        if(line[i] == '"') {
+                                            if (inQuote && i + 1 < line.Length && line[i+1] == '"') {
+                                                sb.Append('"');
+                                                i++;
+                                            } else {
+                                                inQuote = !inQuote;
+                                            }
+                                        } else if(line[i] == ',' && !inQuote) {
+                                            parts.Add(sb.ToString().Trim());
+                                            sb.Clear();
+                                        } else {
+                                            sb.Append(line[i]);
                                         }
                                     }
-                                    if (match) {
-                                        for (int i = 3; i <= 35 && i < parts.Length; i++) {
-                                            string v = parts[i].Trim().ToUpperInvariant();
-                                            if (v == "AL") sAl += 1;
-                                            else if (v == "SL" || v == "NP") sSl += 1;
+                                    parts.Add(sb.ToString().Trim());
+                                    
+                                    // Xác định header
+                                    if (wwidCol == -1) {
+                                        for (int i = 0; i < parts.Count; i++) {
+                                            string header = parts[i].ToUpperInvariant();
+                                            if (header == "WWID") wwidCol = i;
+                                            else if (header == "TỔNG AL") alCol = i;
+                                            else if (header == "TỔNG ALH") alhCol = i;
+                                            else if (header == "TỔNG NP") npCol = i;
+                                            else if (header == "TỔNG SL") slCol = i;
+                                            else if (header == "TỔNG L") lCol = i;
+                                            else if (header == "TỔNG EL") elCol = i;
                                         }
+                                        continue;
+                                    }
+
+                                    // Lấy dữ liệu
+                                    if (wwidCol != -1 && parts.Count > wwidCol && parts[wwidCol] == targetWwid) {
+                                        decimal tAl = 0, tAlh = 0, tNp = 0, tSl = 0, tL = 0, tEl = 0;
+                                        
+                                        if (alCol != -1 && parts.Count > alCol) decimal.TryParse(parts[alCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tAl);
+                                        if (alhCol != -1 && parts.Count > alhCol) decimal.TryParse(parts[alhCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tAlh);
+                                        if (npCol != -1 && parts.Count > npCol) decimal.TryParse(parts[npCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tNp);
+                                        if (slCol != -1 && parts.Count > slCol) decimal.TryParse(parts[slCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tSl);
+                                        if (lCol != -1 && parts.Count > lCol) decimal.TryParse(parts[lCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tL);
+                                        if (elCol != -1 && parts.Count > elCol) decimal.TryParse(parts[elCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tEl);
+                                        
+                                        sAl = tAl + tAlh;
+                                        sSl = tSl + tNp + tL + tEl;
                                         break;
                                     }
                                 }
@@ -4395,8 +4442,8 @@ namespace SalaryCalculator
                 // Update label text - only show if hours > 0
                 if (overtime2xHours > 0)
                 {
-                    overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}" : "";
-                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}" : "";
+                    overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:0.##}H OT FWD: {otFwdSalary:N0}" : "";
+                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:0.##}H OT x2: {ot2xSalary:N0}" : "";
                 }
                 else
                 {
@@ -4445,7 +4492,7 @@ namespace SalaryCalculator
                 // Update label text - only show if hours > 0
                 if (overtime3xHours > 0)
                 {
-                    overtime3xResultLabel.Text = $"→ {overtime3xHours:F0}H OT x3: {overtime3xSalary:N0}";
+                    overtime3xResultLabel.Text = $"→ {overtime3xHours:0.##}H OT x3: {overtime3xSalary:N0}";
                 }
                 else
                 {
@@ -4493,7 +4540,7 @@ namespace SalaryCalculator
                 // Update label text - only show if hours > 0
                 if (overtime15xHours > 0)
                 {
-                    overtime15xResultLabel.Text = $"→ {overtime15xHours:F0}H OT x1.5: {overtime15xSalary:N0}";
+                    overtime15xResultLabel.Text = $"→ {overtime15xHours:0.##}H OT x1.5: {overtime15xSalary:N0}";
                 }
                 else
                 {
@@ -4851,11 +4898,11 @@ namespace SalaryCalculator
                 string bonusInfo = "";
                 if (otDays12 > 0)
                 {
-                    bonusInfo += $"\n  • Tiền ăn OT 8/12h ({otDays12:F0} ngày × {meal12Amount:N0}): {otDays12 * meal12Amount:N0} VND";
+                    bonusInfo += $"\n  • Tiền ăn OT 8/12h ({otDays12:0.##} ngày × {meal12Amount:N0}): {otDays12 * meal12Amount:N0} VND";
                 }
                 if (otDays8 > 0)
                 {
-                    bonusInfo += $"\n  • Tiền ăn OT +4h ({otDays8:F0} ngày × {meal8Amount:N0}): {otDays8 * meal8Amount:N0} VND";
+                    bonusInfo += $"\n  • Tiền ăn OT +4h ({otDays8:0.##} ngày × {meal8Amount:N0}): {otDays8 * meal8Amount:N0} VND";
                 }
 
                 decimal allowanceTotal = travelAllowance + attendanceIncentive + housingAllowance + ratingBonus + certificateBonus;
@@ -4881,23 +4928,23 @@ namespace SalaryCalculator
                 }
 
                 string detail = $"\n" +
-                    $"  • Lương cơ bản + tiền ăn ({workingDays:F0} ngày × {dailySalaryForMeal:N0}): {baseRegularSalary:N0} VND\n" +
-                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F0} ngày × {dailySalaryForMeal:N0}): -{slSalaryDeduction:N0} VND\n" +
+                    $"  • Lương cơ bản + tiền ăn ({workingDays:0.##} ngày × {dailySalaryForMeal:N0}): {baseRegularSalary:N0} VND\n" +
+                    $"  • Trừ nghỉ SL/NP ({slDaysOff:0.##} ngày × {dailySalaryForMeal:N0}): -{slSalaryDeduction:N0} VND\n" +
                     $"  • Lương cơ bản + tiền ăn sau khi trừ SL/NP: {regularSalary:N0} VND\n" +
-                    $"  • OT FWD ({otFwdHours:F0} tiếng × {hourlyRate:N0} × 2): {otFwdSalary:N0} VND\n" +
-                    $"  • OT x2 ({ot2xHours:F0} tiếng × {hourlyRate:N0} × 2): {ot2xSalary:N0} VND\n" +
-                    $"  • OT x3 ({overtime3xHours:F0} tiếng × {hourlyRate:N0} × 3): {overtime3xSalary:N0} VND\n" +
-                    $"  • OT x1.5 ({overtime15xHours:F0} tiếng × {hourlyRate:N0} × 1.5): {overtime15xSalary:N0} VND{bonusInfo}{incentiveInfo}";
+                    $"  • OT FWD ({otFwdHours:0.##} tiếng × {hourlyRate:N0} × 2): {otFwdSalary:N0} VND\n" +
+                    $"  • OT x2 ({ot2xHours:0.##} tiếng × {hourlyRate:N0} × 2): {ot2xSalary:N0} VND\n" +
+                    $"  • OT x3 ({overtime3xHours:0.##} tiếng × {hourlyRate:N0} × 3): {overtime3xSalary:N0} VND\n" +
+                    $"  • OT x1.5 ({overtime15xHours:0.##} tiếng × {hourlyRate:N0} × 1.5): {overtime15xSalary:N0} VND{bonusInfo}{incentiveInfo}";
 
                 // Save calculation to user data
                 string resultDetail = $"Chi Tiết:\n" +
-                    $"  • Lương cơ bản + tiền ăn ({workingDays:F0} ngày × {dailySalaryForMeal:N0}): {baseRegularSalary:N0} VND\n" +
-                    $"  • Trừ nghỉ SL/NP ({slDaysOff:F0} ngày × {dailySalaryForMeal:N0}): -{slSalaryDeduction:N0} VND\n" +
+                    $"  • Lương cơ bản + tiền ăn ({workingDays:0.##} ngày × {dailySalaryForMeal:N0}): {baseRegularSalary:N0} VND\n" +
+                    $"  • Trừ nghỉ SL/NP ({slDaysOff:0.##} ngày × {dailySalaryForMeal:N0}): -{slSalaryDeduction:N0} VND\n" +
                     $"  • Lương cơ bản + tiền ăn sau khi trừ SL/NP: {regularSalary:N0} VND\n" +
-                    $"  • OT FWD ({otFwdHours:F0} tiếng × {hourlyRate:N0} × 2): {otFwdSalary:N0} VND\n" +
-                    $"  • OT x2 ({ot2xHours:F0} tiếng × {hourlyRate:N0} × 2): {ot2xSalary:N0} VND\n" +
-                    $"  • OT x3 ({overtime3xHours:F0} tiếng × {hourlyRate:N0} × 3): {overtime3xSalary:N0} VND\n" +
-                    $"  • OT x1.5 ({overtime15xHours:F0} tiếng × {hourlyRate:N0} × 1.5): {overtime15xSalary:N0} VND{bonusInfo}{incentiveInfo}";
+                    $"  • OT FWD ({otFwdHours:0.##} tiếng × {hourlyRate:N0} × 2): {otFwdSalary:N0} VND\n" +
+                    $"  • OT x2 ({ot2xHours:0.##} tiếng × {hourlyRate:N0} × 2): {ot2xSalary:N0} VND\n" +
+                    $"  • OT x3 ({overtime3xHours:0.##} tiếng × {hourlyRate:N0} × 3): {overtime3xSalary:N0} VND\n" +
+                    $"  • OT x1.5 ({overtime15xHours:0.##} tiếng × {hourlyRate:N0} × 1.5): {overtime15xSalary:N0} VND{bonusInfo}{incentiveInfo}";
                 
                 userDataManager.UpdateLastCalculation(currentUsername, month, year, netSalary, resultDetail);
 
@@ -4909,8 +4956,8 @@ namespace SalaryCalculator
                 
                 if (overtime2xHours > 0)
                 {
-                    overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:F0}H OT FWD: {otFwdSalary:N0}" : "";
-                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:F0}H OT x2: {ot2xSalary:N0}" : "";
+                    overtime2xFwdLabel.Text = otFwdHours > 0 ? $"→ {otFwdHours:0.##}H OT FWD: {otFwdSalary:N0}" : "";
+                    overtime2xResultLabel.Text = ot2xHours > 0 ? $"→ {ot2xHours:0.##}H OT x2: {ot2xSalary:N0}" : "";
                 }
                 else
                 {
@@ -4920,7 +4967,7 @@ namespace SalaryCalculator
                 
                 if (overtime3xHours > 0)
                 {
-                    overtime3xResultLabel.Text = $"→ {overtime3xHours:F0}H OT x3: {overtime3xSalary:N0}";
+                    overtime3xResultLabel.Text = $"→ {overtime3xHours:0.##}H OT x3: {overtime3xSalary:N0}";
                 }
                 else
                 {
@@ -4929,7 +4976,7 @@ namespace SalaryCalculator
                 
                 if (overtime15xHours > 0)
                 {
-                    overtime15xResultLabel.Text = $"→ {overtime15xHours:F0}H OT x1.5: {overtime15xSalary:N0}";
+                    overtime15xResultLabel.Text = $"→ {overtime15xHours:0.##}H OT x1.5: {overtime15xSalary:N0}";
                 }
                 else
                 {
