@@ -2903,6 +2903,17 @@ namespace SalaryCalculator
                     if (mtb.Length > 0 && mtb[0] is TextBox t1 && int.TryParse(t1.Text, out int pm)) m = pm;
                     if (ytb.Length > 0 && ytb[0] is TextBox t2 && int.TryParse(t2.Text, out int py)) y = py;
                     if (ntb.Length > 0 && ntb[0] is TextBox t3) fullName = t3.Text.Trim();
+
+                    // Xóa kết quả cũ trước khi đồng bộ mới
+                    string[] results = { "overtime15xTextBox", "overtime2xTextBox", "overtime3xTextBox", "otDays12TextBox", "otDays8TextBox", "slDaysOffTextBox", "alDaysOffTextBox" };
+                    foreach (var name in results) {
+                        var found = GetCachedControls(name, true);
+                        if (found.Length > 0 && found[0] is TextBox tb) {
+                            tb.Text = "0";
+                            if (name == "overtime2xTextBox") tb.Tag = 0m;
+                        }
+                    }
+                    UpdateOvertime2xDisplay(); // Cập nhật hiển thị màu sắc/icon nếu cần
                 });
                 if (m == 0) m = DateTime.Now.Month;
                 if (y == 0) y = DateTime.Now.Year;
@@ -2922,8 +2933,9 @@ namespace SalaryCalculator
 
                 // OT Parsing Stream
                 parsingTasks.Add(System.Threading.Tasks.Task.Run(async () => {
+                    int otParsedCount = 0;  // Track if OT data was found
+                    bool otSheetSuccess = false;
                     try {
-                        int otParsedCount = 0;  // Track if OT data was found
                         using (var stream = await _sharedHttpClient.GetStreamAsync(companyUrl))
                         using (var reader = new StreamReader(stream)) {
                             DateTime start = new DateTime(m == 1 ? y - 1 : y, m == 1 ? 12 : m - 1, 21);
@@ -2939,7 +2951,7 @@ namespace SalaryCalculator
                                 void ProcessRow(int dateIdx, int wwidIdx, int tIdx, int nIdx, int lIdx) {
                                     if (parts.Length <= Math.Max(dateIdx, Math.Max(wwidIdx, Math.Max(tIdx, Math.Max(nIdx, lIdx))))) return;
                                     if (parts[wwidIdx].Trim() != targetWwid) return;
-                                    parsedCount++;
+                                    System.Threading.Interlocked.Increment(ref parsedCount);
                                     otParsedCount++;
                                     string dStr = parts[dateIdx].Trim();
                                     if (!DateTime.TryParseExact(dStr, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime d))
@@ -2974,30 +2986,34 @@ namespace SalaryCalculator
                                 ProcessRow(1, 2, 6, 7, 8);
                                 ProcessRow(28, 29, 33, 34, 35);
                             }
-                        }
-                        
-                        // Nếu sync được dữ liệu OT từ sheet, lưu vào cache
-                        if (otParsedCount > 0) {
-                            SaveOTDataCache(username, m, y, sumOt15, sumOt2, sumFw, sumOt3, d12.Count, d8.Count);
-                        } else {
-                            // Nếu không sync được từ sheet, tải từ cache
-                            if (LoadOTDataCache(username, m, y, out decimal cachedOt15, out decimal cachedOt2, out decimal cachedFw, out decimal cachedOt3, out int cachedD12, out int cachedD8)) {
-                                sumOt15 = cachedOt15;
-                                sumOt2 = cachedOt2;
-                                sumFw = cachedFw;
-                                sumOt3 = cachedOt3;
-                                // Reconstruct HashSet from count
-                                d12 = new HashSet<string>();
-                                d8 = new HashSet<string>();
-                                for (int i = 0; i < cachedD12; i++) d12.Add("cached" + i);
-                                for (int i = 0; i < cachedD8; i++) d8.Add("cached" + i);
-                            }
+                            otSheetSuccess = true;
                         }
                     } catch { }
+                    
+                    // Nếu sync được dữ liệu OT từ sheet, lưu vào cache
+                    if (otSheetSuccess && otParsedCount > 0) {
+                        SaveOTDataCache(username, m, y, sumOt15, sumOt2, sumFw, sumOt3, d12.Count, d8.Count);
+                    } else if (!otSheetSuccess || otParsedCount == 0) {
+                        // Nếu không sync được từ sheet (lỗi mạng hoặc không có dữ liệu), tải từ cache
+                        if (LoadOTDataCache(username, m, y, out decimal cachedOt15, out decimal cachedOt2, out decimal cachedFw, out decimal cachedOt3, out int cachedD12, out int cachedD8)) {
+                            sumOt15 = cachedOt15;
+                            sumOt2 = cachedOt2;
+                            sumFw = cachedFw;
+                            sumOt3 = cachedOt3;
+                            System.Threading.Interlocked.Increment(ref parsedCount);
+                            // Reconstruct HashSet from count
+                            d12 = new HashSet<string>();
+                            d8 = new HashSet<string>();
+                            for (int i = 0; i < cachedD12; i++) d12.Add("cached" + i);
+                            for (int i = 0; i < cachedD8; i++) d8.Add("cached" + i);
+                        }
+                    }
                 }));
 
                 // Leave Parsing Stream
                 parsingTasks.Add(System.Threading.Tasks.Task.Run(async () => {
+                    bool leaveSheetSuccess = false;
+                    bool leaveParsed = false;
                     try {
                         // Xác định tháng để lấy dữ liệu leave dựa trên ngày hiện tại
                         DateTime now = DateTime.Now;
@@ -3014,84 +3030,100 @@ namespace SalaryCalculator
 
                         // Nếu tháng tính lương == tháng mục tiêu, đồng bộ từ sheet
                         if (m == targetMonth && y == targetYear) {
-                            using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
-                            using (var reader = new StreamReader(stream)) {
-                                string line;
-                                string pendingLine = "";
-                                int wwidCol = -1, alCol = -1, alhCol = -1, npCol = -1, slCol = -1, lCol = -1, elCol = -1;
-                                
-                                while ((line = await reader.ReadLineAsync()) != null) {
-                                    if (!string.IsNullOrEmpty(pendingLine)) {
-                                        line = pendingLine + "\n" + line;
-                                        pendingLine = "";
-                                    }
+                            try {
+                                using (var stream = await _sharedHttpClient.GetStreamAsync(leaveUrl))
+                                using (var reader = new StreamReader(stream)) {
+                                    string line;
+                                    string pendingLine = "";
+                                    int wwidCol = -1, alCol = -1, alhCol = -1, npCol = -1, slCol = -1, lCol = -1, elCol = -1;
                                     
-                                    int quoteCount = 0;
-                                    foreach (char c in line) if (c == '"') quoteCount++;
-                                    if (quoteCount % 2 != 0) {
-                                        pendingLine = line;
-                                        continue;
-                                    }
+                                    while ((line = await reader.ReadLineAsync()) != null) {
+                                        if (!string.IsNullOrEmpty(pendingLine)) {
+                                            line = pendingLine + "\n" + line;
+                                            pendingLine = "";
+                                        }
+                                        
+                                        int quoteCount = 0;
+                                        foreach (char c in line) if (c == '"') quoteCount++;
+                                        if (quoteCount % 2 != 0) {
+                                            pendingLine = line;
+                                            continue;
+                                        }
 
-                                    var parts = new System.Collections.Generic.List<string>();
-                                    bool inQuote = false;
-                                    var sb = new System.Text.StringBuilder();
-                                    for(int i = 0; i < line.Length; i++) {
-                                        if(line[i] == '"') {
-                                            if (inQuote && i + 1 < line.Length && line[i+1] == '"') {
-                                                sb.Append('"');
-                                                i++;
+                                        var parts = new System.Collections.Generic.List<string>();
+                                        bool inQuote = false;
+                                        var sb = new System.Text.StringBuilder();
+                                        for(int i = 0; i < line.Length; i++) {
+                                            if(line[i] == '"') {
+                                                if (inQuote && i + 1 < line.Length && line[i+1] == '"') {
+                                                    sb.Append('"');
+                                                    i++;
+                                                } else {
+                                                    inQuote = !inQuote;
+                                                }
+                                            } else if(line[i] == ',' && !inQuote) {
+                                                parts.Add(sb.ToString().Trim());
+                                                sb.Clear();
                                             } else {
-                                                inQuote = !inQuote;
+                                                sb.Append(line[i]);
                                             }
-                                        } else if(line[i] == ',' && !inQuote) {
-                                            parts.Add(sb.ToString().Trim());
-                                            sb.Clear();
-                                        } else {
-                                            sb.Append(line[i]);
                                         }
-                                    }
-                                    parts.Add(sb.ToString().Trim());
-                                    
-                                    // Xác định header
-                                    if (wwidCol == -1) {
-                                        for (int i = 0; i < parts.Count; i++) {
-                                            string header = parts[i].ToUpperInvariant();
-                                            if (header == "WWID") wwidCol = i;
-                                            else if (header == "TỔNG AL") alCol = i;
-                                            else if (header == "TỔNG ALH") alhCol = i;
-                                            else if (header == "TỔNG NP") npCol = i;
-                                            else if (header == "TỔNG SL") slCol = i;
-                                            else if (header == "TỔNG L") lCol = i;
-                                            else if (header == "TỔNG EL") elCol = i;
+                                        parts.Add(sb.ToString().Trim());
+                                        
+                                        // Xác định header
+                                        if (wwidCol == -1) {
+                                            for (int i = 0; i < parts.Count; i++) {
+                                                string header = parts[i].ToUpperInvariant();
+                                                if (header == "WWID") wwidCol = i;
+                                                else if (header == "TỔNG AL") alCol = i;
+                                                else if (header == "TỔNG ALH") alhCol = i;
+                                                else if (header == "TỔNG NP") npCol = i;
+                                                else if (header == "TỔNG SL") slCol = i;
+                                                else if (header == "TỔNG L") lCol = i;
+                                                else if (header == "TỔNG EL") elCol = i;
+                                            }
+                                            continue;
                                         }
-                                        continue;
-                                    }
 
-                                    // Lấy dữ liệu
-                                    if (wwidCol != -1 && parts.Count > wwidCol && parts[wwidCol] == targetWwid) {
-                                        decimal tAl = 0, tAlh = 0, tNp = 0, tSl = 0, tL = 0, tEl = 0;
-                                        
-                                        if (alCol != -1 && parts.Count > alCol) decimal.TryParse(parts[alCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tAl);
-                                        if (alhCol != -1 && parts.Count > alhCol) decimal.TryParse(parts[alhCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tAlh);
-                                        if (npCol != -1 && parts.Count > npCol) decimal.TryParse(parts[npCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tNp);
-                                        if (slCol != -1 && parts.Count > slCol) decimal.TryParse(parts[slCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tSl);
-                                        if (lCol != -1 && parts.Count > lCol) decimal.TryParse(parts[lCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tL);
-                                        if (elCol != -1 && parts.Count > elCol) decimal.TryParse(parts[elCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tEl);
-                                        
-                                        sAl = tAl + tAlh;
-                                        sSl = tSl + tNp + tL + tEl;
-                                        break;
+                                        // Lấy dữ liệu
+                                        if (wwidCol != -1 && parts.Count > wwidCol && parts[wwidCol] == targetWwid) {
+                                            decimal tAl = 0, tAlh = 0, tNp = 0, tSl = 0, tL = 0, tEl = 0;
+                                            
+                                            if (alCol != -1 && parts.Count > alCol) decimal.TryParse(parts[alCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tAl);
+                                            if (alhCol != -1 && parts.Count > alhCol) decimal.TryParse(parts[alhCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tAlh);
+                                            if (npCol != -1 && parts.Count > npCol) decimal.TryParse(parts[npCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tNp);
+                                            if (slCol != -1 && parts.Count > slCol) decimal.TryParse(parts[slCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tSl);
+                                            if (lCol != -1 && parts.Count > lCol) decimal.TryParse(parts[lCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tL);
+                                            if (elCol != -1 && parts.Count > elCol) decimal.TryParse(parts[elCol], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out tEl);
+                                            
+                                            sAl = tAl + tAlh;
+                                            sSl = tSl + tNp + tL + tEl;
+                                            leaveParsed = true;
+                                            System.Threading.Interlocked.Increment(ref parsedCount);
+                                            break;
+                                        }
                                     }
+                                    leaveSheetSuccess = true;
+                                }
+                            } catch { }
+
+                            // Nếu sync được dữ liệu từ sheet, lưu vào cache
+                            if (leaveSheetSuccess && leaveParsed) {
+                                SaveLeaveDataCache(username, m, y, sAl, sSl);
+                            } else if (!leaveSheetSuccess || !leaveParsed) {
+                                // Nếu không tìm thấy trong sheet hoặc lỗi mạng, thử tải từ cache
+                                if (LoadLeaveDataCache(username, m, y, out decimal cachedAl, out decimal cachedSl)) {
+                                    sAl = cachedAl;
+                                    sSl = cachedSl;
+                                    System.Threading.Interlocked.Increment(ref parsedCount);
                                 }
                             }
-                            // Lưu dữ liệu vào cache
-                            SaveLeaveDataCache(username, m, y, sAl, sSl);
                         } else {
                             // Nếu tháng tính lương != tháng mục tiêu, tải từ cache
                             if (LoadLeaveDataCache(username, m, y, out decimal cachedAl, out decimal cachedSl)) {
                                 sAl = cachedAl;
                                 sSl = cachedSl;
+                                System.Threading.Interlocked.Increment(ref parsedCount);
                             }
                         }
                     } catch { }
