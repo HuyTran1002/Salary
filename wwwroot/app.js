@@ -824,6 +824,27 @@ function showHistoryDetail(item) {
                 mealDisplayHtml += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Cộng thêm từ ngày OT">+${formatCurrency(bonusMealVal)}</span>`;
             }
 
+            // Calculate OT monetary earnings
+            const hourlyRate = (d.basicSalary || 0) / (d.workingDays || 22) / 8;
+            const ot15Val = d.overtime15xSalary !== undefined ? d.overtime15xSalary : Math.round((d.overtime15x || 0) * hourlyRate * 1.5);
+            const ot20Val = d.overtime2xSalary !== undefined ? d.overtime2xSalary : Math.round((d.overtime2x || 0) * hourlyRate * 2.0);
+            const ot30Val = d.overtime3xSalary !== undefined ? d.overtime3xSalary : Math.round((d.overtime3x || 0) * hourlyRate * 3.0);
+
+            let ot15Html = (d.overtime15x || 0) + 'h';
+            if (ot15Val > 0) {
+                ot15Html += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Thành tiền OT 1.5x">+${formatCurrency(ot15Val)}</span>`;
+            }
+
+            let ot20Html = (d.overtime2x || 0) + 'h';
+            if (ot20Val > 0) {
+                ot20Html += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Thành tiền OT 2.0x">+${formatCurrency(ot20Val)}</span>`;
+            }
+
+            let ot30Html = (d.overtime3x || 0) + 'h';
+            if (ot30Val > 0) {
+                ot30Html += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Thành tiền OT 3.0x">+${formatCurrency(ot30Val)}</span>`;
+            }
+
             const makeItem = (label, value, isHighlight = false, color = 'var(--text-main)') => `
                 <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
                     <span style="color:var(--text-muted); font-size: 0.8rem;">${label}</span>
@@ -845,9 +866,9 @@ function showHistoryDetail(item) {
                     ${makeItem('Nghỉ Phép (AL)', (d.alDaysOff || 0) + ' ngày')}
                     ${makeItem('Nghỉ SL/NP', (d.slDaysOff || 0) + ' ngày')}
                     ${makeItem('Trừ lương SL/NP', '-' + formatCurrency(slDeductionVal), false, slDeductionVal > 0 ? '#f87171' : 'var(--text-main)')}
-                    ${makeItem('Tăng ca 1.5x', (d.overtime15x || 0) + 'h')}
-                    ${makeItem('Tăng ca 2.0x', (d.overtime2x || 0) + 'h')}
-                    ${makeItem('Tăng ca 3.0x', (d.overtime3x || 0) + 'h')}
+                    ${makeItem('Tăng ca 1.5x', ot15Html)}
+                    ${makeItem('Tăng ca 2.0x', ot20Html)}
+                    ${makeItem('Tăng ca 3.0x', ot30Html)}
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
