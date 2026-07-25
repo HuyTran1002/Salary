@@ -94,6 +94,8 @@ namespace SalaryCalculator
                     if (root.TryGetProperty("performanceBonus", out var pb)) user.PerformanceBonus = pb.GetDecimal();
                     if (root.TryGetProperty("perfDeduct1", out var pd1)) user.PerfDeduct1 = pd1.GetDecimal();
                     if (root.TryGetProperty("perfDeduct2", out var pd2)) user.PerfDeduct2 = pd2.GetDecimal();
+                    if (root.TryGetProperty("otMeal12Amount", out var ot12)) user.OtMeal12Amount = ot12.GetDecimal();
+                    if (root.TryGetProperty("otMeal8Amount", out var ot8)) user.OtMeal8Amount = ot8.GetDecimal();
                     
                     _dataManager.SaveUser(user);
                     return JsonSerializer.Serialize(new { success = true, user = user });
@@ -151,8 +153,10 @@ namespace SalaryCalculator
                 
                 decimal workingDays = payload.workingDays > 0 ? payload.workingDays : 1;
                 
-                decimal meal12Amount = 30000;
-                decimal meal8Amount = 20000;
+                var user = !string.IsNullOrEmpty(payload.username) ? _dataManager.Login(payload.username) : null;
+
+                decimal meal12Amount = payload.otMeal12Amount > 0 ? payload.otMeal12Amount : (user != null && user.OtMeal12Amount > 0 ? user.OtMeal12Amount : 30000m);
+                decimal meal8Amount = payload.otMeal8Amount > 0 ? payload.otMeal8Amount : (user != null && user.OtMeal8Amount > 0 ? user.OtMeal8Amount : 20000m);
                 decimal bonusMealAllowance = 0;
                 if (payload.otDays12 > 0) bonusMealAllowance += payload.otDays12 * meal12Amount;
                 if (payload.otDays8 > 0) bonusMealAllowance += payload.otDays8 * meal8Amount;
@@ -236,6 +240,9 @@ namespace SalaryCalculator
                         overtime3x = payload.overtime3x,
                         otDays8 = payload.otDays8,
                         otDays12 = payload.otDays12,
+                        otMeal8Amount = meal8Amount,
+                        otMeal12Amount = meal12Amount,
+                        bonusMeal = bonusMealAllowance,
                         mealAllowance = payload.mealAllowance,
                         travelAllowance = travelAllowance,
                         housingAllowance = payload.housingAllowance,
@@ -442,6 +449,8 @@ namespace SalaryCalculator
             public decimal performanceBonus { get; set; }
             public decimal perfDeduct1 { get; set; }
             public decimal perfDeduct2 { get; set; }
+            public decimal otMeal8Amount { get; set; }
+            public decimal otMeal12Amount { get; set; }
         }
     }
 }

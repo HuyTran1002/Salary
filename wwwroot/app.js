@@ -504,6 +504,8 @@ calcBtn.addEventListener('click', async () => {
             overtime3x: parseNumber(inputs.overtime3x.value) || 0,
             otDays8: parseNumber(inputs.otDays8.value) || 0,
             otDays12: parseNumber(inputs.otDays12.value) || 0,
+            otMeal8Amount: currentUser && currentUser.OtMeal8Amount ? currentUser.OtMeal8Amount : 20000,
+            otMeal12Amount: currentUser && currentUser.OtMeal12Amount ? currentUser.OtMeal12Amount : 30000,
             attendanceIncentive: parseNumber(inputs.attendanceIncentive.value) || 0,
             certificateBonus: parseNumber(inputs.certificateBonus.value) || 0,
             recognizeCount: 0,
@@ -628,6 +630,76 @@ inputs.performanceBonus.addEventListener('dblclick', async () => {
     }
 });
 
+// Double click to edit OT Meal Allowance rates (+30.000d / +20.000d)
+let isOtModalOpen = false;
+async function openOtMealModal(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (isOtModalOpen) return;
+    isOtModalOpen = true;
+
+    try {
+        if (!currentUser) return;
+        
+        let current12 = currentUser.OtMeal12Amount !== undefined && currentUser.OtMeal12Amount > 0 ? currentUser.OtMeal12Amount : 30000;
+        let current8 = currentUser.OtMeal8Amount !== undefined && currentUser.OtMeal8Amount > 0 ? currentUser.OtMeal8Amount : 20000;
+        
+        let new12Str = prompt("CẤU HÌNH MỨC TIỀN CƠM OT/NGÀY\n• Ô BÊN TRÁI (OT 8h/12h): Nhập số tiền phụ cấp 1 ngày (VNĐ):", current12);
+        if (new12Str === null) return;
+        let new12 = parseNumber(new12Str);
+        
+        let new8Str = prompt("CẤU HÌNH MỨC TIỀN CƠM OT/NGÀY\n• Ô BÊN PHẢI (OT +4h): Nhập số tiền phụ cấp 1 ngày (VNĐ):", current8);
+        if (new8Str === null) return;
+        let new8 = parseNumber(new8Str);
+
+        if (new12 > 0 && new12 < 1000) new12 = new12 * 1000;
+        if (new8 > 0 && new8 < 1000) new8 = new8 * 1000;
+        
+        if (!isNaN(new12) && !isNaN(new8)) {
+            const backend = getBackend();
+            if (backend) {
+                const payload = {
+                    username: currentUser.Username,
+                    fullName: currentUser.FullName || "",
+                    basicSalary: currentUser.BasicSalary || 0,
+                    mealAllowance: currentUser.MealAllowance || 0,
+                    travelAllowance: currentUser.TravelAllowance || 0,
+                    housingAllowance: currentUser.HousingAllowance || 0,
+                    attendanceIncentive: currentUser.AttendanceIncentive || 0,
+                    certificateBonus: currentUser.CertificateBonus || 0,
+                    otherBonus: currentUser.Allowance || 0,
+                    insurancePercent: currentUser.InsurancePercent || 0,
+                    taxThreshold: currentUser.TaxThreshold || 0,
+                    otMeal12Amount: new12,
+                    otMeal8Amount: new8
+                };
+                const resultJson = await backend.UpdateProfile(JSON.stringify(payload));
+                const result = JSON.parse(resultJson);
+                if (result.success) {
+                    currentUser = result.user;
+                    alert(`Đã cập nhật mức phụ cấp OT thành công!\n• OT 8h/12h (Bên trái): +${formatCurrency(new12)} VNĐ/ngày\n• OT +4h (Bên phải): +${formatCurrency(new8)} VNĐ/ngày`);
+                } else {
+                    alert(result.message || "Lỗi cập nhật");
+                }
+            }
+        } else {
+            alert("Giá trị nhập vào không hợp lệ!");
+        }
+    } catch(err) {
+        alert("Lỗi: " + err.message);
+    } finally {
+        setTimeout(() => { isOtModalOpen = false; }, 300);
+    }
+}
+
+const lblOtDays12 = document.getElementById('lblOtDays12');
+const lblOtDays8 = document.getElementById('lblOtDays8');
+
+if (lblOtDays12) lblOtDays12.addEventListener('dblclick', openOtMealModal);
+if (lblOtDays8) lblOtDays8.addEventListener('dblclick', openOtMealModal);
+
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         // Remove active class from all
@@ -737,10 +809,25 @@ function showHistoryDetail(item) {
             const d = typeof item.detail === 'string' ? JSON.parse(item.detail) : item.detail;
             const slDeductionVal = d.slDeduction !== undefined ? d.slDeduction : (d.slDaysOff > 0 ? (d.slDaysOff * ((d.basicSalary + d.mealAllowance) / (d.workingDays || 22))) : 0);
 
+            let bonusMealVal = 0;
+            if (d.bonusMeal !== undefined) {
+                bonusMealVal = d.bonusMeal;
+            } else {
+                let m12 = d.otMeal12Amount || 30000;
+                let m8 = d.otMeal8Amount || 20000;
+                if (d.otDays12 > 0) bonusMealVal += d.otDays12 * m12;
+                if (d.otDays8 > 0) bonusMealVal += d.otDays8 * m8;
+            }
+
+            let mealDisplayHtml = formatCurrency(d.mealAllowance || 0);
+            if (bonusMealVal > 0) {
+                mealDisplayHtml += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Cộng thêm từ ngày OT">+${formatCurrency(bonusMealVal)}</span>`;
+            }
+
             const makeItem = (label, value, isHighlight = false, color = 'var(--text-main)') => `
                 <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
                     <span style="color:var(--text-muted); font-size: 0.8rem;">${label}</span>
-                    <strong style="color: ${color}; font-size: 0.85rem; font-weight: ${isHighlight ? '700' : '600'};">${value}</strong>
+                    <strong style="color: ${color}; font-size: 0.85rem; font-weight: ${isHighlight ? '700' : '600'}; display: flex; align-items: center;">${value}</strong>
                 </div>
             `;
 
@@ -748,7 +835,7 @@ function showHistoryDetail(item) {
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
                     ${makeItem('Lương Cơ Bản', formatCurrency(d.basicSalary || 0))}
                     ${makeItem('Ngày công chuẩn', (d.workingDays || 0) + ' ngày')}
-                    ${makeItem('Phụ cấp Cơm', formatCurrency(d.mealAllowance || 0))}
+                    ${makeItem('Tiền Cơm', mealDisplayHtml)}
                     ${makeItem('Trợ cấp Đi lại', formatCurrency(d.travelAllowance || 0))}
                     ${makeItem('Trợ cấp Nhà ở', formatCurrency(d.housingAllowance || 0))}
                     ${makeItem('Chuyên cần', formatCurrency(d.attendanceIncentive || 0))}

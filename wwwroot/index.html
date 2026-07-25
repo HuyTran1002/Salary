@@ -24,16 +24,19 @@
                 <div class="login-partner-header">
                     <div class="company-logo-badge logo-left pulse-glow" title="Click để xem chi tiết ManpowerGroup">
                         <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
-                            <path d="M15 70 L15 30 C15 30, 25 20, 38 35 C50 50, 60 20, 72 35 C80 45, 85 55, 85 70" stroke="url(#mpGrad1)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M25 75 C35 65, 45 75, 55 60 C65 45, 75 60, 85 55" stroke="url(#mpGrad2)" stroke-width="8" stroke-linecap="round"/>
+                            <path d="M15 70 L15 30 C15 30, 25 20, 38 35 C50 50, 60 20, 72 35 C80 45, 85 55, 85 70"
+                                stroke="url(#mpGrad1)" stroke-width="12" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M25 75 C35 65, 45 75, 55 60 C65 45, 75 60, 85 55" stroke="url(#mpGrad2)"
+                                stroke-width="8" stroke-linecap="round" />
                             <defs>
                                 <linearGradient id="mpGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#38bdf8"/>
-                                    <stop offset="100%" stop-color="#6366f1"/>
+                                    <stop offset="0%" stop-color="#38bdf8" />
+                                    <stop offset="100%" stop-color="#6366f1" />
                                 </linearGradient>
                                 <linearGradient id="mpGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#f43f5e"/>
-                                    <stop offset="100%" stop-color="#fb923c"/>
+                                    <stop offset="0%" stop-color="#f43f5e" />
+                                    <stop offset="100%" stop-color="#fb923c" />
                                 </linearGradient>
                             </defs>
                         </svg>
@@ -44,15 +47,18 @@
                         <span class="pulse-dot"></span>
                     </div>
 
-                    <div class="company-logo-badge logo-right pulse-glow-delay" title="Click để xem chi tiết Intel Corporation">
+                    <div class="company-logo-badge logo-right pulse-glow-delay"
+                        title="Click để xem chi tiết Intel Corporation">
                         <svg width="22" height="22" viewBox="0 0 120 120" fill="none">
-                            <ellipse cx="60" cy="60" rx="50" ry="32" stroke="url(#intelGrad)" stroke-width="7" transform="rotate(-15 60 60)" stroke-dasharray="240" stroke-dashoffset="20"/>
-                            <text x="60" y="68" font-family="'Inter', sans-serif" font-weight="900" font-size="28" fill="#38bdf8" text-anchor="middle" letter-spacing="-1">intel</text>
-                            <circle cx="95" cy="38" r="4" fill="#38bdf8"/>
+                            <ellipse cx="60" cy="60" rx="50" ry="32" stroke="url(#intelGrad)" stroke-width="7"
+                                transform="rotate(-15 60 60)" stroke-dasharray="240" stroke-dashoffset="20" />
+                            <text x="60" y="68" font-family="'Inter', sans-serif" font-weight="900" font-size="28"
+                                fill="#38bdf8" text-anchor="middle" letter-spacing="-1">intel</text>
+                            <circle cx="95" cy="38" r="4" fill="#38bdf8" />
                             <defs>
                                 <linearGradient id="intelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#0068b5"/>
-                                    <stop offset="100%" stop-color="#38bdf8"/>
+                                    <stop offset="0%" stop-color="#0068b5" />
+                                    <stop offset="100%" stop-color="#38bdf8" />
                                 </linearGradient>
                             </defs>
                         </svg>
@@ -91,19 +97,31 @@
         <div class="glass-card 3d-hover login-box" style="max-width: 680px; padding: 22px 28px;">
             <div class="card-content">
                 <h2 class="glow-text" style="font-size: 1.6rem; margin-bottom: 4px;">Đăng ký Tài Khoản Mới</h2>
-                <p class="subtitle" id="regSubtitle" style="margin-bottom: 12px; font-size: 0.88rem;">Vui lòng nhập các thông tin mặc định</p>
+                <p class="subtitle" id="regSubtitle" style="margin-bottom: 12px; font-size: 0.88rem;">Vui lòng nhập các
+                    thông tin mặc định</p>
                 <div class="dense-grid-3">
-                    <div class="input-group"><input type="text" id="regUsername" readonly><label>Username (MSNV)</label></div>
-                    <div class="input-group span-2"><input type="text" id="regFullName" required><label>Họ và Tên</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regBasicSalary" required><label>Lương Cơ Bản</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regMealAllowance" required><label>Tiền Cơm</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regTravelAllowance" required><label>Trợ cấp Đi Lại</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regHousingAllowance" required><label>Trợ cấp Nhà Ở</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regAttendanceIncentive" required><label>Chuyên Cần</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regCertificateBonus" required><label>Tiền Cert</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regOtherBonus" required><label>Phụ cấp khác</label></div>
-                    <div class="input-group"><input type="number" id="regInsurancePercent" step="any" min="0" required><label>% Trích BHXH</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="regTaxThreshold" required><label>Giảm Trừ Gia Cảnh</label></div>
+                    <div class="input-group"><input type="text" id="regUsername" readonly><label>Username (MSNV)</label>
+                    </div>
+                    <div class="input-group span-2"><input type="text" id="regFullName" required><label>Họ và
+                            Tên</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regBasicSalary" required><label>Lương Cơ Bản</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regMealAllowance" required><label>Tiền Cơm</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regTravelAllowance" required><label>Trợ cấp Đi Lại</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regHousingAllowance" required><label>Trợ cấp Nhà Ở</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regAttendanceIncentive" required><label>Chuyên Cần</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regCertificateBonus" required><label>Tiền Cert</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regOtherBonus" required><label>Phụ cấp khác</label></div>
+                    <div class="input-group"><input type="number" id="regInsurancePercent" step="any" min="0"
+                            required><label>% Trích BHXH</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="regTaxThreshold" required><label>Giảm Trừ Gia Cảnh</label></div>
                 </div>
                 <div class="btn-row" style="margin-top: 14px;">
                     <button id="btnCancelReg" class="btn-3d btn-ghost">Hủy</button>
@@ -119,19 +137,31 @@
         <div class="glass-card 3d-hover login-box profile-compact" style="max-width: 680px; padding: 22px 28px;">
             <div class="card-content">
                 <h2 class="glow-text" style="font-size: 1.6rem; margin-bottom: 4px;">Chỉnh sửa Profile</h2>
-                <p class="subtitle" style="margin-bottom: 12px; font-size: 0.88rem;">Cập nhật thông tin mặc định cho các lần tính lương sau</p>
+                <p class="subtitle" style="margin-bottom: 12px; font-size: 0.88rem;">Cập nhật thông tin mặc định cho các
+                    lần tính lương sau</p>
                 <div class="dense-grid-3">
-                    <div class="input-group"><input type="text" id="profUsername" readonly><label>Username (MSNV)</label></div>
-                    <div class="input-group span-2"><input type="text" id="profFullName" required><label>Họ và Tên</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profBasicSalary" required><label>Lương Cơ Bản</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profMealAllowance" required><label>Tiền Cơm</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profTravelAllowance" required><label>Trợ cấp Đi Lại</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profHousingAllowance" required><label>Trợ cấp Nhà Ở</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profAttendanceIncentive" required><label>Chuyên Cần</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profCertificateBonus" required><label>Tiền Cert</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profOtherBonus" required><label>Phụ cấp khác</label></div>
-                    <div class="input-group"><input type="number" id="profInsurancePercent" step="any" min="0" required><label>% Trích BHXH</label></div>
-                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="profTaxThreshold" required><label>Giảm Trừ Gia Cảnh</label></div>
+                    <div class="input-group"><input type="text" id="profUsername" readonly><label>Username
+                            (MSNV)</label></div>
+                    <div class="input-group span-2"><input type="text" id="profFullName" required><label>Họ và
+                            Tên</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profBasicSalary" required><label>Lương Cơ Bản</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profMealAllowance" required><label>Tiền Cơm</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profTravelAllowance" required><label>Trợ cấp Đi Lại</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profHousingAllowance" required><label>Trợ cấp Nhà Ở</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profAttendanceIncentive" required><label>Chuyên Cần</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profCertificateBonus" required><label>Tiền Cert</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profOtherBonus" required><label>Phụ cấp khác</label></div>
+                    <div class="input-group"><input type="number" id="profInsurancePercent" step="any" min="0"
+                            required><label>% Trích BHXH</label></div>
+                    <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                            id="profTaxThreshold" required><label>Giảm Trừ Gia Cảnh</label></div>
                 </div>
                 <div class="btn-row" style="margin-top: 14px;">
                     <button id="btnCancelProfile" class="btn-3d btn-ghost">Trở Về</button>
@@ -164,61 +194,103 @@
                 <!-- Left Column: 3 Input Groups Stacked Vertically -->
                 <div class="inputs-panel-stacked" style="flex: 2.8; display: flex; flex-direction: column; gap: 12px;">
                     <!-- Group 1: Thông tin & Thu nhập chính (Hàng 1: Tháng, Năm, Ngày công; Hàng 2: Lương, Phụ cấp) -->
-                    <div class="glass-card 3d-hover input-category" style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
-                        <h4 class="category-title" style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">1. Thông tin & Thu nhập chính</h4>
+                    <div class="glass-card 3d-hover input-category"
+                        style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                        <h4 class="category-title"
+                            style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+                            1. Thông tin & Thu nhập chính</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px;">
-                            <div class="input-group"><input type="number" id="month" min="1" max="12" required><label>Tháng</label></div>
-                            <div class="input-group"><input type="number" id="year" min="2000" required><label>Năm</label></div>
-                            <div class="input-group"><input type="number" id="workingDays" min="0" required><label>Số ngày làm việc chuẩn</label></div>
-                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="basicSalary" required><label>Lương Cơ Bản</label></div>
-                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="mealAllowance" required><label>Phụ Cấp Cơm</label></div>
-                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="otherBonus" required><label>Thưởng & PC Khác (VND)</label></div>
+                            <div class="input-group"><input type="number" id="month" min="1" max="12"
+                                    required><label>Tháng</label></div>
+                            <div class="input-group"><input type="number" id="year" min="2000"
+                                    required><label>Năm</label></div>
+                            <div class="input-group"><input type="number" id="workingDays" min="0" required><label>Số
+                                    ngày làm việc chuẩn</label></div>
+                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                    id="basicSalary" required><label>Lương Cơ Bản</label></div>
+                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                    id="mealAllowance" required><label>Tiền Cơm</label></div>
+                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                    id="otherBonus" required><label>Thưởng & PC Khác (VND)</label></div>
                         </div>
                     </div>
 
                     <!-- Group 2: Chấm công & Tăng ca (OT) (Chia làm 3 group nhỏ ở 3 cột) -->
-                    <div class="glass-card 3d-hover input-category" style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
-                        <h4 class="category-title" style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">2. Chấm công & Tăng ca (OT)</h4>
+                    <div class="glass-card 3d-hover input-category"
+                        style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                        <h4 class="category-title"
+                            style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+                            2. Chấm công & Tăng ca (OT)</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-                            <div class="sub-category" style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
-                                <h5 class="sub-category-title" style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">Ngày nghỉ</h5>
+                            <div class="sub-category"
+                                style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+                                <h5 class="sub-category-title"
+                                    style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">
+                                    Ngày nghỉ</h5>
                                 <div style="display: flex; gap: 8px;">
-                                    <div class="input-group" style="flex:1;"><input type="number" id="alDaysOff" step="any" min="0" required><label title="Nghỉ Phép (AL)">Phép(AL)</label></div>
-                                    <div class="input-group" style="flex:1;"><input type="number" id="slDaysOff" step="any" min="0" required><label title="Nghỉ SL/NP">SL/NP</label></div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="alDaysOff"
+                                            step="any" min="0" required><label title="Nghỉ Phép (AL)">Phép(AL)</label>
+                                    </div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="slDaysOff"
+                                            step="any" min="0" required><label title="Nghỉ SL/NP">SL/NP</label></div>
                                 </div>
                             </div>
-                            <div class="sub-category" style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
-                                <h5 class="sub-category-title" style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">Giờ tăng ca</h5>
+                            <div class="sub-category"
+                                style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+                                <h5 class="sub-category-title"
+                                    style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">
+                                    Giờ tăng ca</h5>
                                 <div style="display: flex; gap: 8px;">
-                                    <div class="input-group" style="flex:1;"><input type="number" id="overtime15x" step="any" min="0" required><label title="Giờ OT 1.5x">1.5x</label></div>
-                                    <div class="input-group" style="flex:1;"><input type="number" id="overtime2x" step="any" min="0" required><label title="Giờ OT 2.0x">2.0x</label></div>
-                                    <div class="input-group" style="flex:1;"><input type="number" id="overtime3x" step="any" min="0" required><label title="Giờ OT 3.0x">3.0x</label></div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="overtime15x"
+                                            step="any" min="0" required><label title="Giờ OT 1.5x">1.5x</label></div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="overtime2x"
+                                            step="any" min="0" required><label title="Giờ OT 2.0x">2.0x</label></div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="overtime3x"
+                                            step="any" min="0" required><label title="Giờ OT 3.0x">3.0x</label></div>
                                 </div>
                             </div>
-                            <div class="sub-category" style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
-                                <h5 class="sub-category-title" style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">Ngày tăng ca</h5>
+                            <div class="sub-category"
+                                style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+                                <h5 class="sub-category-title"
+                                    style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">
+                                    Ngày tăng ca</h5>
                                 <div style="display: flex; gap: 8px;">
-                                    <div class="input-group" style="flex:1;"><input type="number" id="otDays8" step="any" min="0" required><label title="Số ngày OT 8h">8h</label></div>
-                                    <div class="input-group" style="flex:1;"><input type="number" id="otDays12" step="any" min="0" required><label title="Số ngày OT 12h">12h</label></div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="otDays12"
+                                            step="any" min="0" required><label id="lblOtDays12" style="cursor: pointer;"
+                                            title="Nhấp kép vào chữ này để sửa đơn giá (+30.000đ)">8h/12h ⚙️</label>
+                                    </div>
+                                    <div class="input-group" style="flex:1;"><input type="number" id="otDays8"
+                                            step="any" min="0" required><label id="lblOtDays8" style="cursor: pointer;"
+                                            title="Nhấp kép vào chữ này để sửa đơn giá (+20.000đ)">+4h ⚙️</label></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Group 3: Các khoản Trợ cấp & Khấu trừ (Chia 2 hàng cân đối) -->
-                    <div class="glass-card 3d-hover input-category" style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
-                        <h4 class="category-title" style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">3. Các khoản Trợ cấp & Khấu trừ</h4>
+                    <div class="glass-card 3d-hover input-category"
+                        style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                        <h4 class="category-title"
+                            style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+                            3. Các khoản Trợ cấp & Khấu trừ</h4>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="travelAllowance" required><label>Trợ cấp Đi Lại</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="housingAllowance" required><label>Trợ cấp Nhà Ở</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="attendanceIncentive" required><label>Chuyên Cần</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="certificateBonus" required><label>Tiền Cert</label></div>
+                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="travelAllowance" required><label>Trợ cấp Đi Lại</label></div>
+                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="housingAllowance" required><label>Trợ cấp Nhà Ở</label></div>
+                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="attendanceIncentive" required><label>Chuyên Cần</label></div>
+                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="certificateBonus" required><label>Tiền Cert</label></div>
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="performanceBonus" readonly required><label>Thưởng Hiệu Suất</label></div>
-                                <div class="input-group"><input type="number" id="insurancePercent" step="any" min="0" required><label>% Trích BHXH</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input" id="taxThreshold" required><label>Giảm Trừ Gia Cảnh (VND)</label></div>
+                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="performanceBonus" readonly required><label>Thưởng Hiệu Suất</label></div>
+                                <div class="input-group"><input type="number" id="insurancePercent" step="any" min="0"
+                                        required><label>% Trích BHXH</label></div>
+                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="taxThreshold" required><label>Giảm Trừ Gia Cảnh (VND)</label></div>
                             </div>
                         </div>
                     </div>
@@ -226,31 +298,41 @@
 
                 <!-- Right Column: Results Panel & Calculate Button -->
                 <div class="results-panel" style="flex: 1; min-width: 250px;">
-                    <div class="glass-card 3d-hover sticky-result" style="padding: 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; height: 100%;">
-                        <h3 class="section-title" style="margin: 0 0 12px 0; text-align: center; font-size: 1.05rem; color: var(--primary);">KẾT QUẢ TÍNH LƯƠNG</h3>
-                        
-                        <div class="result-box vertical-compact" style="display: flex; flex-direction: column; gap: 8px;">
-                            <div class="result-item" style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="glass-card 3d-hover sticky-result"
+                        style="padding: 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; height: 100%;">
+                        <h3 class="section-title"
+                            style="margin: 0 0 12px 0; text-align: center; font-size: 1.05rem; color: var(--primary);">
+                            KẾT QUẢ TÍNH LƯƠNG</h3>
+
+                        <div class="result-box vertical-compact"
+                            style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="result-item"
+                                style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
                                 <span style="color: var(--text-muted); font-size: 0.82rem;">Tổng Gross:</span>
                                 <strong id="resGross" style="font-size: 0.95rem; color: #60a5fa;">0 VNĐ</strong>
                             </div>
-                            <div class="result-item warning" style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+                            <div class="result-item warning"
+                                style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
                                 <span style="color: var(--text-muted); font-size: 0.82rem;">Trừ BHXH:</span>
                                 <strong id="resInsurance" style="color: #ef4444; font-size: 0.95rem;">0 VNĐ</strong>
                             </div>
-                            <div class="result-item warning" style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+                            <div class="result-item warning"
+                                style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
                                 <span style="color: var(--text-muted); font-size: 0.82rem;">Trừ Thuế TNCN:</span>
                                 <strong id="resTax" style="color: #ef4444; font-size: 0.95rem;">0 VNĐ</strong>
                             </div>
-                            <div class="result-item highlight" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <div class="result-item highlight"
+                                style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 0.88rem; font-weight: 600;">Net Thực Nhận:</span>
                                 <strong id="resNet" class="glow-text-green" style="font-size: 1.15rem;">0 VNĐ</strong>
                             </div>
                         </div>
 
                         <!-- Container căn giữa Nút TÍNH LƯƠNG trong khoảng trống còn lại -->
-                        <div style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
-                            <button id="btnCalculate" class="btn-primary btn-3d" style="height: 46px; font-size: 1.05rem; width: 100%;">TÍNH LƯƠNG</button>
+                        <div
+                            style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                            <button id="btnCalculate" class="btn-primary btn-3d"
+                                style="height: 46px; font-size: 1.05rem; width: 100%;">TÍNH LƯƠNG</button>
                         </div>
                     </div>
                 </div>
@@ -301,14 +383,17 @@
     </div>
 
     <!-- History Detail Modal -->
-    <div id="historyDetailModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
+    <div id="historyDetailModal"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
         <div class="glass-card" style="max-width: 780px; width: 95%; padding: 18px 24px;">
-            <h3 class="glow-text" id="modalPeriodTitle" style="font-size: 1.3rem; margin-bottom: 12px; text-align: center;">Chi Tiết Tính Lương</h3>
+            <h3 class="glow-text" id="modalPeriodTitle"
+                style="font-size: 1.3rem; margin-bottom: 12px; text-align: center;">Chi Tiết Tính Lương</h3>
             <div id="modalDetailContent" style="font-size: 0.88rem; line-height: 1.5;">
                 <!-- Content injected via JS -->
             </div>
             <div style="margin-top: 14px; text-align: center;">
-                <button id="btnCloseModal" class="btn-3d btn-ghost" style="width: auto; padding: 6px 28px; font-size: 0.85rem;">Đóng</button>
+                <button id="btnCloseModal" class="btn-3d btn-ghost"
+                    style="width: auto; padding: 6px 28px; font-size: 0.85rem;">Đóng</button>
             </div>
         </div>
     </div>
