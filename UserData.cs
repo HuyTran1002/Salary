@@ -70,6 +70,12 @@ namespace SalaryCalculator
         public decimal InsurancePercent { get; set; } = 10.5m;
         public decimal OtMeal12Amount { get; set; } = 30000m;
         public decimal OtMeal8Amount { get; set; } = 20000m;
+        
+        // Thưởng hiệu suất mặc định và các mốc trừ
+        public decimal PerformanceBonus { get; set; } = 900000m;
+        public decimal PerfDeduct1 { get; set; } = 500000m; // Trừ khi nghỉ <= 1
+        public decimal PerfDeduct2 { get; set; } = 700000m; // Trừ khi nghỉ <= 2
+
         // Lưu lịch sử lương theo tháng/năm
         public Dictionary<string, decimal> SalaryHistory { get; set; } = new Dictionary<string, decimal>();
         // Lưu chi tiết kết quả lương theo tháng/năm
@@ -120,6 +126,22 @@ namespace SalaryCalculator
 
                 string json = JsonSerializer.Serialize(user);
                 string userFile = Path.Combine(DataFolder, $"{username}.json");
+                File.WriteAllText(userFile, json);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool SaveUser(UserInfo user)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(user.Username)) return false;
+                string json = JsonSerializer.Serialize(user);
+                string userFile = Path.Combine(DataFolder, $"{user.Username}.json");
                 File.WriteAllText(userFile, json);
                 return true;
             }

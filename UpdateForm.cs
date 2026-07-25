@@ -161,22 +161,33 @@ namespace SalaryCalculator
                     // Robust executable path detection
                     string originalExePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
                     
-                    // Escape single quotes for PowerShell strings
-                    string escapedNewPath = newExePath.Replace("'", "''");
-                    string escapedOriginalPath = originalExePath.Replace("'", "''");
+                    // Generate lightweight user-mode batch script (No Admin/UAC privileges required)
+                    string batPath = Path.Combine(tempPath, "update.bat");
+                    string batContent = $@"@echo off
+timeout /t 2 /nobreak > nul
+:retry
+copy /y ""{newExePath}"" ""{originalExePath}""
+if errorlevel 1 (
+    timeout /t 1 /nobreak > nul
+    goto retry
+)
+start """" ""{originalExePath}""
+del ""{newExePath}""
+(goto) 2>nul & del ""%~f0""
+";
 
-                    // Create PowerShell command for silent execution
-                    // We use PowerShell as it handles UTF-8 better and can be run hidden
-                    string psCommand = $"Start-Sleep -s 2; $success = $false; for ($i=1; $i -le 10; $i++) {{ try {{ Copy-Item -Path '{escapedNewPath}' -Destination '{escapedOriginalPath}' -Force -ErrorAction Stop; $success = $true; break; }} catch {{ Start-Sleep -s 1; }} }}; if ($success) {{ Start-Process -FilePath '{escapedOriginalPath}'; }}; Remove-Item -Path '{escapedNewPath}';";
+                    File.WriteAllText(batPath, batContent, System.Text.Encoding.Default);
 
-                    // Start PowerShell silently
-                    Process.Start(new ProcessStartInfo
+                    // Launch batch script in background with normal user privileges (No Admin elevation prompt)
+                    ProcessStartInfo psi = new ProcessStartInfo
                     {
-                        FileName = "powershell.exe",
-                        Arguments = $"-NoProfile -WindowStyle Hidden -Command \"{psCommand}\"",
-                        UseShellExecute = true,
-                        Verb = "runas"
-                    });
+                        FileName = "cmd.exe",
+                        Arguments = $"/c \"{batPath}\"",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    Process.Start(psi);
                     
                     Application.Exit();
                     Environment.Exit(0);

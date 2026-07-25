@@ -23,9 +23,8 @@ namespace SalaryCalculator
 
             try
             {
-                var login = new LoginForm();
-                Theme.ApplyInfinityGlassTheme(login);
-                Application.Run(login);
+                var mainForm = new MainWebForm();
+                Application.Run(mainForm);
             }
             catch (Exception ex)
             {
