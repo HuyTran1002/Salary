@@ -91,9 +91,10 @@ body {
     transform-style: preserve-3d;
 }
 
-.3d-hover:hover {
-    transform: translateY(-10px) rotateX(5deg) rotateY(-5deg);
-    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px var(--primary-glow);
+.\33 d-hover:hover,
+[class*="3d-hover"]:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 25px var(--primary-glow);
 }
 
 /* Screen Management */
@@ -656,7 +657,6 @@ body {
 .hidden {
     display: none !important;
 }
-/* Add to the end of style.css */
 
 .full-width {
     grid-template-columns: 1fr !important;
@@ -686,20 +686,6 @@ body {
     font-size: 1.1rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     padding-bottom: 10px;
-}
-
-.horizontal {
-    flex-direction: row !important;
-    justify-content: space-between;
-}
-/* Add to the end of style.css */
-
-.full-width {
-    grid-template-columns: 1fr !important;
-}
-
-.col-full {
-    width: 100%;
 }
 
 .horizontal {
@@ -1183,3 +1169,93 @@ body.no-scroll {
     text-shadow: 0 0 10px var(--primary);
     transform: scale(1.05);
 }
+
+/* Working Days Mode Toggle Switch */
+.switch-toggle {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 17px;
+    margin: 0;
+}
+
+.switch-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(56, 189, 248, 0.2);
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px;
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.2);
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 11px;
+    width: 11px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #38bdf8;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 0 5px #38bdf8;
+}
+
+/* Checked state = MANUAL (Gạt qua phải) -> Màu Cam */
+.switch-toggle input:checked + .switch-slider {
+    background-color: rgba(249, 115, 22, 0.25);
+    border-color: rgba(249, 115, 22, 0.7);
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.35);
+}
+
+.switch-toggle input:checked + .switch-slider:before {
+    transform: translateX(15px);
+    background-color: #f97316;
+    box-shadow: 0 0 6px #f97316;
+}
+
+/* Mode Badge Styling */
+.mode-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.4px;
+    transition: all 0.25s ease;
+    user-select: none;
+}
+
+.mode-badge.mode-auto {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.15);
+}
+
+.mode-badge.mode-manual {
+    color: #f97316;
+    background: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    box-shadow: 0 0 6px rgba(249, 115, 22, 0.2);
+}
+
+/* Input border glow feedback */
+#workingDays.manual-mode {
+    border-color: rgba(249, 115, 22, 0.5) !important;
+}
+
+#workingDays.manual-mode:focus {
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;
+}
+

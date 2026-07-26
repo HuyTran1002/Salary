@@ -164,8 +164,39 @@ function initCurrencyInputs() {
     });
 }
 
+// Auto/Manual Working Days Toggle Logic
+const workingDaysModeToggle = document.getElementById('workingDaysModeToggle');
+const workingDaysModeBadge = document.getElementById('workingDaysModeBadge');
+
+const updateWorkingDaysToggleUI = () => {
+    if (!workingDaysModeToggle || !workingDaysModeBadge) return;
+    const isManual = workingDaysModeToggle.checked;
+    
+    if (isManual) {
+        workingDaysModeBadge.textContent = 'MANUAL';
+        workingDaysModeBadge.className = 'mode-badge mode-manual';
+        inputs.workingDays.removeAttribute('readonly');
+        inputs.workingDays.classList.remove('auto-mode');
+        inputs.workingDays.classList.add('manual-mode');
+    } else {
+        workingDaysModeBadge.textContent = 'AUTO';
+        workingDaysModeBadge.className = 'mode-badge mode-auto';
+        inputs.workingDays.setAttribute('readonly', 'readonly');
+        inputs.workingDays.classList.remove('manual-mode');
+        inputs.workingDays.classList.add('auto-mode');
+        calculateWorkingDays(true);
+    }
+};
+
+if (workingDaysModeToggle) {
+    workingDaysModeToggle.addEventListener('change', updateWorkingDaysToggleUI);
+}
+
 // Auto-calculate working days based on month and year (21st of prev to 20th of current)
-const calculateWorkingDays = () => {
+const calculateWorkingDays = (force = false) => {
+    if (workingDaysModeToggle && workingDaysModeToggle.checked && !force) {
+        return;
+    }
     const m = parseInt(inputs.month.value);
     const y = parseInt(inputs.year.value);
     if (!m || !y || m < 1 || m > 12) return;
@@ -201,8 +232,8 @@ const handleMonthChange = (e) => {
 
 inputs.month.addEventListener('change', handleMonthChange);
 inputs.month.addEventListener('input', handleMonthChange);
-inputs.year.addEventListener('change', calculateWorkingDays);
-inputs.year.addEventListener('input', calculateWorkingDays);
+inputs.year.addEventListener('change', () => calculateWorkingDays());
+inputs.year.addEventListener('input', () => calculateWorkingDays());
 
 // Helpers
 const formatCurrency = (amount) => {
@@ -852,10 +883,18 @@ function showHistoryDetail(item) {
                 </div>
             `;
 
+            let slDaysHtml = (d.slDaysOff || 0) + ' ngày';
+            if (slDeductionVal > 0) {
+                slDaysHtml += `<span style="color: #ef4444; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(239,68,68,0.12); padding: 1px 4px; border-radius: 4px;" title="Khấu trừ lương SL/NP">-${formatCurrency(slDeductionVal)}</span>`;
+            }
+
+            const dailyBasicSalary = Math.round((d.basicSalary || 0) / (d.workingDays || 22));
+
             content.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
                     ${makeItem('Lương Cơ Bản', formatCurrency(d.basicSalary || 0))}
                     ${makeItem('Ngày công chuẩn', (d.workingDays || 0) + ' ngày')}
+                    ${makeItem('Lương CB 1 ngày', formatCurrency(dailyBasicSalary))}
                     ${makeItem('Tiền Cơm', mealDisplayHtml)}
                     ${makeItem('Trợ cấp Đi lại', formatCurrency(d.travelAllowance || 0))}
                     ${makeItem('Trợ cấp Nhà ở', formatCurrency(d.housingAllowance || 0))}
@@ -864,8 +903,7 @@ function showHistoryDetail(item) {
                     ${makeItem('Thưởng Hiệu suất', formatCurrency(d.performanceBonus || 0))}
                     ${makeItem('Thưởng & PC khác', formatCurrency(d.otherBonus || 0))}
                     ${makeItem('Nghỉ Phép (AL)', (d.alDaysOff || 0) + ' ngày')}
-                    ${makeItem('Nghỉ SL/NP', (d.slDaysOff || 0) + ' ngày')}
-                    ${makeItem('Trừ lương SL/NP', '-' + formatCurrency(slDeductionVal), false, slDeductionVal > 0 ? '#f87171' : 'var(--text-main)')}
+                    ${makeItem('Nghỉ SL/NP', slDaysHtml)}
                     ${makeItem('Tăng ca 1.5x', ot15Html)}
                     ${makeItem('Tăng ca 2.0x', ot20Html)}
                     ${makeItem('Tăng ca 3.0x', ot30Html)}

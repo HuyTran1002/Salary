@@ -204,8 +204,19 @@
                                     required><label>Tháng</label></div>
                             <div class="input-group"><input type="number" id="year" min="2000"
                                     required><label>Năm</label></div>
-                            <div class="input-group"><input type="number" id="workingDays" min="0" required><label>Số
-                                    ngày làm việc chuẩn</label></div>
+                            <div class="input-group">
+                                <input type="number" id="workingDays" min="0" required readonly class="auto-mode">
+                                <div class="working-days-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                    <label style="margin: 0; padding: 0;">Số ngày công chuẩn</label>
+                                    <div class="working-days-toggle-container" style="display: flex; align-items: center; gap: 5px;" title="Gạt sang trái: AUTO (Tự tính) | Gạt sang phải: MANUAL (Nhập tay)">
+                                        <label class="switch-toggle">
+                                            <input type="checkbox" id="workingDaysModeToggle">
+                                            <span class="switch-slider"></span>
+                                        </label>
+                                        <span id="workingDaysModeBadge" class="mode-badge mode-auto">AUTO</span>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
                                     id="basicSalary" required><label>Lương Cơ Bản</label></div>
                             <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
