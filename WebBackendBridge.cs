@@ -361,12 +361,14 @@ namespace SalaryCalculator
                     .ToList();
                 
                 var rankingList = new System.Collections.Generic.List<object>();
+                var usedComments = new System.Collections.Generic.HashSet<string>();
                 int rank = 1;
                 foreach (var u in sorted)
                 {
                     decimal netSalary = u.SalaryHistory[key];
                     string displayName = string.IsNullOrEmpty(u.FullName) ? u.Username : u.FullName;
-                    string comment = GetCeoReviewComment(rank, displayName, netSalary);
+                    string comment = GetCeoReviewComment(rank, displayName, netSalary, usedComments, month, year);
+                    usedComments.Add(comment);
                     rankingList.Add(new { rank = rank, name = displayName, netSalary = netSalary, comment = comment });
                     rank++;
                 }
@@ -378,49 +380,78 @@ namespace SalaryCalculator
             }
         }
 
-        private static string GetCeoReviewComment(int rank, string name, decimal netSalary)
+        private static string GetCeoReviewComment(int rank, string name, decimal netSalary, System.Collections.Generic.HashSet<string> usedComments, int month, int year)
         {
-            int seed = Math.Abs((name ?? "").GetHashCode() ^ DateTime.Now.DayOfYear ^ (rank * 101) ^ ((int)(netSalary % 997)));
-            Random rnd = new Random(seed);
+            string[] top1Pool = {
+                "👑 Quán Quân Thu Nhập: Out trình hoàn toàn, xứng danh trụ cột tài chính của công ty!",
+                "🏆 Ngôi Sao Bùng Nổ: Doanh số & thu nhập tạo kỷ lục mới, Tổng tài duyệt thưởng nóng!",
+                "💎 Đỉnh Cao Phong Độ: Gánh team cực đỉnh, ghế Phó Tổng Giám Đốc đang chờ sẵn!",
+                "🔥 Chiến Thần Bứt Phá: Thu nhập bùng nổ vượt ngưỡng, phong thái Tổng tài chính hiệu!",
+                "🚀 Kỷ Lục Gia Thu Nhập: Bứt phá tuyệt đối, Thư ký đâu book ngay resort 5 sao chúc mừng!"
+            };
 
-            if (rank == 1)
+            string[] top2Pool = {
+                "🥈 Á Quân Xuất Sắc: Năng suất thần tốc, bám đuổi Top 1 cực kỳ bản lĩnh!",
+                "⚡ Tay Phải Đắc Lực: Cống hiến ấn tượng, chỉ thiếu 1 bước nữa là cướp ngôi vương!",
+                "🎯 Chiến Thần KPI: Phong độ tăng trưởng ổn định, tháng sau quyết tâm lên Top 1!",
+                "🌟 Trụ Cột Chiến Lược: Xử lý khối lượng công việc cực mượt, Tổng tài rất tự hào!",
+                "💼 Tinh Anh Công Ty: Hiệu suất bứt phá mạnh mẽ, duyệt thưởng lớn tháng này!"
+            };
+
+            string[] top3Pool = {
+                "🥉 Quý Quân Bản Lĩnh: Khẳng định vị thế trong Top 3 VIP, phong thái rất có gu!",
+                "✨ Ngôi Sao Bứt Phá: Tấn công Top 3 cực kỳ ngoạn mục, tương lai vô cùng rộng mở!",
+                "🔥 Phong Độ Thăng Hoa: Xử lý dự án sắc bén, chuẩn bị nhận dự án lớn tháng tới!",
+                "🌟 Nhân Tố Chủ Lực: Duy trì nhịp độ làm việc tuyệt vời, thưởng quý này cực ấm!",
+                "💪 Chiến Binh Kiệt Xuất: Bứt phá ấn tượng vào hàng ngũ VIP, giữ vững đà tiến nhé!"
+            };
+
+            string[] top5Pool = {
+                "📈 Tiềm Năng Bùng Nổ: Đang giấu 50% công lực, bám đuổi Top 3 rất sát nút!",
+                "☕ Tinh Anh Tiềm Năng: Nhịp độ làm việc rất chuẩn chỉ, tháng sau vượt Top 3 ngay!",
+                "⚡ Nhân Tố Đột Phá: Tích lũy phong độ bùng nổ, cơ hội thăng tiến đang rất gần!",
+                "🔥 Ứng Viên Sáng Giá: Đừng để Top 3 ngủ quên, bứt phá mạnh mẽ ở tháng tới nhé!"
+            };
+
+            string[] generalPool = {
+                "⏳ Đang Tích Lũy Năng Lượng: Tài năng có thừa, chờ ngày bung hết 100% công lực!",
+                "💡 Nhân Tố Ẩn Số: Cần chủ động đột phá hơn nữa, muốn tăng thu nhập phải cháy!",
+                "⚡ Nhịp Độ Ổn Định: Phong độ đang đi lên, kiên trì bứt phá ở chặng đua tiếp theo!",
+                "🎯 Mục Tiêu Phía Trước: Đang giấu nghề đúng không, cơ hội bùng nổ luôn rộng mở!",
+                "🚀 Năng Lượng Đang Tăng: Cố gắng duy trì phong độ, tháng sau chắc chắn bùng nổ!"
+            };
+
+            string[] candidatePool = top1Pool;
+            if (rank == 1) candidatePool = top1Pool;
+            else if (rank == 2) candidatePool = top2Pool;
+            else if (rank == 3) candidatePool = top3Pool;
+            else if (rank <= 5) candidatePool = top5Pool;
+            else candidatePool = generalPool;
+
+            // Pick a dynamic non-duplicate comment seeded by month, year, rank, name, and salary
+            int seed = Math.Abs((month * 10007 + year * 31) ^ (rank * 101) ^ (name ?? "").GetHashCode() ^ ((int)(netSalary % 997)));
+            int startIndex = seed % candidatePool.Length;
+
+            for (int i = 0; i < candidatePool.Length; i++)
             {
-                string[] openers = { "👑 Thư ký đâu,", "💼 Đòn bẩy tài chính,", "🚀 Out trình tuyệt đối,", "💎 Phong độ Tổng tài,", "🔥 Gánh cả tập đoàn," };
-                string[] verbs = { "bứt phá doanh thu,", "cống hiến vượt ngưỡng,", "tạo kỷ lục thu nhập,", "bùng nổ chỉ số," };
-                string[] closers = { "duyệt thưởng nóng ngay!", "ghế Phó TGĐ là của em!", "book vé resort đặc quyền!", "xứng danh Quán quân!" };
-
-                return $"{openers[rnd.Next(openers.Length)]} {verbs[rnd.Next(verbs.Length)]} {closers[rnd.Next(closers.Length)]}";
-            }
-            if (rank == 2)
-            {
-                string[] openers = { "⚡ Tay phải đắc lực,", "🚀 Năng suất thần tốc,", "💎 Trụ cột chiến lược,", "🎯 Chiến thần KPI,", "🌟 Á Quân đỉnh cao," };
-                string[] verbs = { "chạy đua cực bản lĩnh,", "áp sát vị trí Top 1,", "cống hiến ấn tượng,", "tăng tốc vượt đối thủ," };
-                string[] closers = { "tháng sau cướp ngôi vương nhé!", "1 bước nữa tới đỉnh cao!", "duyệt thưởng lớn tháng này!", "Tổng tài rất tự hào!" };
-
-                return $"{openers[rnd.Next(openers.Length)]} {verbs[rnd.Next(verbs.Length)]} {closers[rnd.Next(closers.Length)]}";
-            }
-            if (rank == 3)
-            {
-                string[] openers = { "✨ Vào Top 3 VIP,", "🌟 Làm việc rất có gu,", "🎯 Quyết đoán bản lĩnh,", "🔥 Quý Quân kiệt xuất,", "💼 Phong thái tinh anh," };
-                string[] verbs = { "khẳng định vị thế,", "bứt phá vào hàng ngũ sao,", "xử lý dự án cực mượt,", "tạo ấn tượng mạnh mẽ," };
-                string[] closers = { "chuẩn bị nhận dự án lớn!", "thưởng quý này cực ấm!", "tương lai cực rộng mở!", "giữ vững đà thăng tiến!" };
-
-                return $"{openers[rnd.Next(openers.Length)]} {verbs[rnd.Next(verbs.Length)]} {closers[rnd.Next(closers.Length)]}";
-            }
-            if (rank <= 5)
-            {
-                string[] openers = { "📈 Tiềm năng cực lớn,", "☕ Thể hiện rất chuẩn chỉ,", "⚡ Nhịp độ rất ổn định,", "💼 Ứng viên tiềm năng," };
-                string[] verbs = { "đang giấu 50% công lực,", "bám đuổi Top 3 sát nút,", "tích lũy phong độ bùng nổ,", "duy trì hiệu suất tốt," };
-                string[] closers = { "đừng để Top 3 ngủ quên!", "tháng sau vượt Top 3 nhé!", "bứt phá để tăng thu nhập!", "tăng tốc lên Top 3 ngay!" };
-
-                return $"{openers[rnd.Next(openers.Length)]} {verbs[rnd.Next(verbs.Length)]} {closers[rnd.Next(closers.Length)]}";
+                int idx = (startIndex + i) % candidatePool.Length;
+                string option = candidatePool[idx];
+                if (!usedComments.Contains(option))
+                {
+                    return option;
+                }
             }
 
-            string[] restOpeners = { "⏳ Hơi trầm đấy,", "💡 Tài năng có thừa,", "🔥 Năng lượng lên nào,", "⚡ Cần tăng tốc ngay," };
-            string[] restVerbs = { "chưa bung hết công lực,", "đang đợi ngày bùng nổ,", "cần chủ động đột phá,", "vẫn giấu nghề đúng không," };
-            string[] restClosers = { "đừng để Tổng tài thất vọng!", "bứt phá ở tháng tới nhé!", "muốn tăng lương phải cháy!", "cơ hội luôn rộng mở!" };
+            // Fallback: Generate custom personalized non-duplicate comment
+            string fallback = rank switch {
+                1 => $"👑 Quán Quân {name}: Thu nhập ấn tượng {netSalary:N0} VNĐ, dẫn đầu tuyệt đối!",
+                2 => $"🥈 Á Quân {name}: Thu nhập {netSalary:N0} VNĐ, tay phải đắc lực của công ty!",
+                3 => $"🥉 Quý Quân {name}: Thu nhập {netSalary:N0} VNĐ, vững vàng trong Top 3 VIP!",
+                _ => $"🌟 {name}: Đạt vị trí #{rank} với thu nhập {netSalary:N0} VNĐ, cố gắng ở tháng tới!"
+            };
 
-            return $"{restOpeners[rnd.Next(restOpeners.Length)]} {restVerbs[rnd.Next(restVerbs.Length)]} {restClosers[rnd.Next(restClosers.Length)]}";
+            if (!usedComments.Contains(fallback)) return fallback;
+            return $"{fallback} ✨";
         }
         // DTO for payload
         private class CalcPayload

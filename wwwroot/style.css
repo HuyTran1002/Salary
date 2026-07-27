@@ -1239,6 +1239,71 @@ body.no-scroll {
 }
 
 #workingDays.manual-mode:focus {
-    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.7), inset 0 2px 4px rgba(0,0,0,0.3) !important;
 }
 
+/* ═══ Ranking Table Badges & Glow Rows ═══ */
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Top 1: Pure Bright Royal Gold */
+.rank-gold {
+    background: linear-gradient(135deg, #ffe57f 0%, #ffc107 45%, #ff8f00 100%);
+    color: #000000;
+    border: 1px solid #fff59d;
+    box-shadow: 0 0 18px rgba(255, 193, 7, 0.75);
+    animation: goldGlow 1.8s ease-in-out infinite alternate;
+}
+
+/* Top 2: Icy Platinum White & Silver */
+.rank-silver {
+    background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%);
+    color: #0f172a;
+    border: 1px solid #ffffff;
+    box-shadow: 0 0 16px rgba(226, 232, 240, 0.6);
+}
+
+/* Top 3: Rich Deep Copper Bronze / Red Terracotta */
+.rank-bronze {
+    background: linear-gradient(135deg, #fb923c 0%, #ea580c 50%, #7c2d12 100%);
+    color: #ffffff;
+    border: 1px solid #ffedd5;
+    box-shadow: 0 0 16px rgba(234, 88, 12, 0.65);
+}
+
+.rank-normal {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 34px;
+}
+
+/* Distinct Row Background Highlights */
+.rank-row-top1 {
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.22) 0%, rgba(255, 224, 130, 0.06) 100%) !important;
+    border-left: 5px solid #ffc107 !important;
+}
+
+.rank-row-top2 {
+    background: linear-gradient(90deg, rgba(226, 232, 240, 0.20) 0%, rgba(148, 163, 184, 0.05) 100%) !important;
+    border-left: 5px solid #e2e8f0 !important;
+}
+
+.rank-row-top3 {
+    background: linear-gradient(90deg, rgba(234, 88, 12, 0.22) 0%, rgba(251, 146, 60, 0.06) 100%) !important;
+    border-left: 5px solid #ea580c !important;
+}
+
+@keyframes goldGlow {
+    0% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.5); }
+    100% { box-shadow: 0 0 24px rgba(255, 224, 130, 0.9); }
+}

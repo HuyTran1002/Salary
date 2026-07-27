@@ -1087,14 +1087,30 @@ async function loadRanking() {
 
         if (result.success && result.ranking.length > 0) {
             result.ranking.forEach(item => {
-                const isTop3 = item.rank <= 3;
                 const tr = document.createElement('tr');
-                if (isTop3) tr.style.background = 'rgba(99, 102, 241, 0.15)';
+                let rankBadge = '';
+                let rowClass = '';
+                
+                if (item.rank === 1) {
+                    rankBadge = '<span class="rank-badge rank-gold">🥇 1</span>';
+                    rowClass = 'rank-row-top1';
+                } else if (item.rank === 2) {
+                    rankBadge = '<span class="rank-badge rank-silver">🥈 2</span>';
+                    rowClass = 'rank-row-top2';
+                } else if (item.rank === 3) {
+                    rankBadge = '<span class="rank-badge rank-bronze">🥉 3</span>';
+                    rowClass = 'rank-row-top3';
+                } else {
+                    rankBadge = `<span class="rank-badge rank-normal">${item.rank}</span>`;
+                }
+
+                if (rowClass) tr.classList.add(rowClass);
+
                 tr.innerHTML = `
-                    <td style="font-weight:bold; color: ${isTop3 ? 'var(--primary)' : 'inherit'}">${item.rank}</td>
-                    <td>${item.name}</td>
-                    <td class="glow-text-green">${formatCurrency(item.netSalary)}</td>
-                    <td style="color: var(--text-muted)">${item.comment}</td>
+                    <td style="text-align: center; vertical-align: middle;">${rankBadge}</td>
+                    <td style="font-weight: 700; color: #f8fafc; vertical-align: middle;">${item.name}</td>
+                    <td class="glow-text-green" style="font-weight: 800; vertical-align: middle;">${formatCurrency(item.netSalary)}</td>
+                    <td style="color: #cbd5e1; font-size: 0.88rem; vertical-align: middle;">${item.comment}</td>
                 `;
                 tbody.appendChild(tr);
             });
