@@ -75,7 +75,7 @@ function initNonNegativeInputs() {
             }
             return;
         }
-        
+
         if (val.includes('-') || parseNumber(val) < 0) {
             if (input.classList.contains('currency-input')) {
                 let cleanVal = val.replace(/-/g, '');
@@ -96,9 +96,9 @@ function initNonNegativeInputs() {
             }
         });
 
-        input.addEventListener('input', function() { sanitizeInput(this, false); });
-        input.addEventListener('change', function() { sanitizeInput(this, false); });
-        input.addEventListener('blur', function() { sanitizeInput(this, true); });
+        input.addEventListener('input', function () { sanitizeInput(this, false); });
+        input.addEventListener('change', function () { sanitizeInput(this, false); });
+        input.addEventListener('blur', function () { sanitizeInput(this, true); });
     });
 }
 
@@ -133,7 +133,7 @@ function setCursorByDigitCount(input, digitCount) {
 function initCurrencyInputs() {
     document.querySelectorAll('.currency-input').forEach(input => {
         // Handle Backspace on commas
-        input.addEventListener('keydown', function(e) {
+        input.addEventListener('keydown', function (e) {
             if (e.key === 'Backspace') {
                 const pos = this.selectionStart;
                 if (pos > 0 && this.selectionEnd === pos) {
@@ -150,15 +150,15 @@ function initCurrencyInputs() {
         });
 
         // Format on type with precise digit-count cursor tracking
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             const val = this.value;
             const cursorPos = this.selectionStart;
             const digitsBeforeCursor = (val.slice(0, cursorPos).match(/\d/g) || []).length;
-            
+
             this.value = formatCurrencyInput(val);
             setCursorByDigitCount(this, digitsBeforeCursor);
         });
-        
+
         // Initial format
         input.value = formatCurrencyInput(input.value);
     });
@@ -171,7 +171,7 @@ const workingDaysModeBadge = document.getElementById('workingDaysModeBadge');
 const updateWorkingDaysToggleUI = () => {
     if (!workingDaysModeToggle || !workingDaysModeBadge) return;
     const isManual = workingDaysModeToggle.checked;
-    
+
     if (isManual) {
         workingDaysModeBadge.textContent = 'MANUAL';
         workingDaysModeBadge.className = 'mode-badge mode-manual';
@@ -200,13 +200,13 @@ const calculateWorkingDays = (force = false) => {
     const m = parseInt(inputs.month.value);
     const y = parseInt(inputs.year.value);
     if (!m || !y || m < 1 || m > 12) return;
-    
+
     let startMonth = m === 1 ? 12 : m - 1;
     let startYear = m === 1 ? y - 1 : y;
-    
+
     let start = new Date(startYear, startMonth - 1, 21);
     let end = new Date(y, m - 1, 20);
-    
+
     let days = 0;
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         let day = d.getDay();
@@ -218,7 +218,7 @@ const calculateWorkingDays = (force = false) => {
 const handleMonthChange = (e) => {
     let val = parseInt(e.target.value);
     if (isNaN(val)) return;
-    
+
     let currentYear = parseInt(inputs.year.value) || new Date().getFullYear();
     if (val > 12) {
         inputs.month.value = 1;
@@ -273,39 +273,39 @@ loginBtn.addEventListener('click', async () => {
         if (backend) {
             const resultJson = await backend.Login(username);
             const result = JSON.parse(resultJson);
-            
+
             if (result.success) {
                 currentUser = result.user;
                 welcomeText.textContent = `Xin chào, ${currentUser.FullName || currentUser.Username}`;
-                
+
                 // Pre-fill data
                 const date = new Date();
                 inputs.month.value = date.getMonth() + 1;
                 inputs.year.value = date.getFullYear();
                 calculateWorkingDays(); // Instead of hardcoding 22
-                
+
                 inputs.basicSalary.value = formatCurrencyInput(currentUser.BasicSalary || 0);
                 inputs.mealAllowance.value = formatCurrencyInput(currentUser.MealAllowance || 0);
-                inputs.travelAllowance.value = formatCurrencyInput(currentUser.TravelAllowance || 0);
+                inputs.travelAllowance.value = formatCurrencyInput(currentUser.TravelAllowance !== undefined && currentUser.TravelAllowance !== null && currentUser.TravelAllowance !== 0 ? currentUser.TravelAllowance : 195500);
                 inputs.housingAllowance.value = formatCurrencyInput(currentUser.HousingAllowance || 0);
                 inputs.otherBonus.value = formatCurrencyInput((currentUser.OtherBonus || 0) + (currentUser.Allowance || 0));
-                
+
                 inputs.alDaysOff.value = currentUser.AlDaysOff || 0;
                 inputs.slDaysOff.value = currentUser.SlDaysOff || 0;
-                
+
                 inputs.overtime15x.value = currentUser.Overtime15x || 0;
                 inputs.overtime2x.value = currentUser.Overtime2x || 0;
                 inputs.overtime3x.value = currentUser.Overtime3x || 0;
                 inputs.otDays8.value = currentUser.OtDays8 || 0;
                 inputs.otDays12.value = currentUser.OtDays12 || 0;
-                
-                inputs.attendanceIncentive.value = formatCurrencyInput(currentUser.AttendanceIncentive || 0);
+
+                inputs.attendanceIncentive.value = formatCurrencyInput(currentUser.AttendanceIncentive !== undefined && currentUser.AttendanceIncentive !== null && currentUser.AttendanceIncentive !== 0 ? currentUser.AttendanceIncentive : 195500);
                 inputs.certificateBonus.value = formatCurrencyInput(currentUser.CertificateBonus || 0);
                 inputs.performanceBonus.value = formatCurrencyInput(currentUser.PerformanceBonus !== undefined ? currentUser.PerformanceBonus : 900000);
-                
+
                 inputs.insurancePercent.value = currentUser.InsurancePercent || 10.5;
                 inputs.taxThreshold.value = formatCurrencyInput(currentUser.TaxThreshold || 15500000);
-                
+
                 switchScreen('main');
                 loginError.classList.add('hidden');
             } else if (result.needsRegistration) {
@@ -343,16 +343,16 @@ btnRegister.addEventListener('click', async () => {
     const username = document.getElementById('regUsername').value;
     const fullName = document.getElementById('regFullName').value.trim();
     const basicSalary = parseNumber(document.getElementById('regBasicSalary').value) || 0;
-    
+
     if (!fullName || basicSalary <= 0) {
         regError.textContent = "Vui lòng nhập Họ tên và Lương cơ bản hợp lệ!";
         regError.classList.remove('hidden');
         return;
     }
-    
+
     btnRegister.disabled = true;
     btnRegister.innerHTML = "Đang đăng ký...";
-    
+
     try {
         const backend = getBackend();
         if (backend) {
@@ -371,7 +371,7 @@ btnRegister.addEventListener('click', async () => {
             };
             const resultJson = await backend.RegisterUser(JSON.stringify(payload));
             const result = JSON.parse(resultJson);
-            
+
             if (result.success) {
                 usernameInput.value = username;
                 switchScreen('login');
@@ -406,14 +406,14 @@ welcomeText.addEventListener('click', () => {
     document.getElementById('profFullName').value = currentUser.FullName || '';
     document.getElementById('profBasicSalary').value = formatCurrencyInput(currentUser.BasicSalary || 0);
     document.getElementById('profMealAllowance').value = formatCurrencyInput(currentUser.MealAllowance || 0);
-    document.getElementById('profTravelAllowance').value = formatCurrencyInput(currentUser.TravelAllowance || 0);
+    document.getElementById('profTravelAllowance').value = formatCurrencyInput(currentUser.TravelAllowance !== undefined && currentUser.TravelAllowance !== null && currentUser.TravelAllowance !== 0 ? currentUser.TravelAllowance : 195500);
     document.getElementById('profHousingAllowance').value = formatCurrencyInput(currentUser.HousingAllowance || 0);
-    document.getElementById('profAttendanceIncentive').value = formatCurrencyInput(currentUser.AttendanceIncentive || 0);
+    document.getElementById('profAttendanceIncentive').value = formatCurrencyInput(currentUser.AttendanceIncentive !== undefined && currentUser.AttendanceIncentive !== null && currentUser.AttendanceIncentive !== 0 ? currentUser.AttendanceIncentive : 195500);
     document.getElementById('profCertificateBonus').value = formatCurrencyInput(currentUser.CertificateBonus || 0);
     document.getElementById('profOtherBonus').value = formatCurrencyInput(currentUser.OtherBonus || 0);
     document.getElementById('profInsurancePercent').value = currentUser.InsurancePercent || 10.5;
     document.getElementById('profTaxThreshold').value = formatCurrencyInput(currentUser.TaxThreshold || 15500000);
-    
+
     profError.classList.add('hidden');
     switchScreen('profile');
 });
@@ -425,16 +425,16 @@ btnCancelProfile.addEventListener('click', () => {
 btnSaveProfile.addEventListener('click', async () => {
     const fullName = document.getElementById('profFullName').value.trim();
     const basicSalary = parseNumber(document.getElementById('profBasicSalary').value) || 0;
-    
+
     if (!fullName || basicSalary <= 0) {
         profError.textContent = "Vui lòng nhập Họ tên và Lương cơ bản hợp lệ!";
         profError.classList.remove('hidden');
         return;
     }
-    
+
     btnSaveProfile.disabled = true;
     btnSaveProfile.innerHTML = "Đang lưu...";
-    
+
     try {
         const backend = getBackend();
         if (backend) {
@@ -453,12 +453,12 @@ btnSaveProfile.addEventListener('click', async () => {
             };
             const resultJson = await backend.UpdateProfile(JSON.stringify(payload));
             const result = JSON.parse(resultJson);
-            
+
             if (result.success) {
                 // Update current user
                 currentUser = result.user;
                 welcomeText.innerHTML = `Xin chào, ${currentUser.FullName || currentUser.Username} ⚙️`;
-                
+
                 // Refresh main inputs
                 inputs.basicSalary.value = formatCurrencyInput(currentUser.BasicSalary || 0);
                 inputs.mealAllowance.value = formatCurrencyInput(currentUser.MealAllowance || 0);
@@ -469,7 +469,7 @@ btnSaveProfile.addEventListener('click', async () => {
                 inputs.certificateBonus.value = formatCurrencyInput(currentUser.CertificateBonus || 0);
                 inputs.insurancePercent.value = currentUser.InsurancePercent || 10.5;
                 inputs.taxThreshold.value = formatCurrencyInput(currentUser.TaxThreshold || 15500000);
-                
+
                 setTimeout(() => {
                     switchScreen('main');
                 }, 100);
@@ -491,7 +491,7 @@ btnSaveProfile.addEventListener('click', async () => {
 
 calcBtn.addEventListener('click', async () => {
     if (!currentUser) return;
-    
+
     // Auto-sanitize all inputs: reset any empty or negative values to 0
     Object.values(inputs).forEach(input => {
         if (!input) return;
@@ -511,10 +511,10 @@ calcBtn.addEventListener('click', async () => {
         alert("Vui lòng nhập tháng hợp lệ (1-12).");
         return;
     }
-    
+
     calcBtn.innerHTML = "Đang tính...";
     calcBtn.disabled = true;
-    
+
     try {
         const payload = {
             username: currentUser.Username,
@@ -552,7 +552,7 @@ calcBtn.addEventListener('click', async () => {
         if (backend) {
             const resultJson = await backend.CalculateSalary(JSON.stringify(payload));
             const result = JSON.parse(resultJson);
-            
+
             if (result.success) {
                 animateValue(resGross, 0, result.gross, 1000);
                 animateValue(resInsurance, 0, result.insurance, 1200);
@@ -582,9 +582,9 @@ function animateValue(obj, start, end, duration) {
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
         const currentVal = Math.floor(easeOutQuart * (end - start) + start);
-        
+
         obj.innerHTML = formatCurrency(currentVal);
-        
+
         if (progress < 1) {
             window.requestAnimationFrame(step);
         } else {
@@ -604,27 +604,101 @@ usernameInput.addEventListener('keypress', (e) => {
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
 
-inputs.performanceBonus.addEventListener('dblclick', async () => {
+// Custom Gear Config Modal Handler with live thousand separators (commas)
+function showGearModal({ title, fields, onSave }) {
+    const modal = document.getElementById('gearConfigModal');
+    const modalTitle = document.getElementById('gearModalTitle');
+    const modalBody = document.getElementById('gearModalBody');
+    const btnClose = document.getElementById('btnCloseGearModal');
+    const btnCancel = document.getElementById('btnCancelGear');
+    const btnSave = document.getElementById('btnSaveGear');
+
+    if (!modal || !modalTitle || !modalBody) return;
+
+    modalTitle.textContent = title || 'Cấu Hình ⚙️';
+    modalBody.innerHTML = '';
+
+    fields.forEach(f => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.style.marginBottom = '6px';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.inputMode = 'numeric';
+        input.className = 'currency-input';
+        input.id = f.id;
+        input.value = formatCurrencyInput(f.value || 0);
+
+        const label = document.createElement('label');
+        label.textContent = f.label;
+
+        group.appendChild(input);
+        group.appendChild(label);
+
+        if (f.note) {
+            const note = document.createElement('p');
+            note.style.fontSize = '0.78rem';
+            note.style.color = 'var(--text-muted)';
+            note.style.margin = '2px 0 0 0';
+            note.textContent = f.note;
+            group.appendChild(note);
+        }
+
+        modalBody.appendChild(group);
+    });
+
+    // Re-initialize currency formatting for newly injected input elements
+    initCurrencyInputs();
+    initNonNegativeInputs();
+
+    modal.style.display = 'flex';
+
+    const closeModal = () => {
+        modal.style.display = 'none';
+    };
+
+    btnClose.onclick = closeModal;
+    btnCancel.onclick = closeModal;
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+
+    btnSave.onclick = async () => {
+        btnSave.disabled = true;
+        btnSave.textContent = 'Đang lưu...';
+        try {
+            await onSave();
+            closeModal();
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        } finally {
+            btnSave.disabled = false;
+            btnSave.textContent = 'Lưu Thay Đổi';
+        }
+    };
+}
+
+// Click gear button to edit Performance Bonus defaults & deductions
+function openPerfBonusModal(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (!currentUser) return;
-    
+
     let currentPB = currentUser.PerformanceBonus !== undefined ? currentUser.PerformanceBonus : 900000;
     let currentD1 = currentUser.PerfDeduct1 !== undefined ? currentUser.PerfDeduct1 : 500000;
     let currentD2 = currentUser.PerfDeduct2 !== undefined ? currentUser.PerfDeduct2 : 700000;
-    
-    let newPBStr = prompt("Mức Thưởng Hiệu Suất mặc định (VNĐ):", currentPB);
-    if (newPBStr === null) return;
-    let newPB = parseNumber(newPBStr);
-    
-    let newD1Str = prompt("Số tiền bị trừ nếu tổng ngày nghỉ (Phép + Ốm/Không lương) > 0 và <= 1 ngày:", currentD1);
-    if (newD1Str === null) return;
-    let newD1 = parseNumber(newD1Str);
-    
-    let newD2Str = prompt("Số tiền bị trừ nếu tổng ngày nghỉ > 1 và <= 2 ngày:\n(Nếu nghỉ > 2 ngày sẽ bị trừ toàn bộ)", currentD2);
-    if (newD2Str === null) return;
-    let newD2 = parseNumber(newD2Str);
-    
-    if (!isNaN(newPB) && !isNaN(newD1) && !isNaN(newD2)) {
-        try {
+
+    showGearModal({
+        title: 'CẤU HÌNH THƯỞNG HIỆU SUẤT & MỨC TRỪ ⚙️',
+        fields: [
+            { id: 'gearPB', label: 'Mức Thưởng Hiệu Suất mặc định (VNĐ)', value: currentPB },
+            { id: 'gearPerfD1', label: 'Tiền trừ khi nghỉ (AL + SL/NP) <= 1 ngày (VNĐ)', value: currentD1 },
+            { id: 'gearPerfD2', label: 'Tiền trừ khi nghỉ (AL + SL/NP) 1 đến <= 2 ngày (VNĐ)', value: currentD2, note: 'Ghi chú: Nếu nghỉ > 2 ngày sẽ trừ 100% thưởng.' }
+        ],
+        onSave: async () => {
+            const newPB = parseNumber(document.getElementById('gearPB').value);
+            const newD1 = parseNumber(document.getElementById('gearPerfD1').value);
+            const newD2 = parseNumber(document.getElementById('gearPerfD2').value);
             const backend = getBackend();
             if (backend) {
                 const payload = {
@@ -648,49 +722,39 @@ inputs.performanceBonus.addEventListener('dblclick', async () => {
                 if (result.success) {
                     currentUser = result.user;
                     inputs.performanceBonus.value = formatCurrencyInput(newPB);
-                    alert("Đã cập nhật cấu hình Thưởng Hiệu Suất!");
                 } else {
-                    alert(result.message);
+                    throw new Error(result.message || "Lưu thất bại");
                 }
             }
-        } catch(e) {
-            alert("Lỗi: " + e.message);
         }
-    } else {
-        alert("Giá trị nhập vào không hợp lệ!");
-    }
-});
+    });
+}
 
-// Double click to edit OT Meal Allowance rates (+30.000d / +20.000d)
-let isOtModalOpen = false;
-async function openOtMealModal(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    if (isOtModalOpen) return;
-    isOtModalOpen = true;
+const lblPerformanceBonus = document.getElementById('lblPerformanceBonus');
+if (lblPerformanceBonus) {
+    lblPerformanceBonus.addEventListener('click', openPerfBonusModal);
+    lblPerformanceBonus.addEventListener('dblclick', openPerfBonusModal);
+}
 
-    try {
-        if (!currentUser) return;
-        
-        let current12 = currentUser.OtMeal12Amount !== undefined && currentUser.OtMeal12Amount > 0 ? currentUser.OtMeal12Amount : 30000;
-        let current8 = currentUser.OtMeal8Amount !== undefined && currentUser.OtMeal8Amount > 0 ? currentUser.OtMeal8Amount : 20000;
-        
-        let new12Str = prompt("CẤU HÌNH MỨC TIỀN CƠM OT/NGÀY\n• Ô BÊN TRÁI (OT 8h/12h): Nhập số tiền phụ cấp 1 ngày (VNĐ):", current12);
-        if (new12Str === null) return;
-        let new12 = parseNumber(new12Str);
-        
-        let new8Str = prompt("CẤU HÌNH MỨC TIỀN CƠM OT/NGÀY\n• Ô BÊN PHẢI (OT +4h): Nhập số tiền phụ cấp 1 ngày (VNĐ):", current8);
-        if (new8Str === null) return;
-        let new8 = parseNumber(new8Str);
+// Edit OT 8h/12h Meal Allowance (Ô BÊN TRÁI)
+function openOtMeal12Modal(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (!currentUser) return;
 
-        if (new12 > 0 && new12 < 1000) new12 = new12 * 1000;
-        if (new8 > 0 && new8 < 1000) new8 = new8 * 1000;
-        
-        if (!isNaN(new12) && !isNaN(new8)) {
+    let current12 = currentUser.OtMeal12Amount !== undefined && currentUser.OtMeal12Amount > 0 ? currentUser.OtMeal12Amount : 30000;
+
+    showGearModal({
+        title: 'CẤU HÌNH TIỀN CƠM OT 8h/12h (Ô BÊN TRÁI) ⚙️',
+        fields: [
+            { id: 'gearOt12', label: 'Số tiền phụ cấp cơm 1 ngày OT(VNĐ)', value: current12 }
+        ],
+        onSave: async () => {
+            let new12 = parseNumber(document.getElementById('gearOt12').value);
+            if (new12 > 0 && new12 < 1000) new12 = new12 * 1000;
+
             const backend = getBackend();
             if (backend) {
+                const current8 = currentUser.OtMeal8Amount !== undefined && currentUser.OtMeal8Amount > 0 ? currentUser.OtMeal8Amount : 20000;
                 const payload = {
                     username: currentUser.Username,
                     fullName: currentUser.FullName || "",
@@ -704,44 +768,89 @@ async function openOtMealModal(e) {
                     insurancePercent: currentUser.InsurancePercent || 0,
                     taxThreshold: currentUser.TaxThreshold || 0,
                     otMeal12Amount: new12,
+                    otMeal8Amount: current8
+                };
+                const resultJson = await backend.UpdateProfile(JSON.stringify(payload));
+                const result = JSON.parse(resultJson);
+                if (result.success) {
+                    currentUser = result.user;
+                } else {
+                    throw new Error(result.message || "Lưu thất bại");
+                }
+            }
+        }
+    });
+}
+
+// Edit OT +4h Meal Allowance (Ô BÊN PHẢI)
+function openOtMeal8Modal(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (!currentUser) return;
+
+    let current8 = currentUser.OtMeal8Amount !== undefined && currentUser.OtMeal8Amount > 0 ? currentUser.OtMeal8Amount : 20000;
+
+    showGearModal({
+        title: 'CẤU HÌNH TIỀN CƠM OT +4h (Ô BÊN PHẢI) ⚙️',
+        fields: [
+            { id: 'gearOt8', label: 'Số tiền phụ cấp cơm 1 ngày OT(VNĐ)', value: current8 }
+        ],
+        onSave: async () => {
+            let new8 = parseNumber(document.getElementById('gearOt8').value);
+            if (new8 > 0 && new8 < 1000) new8 = new8 * 1000;
+
+            const backend = getBackend();
+            if (backend) {
+                const current12 = currentUser.OtMeal12Amount !== undefined && currentUser.OtMeal12Amount > 0 ? currentUser.OtMeal12Amount : 30000;
+                const payload = {
+                    username: currentUser.Username,
+                    fullName: currentUser.FullName || "",
+                    basicSalary: currentUser.BasicSalary || 0,
+                    mealAllowance: currentUser.MealAllowance || 0,
+                    travelAllowance: currentUser.TravelAllowance || 0,
+                    housingAllowance: currentUser.HousingAllowance || 0,
+                    attendanceIncentive: currentUser.AttendanceIncentive || 0,
+                    certificateBonus: currentUser.CertificateBonus || 0,
+                    otherBonus: currentUser.Allowance || 0,
+                    insurancePercent: currentUser.InsurancePercent || 0,
+                    taxThreshold: currentUser.TaxThreshold || 0,
+                    otMeal12Amount: current12,
                     otMeal8Amount: new8
                 };
                 const resultJson = await backend.UpdateProfile(JSON.stringify(payload));
                 const result = JSON.parse(resultJson);
                 if (result.success) {
                     currentUser = result.user;
-                    alert(`Đã cập nhật mức phụ cấp OT thành công!\n• OT 8h/12h (Bên trái): +${formatCurrency(new12)} VNĐ/ngày\n• OT +4h (Bên phải): +${formatCurrency(new8)} VNĐ/ngày`);
                 } else {
-                    alert(result.message || "Lỗi cập nhật");
+                    throw new Error(result.message || "Lưu thất bại");
                 }
             }
-        } else {
-            alert("Giá trị nhập vào không hợp lệ!");
         }
-    } catch(err) {
-        alert("Lỗi: " + err.message);
-    } finally {
-        setTimeout(() => { isOtModalOpen = false; }, 300);
-    }
+    });
 }
 
 const lblOtDays12 = document.getElementById('lblOtDays12');
 const lblOtDays8 = document.getElementById('lblOtDays8');
 
-if (lblOtDays12) lblOtDays12.addEventListener('dblclick', openOtMealModal);
-if (lblOtDays8) lblOtDays8.addEventListener('dblclick', openOtMealModal);
+if (lblOtDays12) {
+    lblOtDays12.addEventListener('click', openOtMeal12Modal);
+    lblOtDays12.addEventListener('dblclick', openOtMeal12Modal);
+}
+if (lblOtDays8) {
+    lblOtDays8.addEventListener('click', openOtMeal8Modal);
+    lblOtDays8.addEventListener('dblclick', openOtMeal8Modal);
+}
 
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         // Remove active class from all
         tabBtns.forEach(b => b.classList.remove('active'));
         tabContents.forEach(c => c.classList.remove('active'));
-        
+
         // Add active class to clicked tab
         btn.classList.add('active');
         const targetId = btn.getAttribute('data-tab');
         document.getElementById(targetId).classList.add('active');
-        
+
         // Load data if necessary
         if (targetId === 'tab-history') {
             loadHistory();
@@ -755,13 +864,13 @@ async function loadHistory() {
     if (!currentUser) return;
     const backend = getBackend();
     if (!backend) return;
-    
+
     try {
         const resultJson = await backend.GetSalaryHistory(currentUser.Username);
         const result = JSON.parse(resultJson);
         const tbody = document.getElementById('historyTableBody');
         tbody.innerHTML = '';
-        
+
         if (result.success && result.history.length > 0) {
             // Sort history descending by year and month (latest month on top)
             result.history.sort((a, b) => {
@@ -823,11 +932,11 @@ function showHistoryDetail(item) {
     const title = document.getElementById('modalPeriodTitle');
     const content = document.getElementById('modalDetailContent');
     const btnClose = document.getElementById('btnCloseModal');
-    
+
     if (!modal || !title || !content) return;
-    
+
     title.textContent = `Chi Tiết Tính Lương - ${item.period}`;
-    
+
     if (!item.detail) {
         content.innerHTML = `
             <div style="text-align: center; padding: 20px 10px;">
@@ -932,13 +1041,13 @@ function showHistoryDetail(item) {
             content.innerHTML = `<p style="color: var(--text-muted);">Dữ liệu chi tiết kỳ này không thể định dạng.</p><p>Tổng nhận: <strong class="glow-text-green">${formatCurrency(item.netSalary)}</strong></p>`;
         }
     }
-    
+
     modal.style.display = 'flex';
-    
+
     btnClose.onclick = () => {
         modal.style.display = 'none';
     };
-    
+
     modal.onclick = (e) => {
         if (e.target === modal) modal.style.display = 'none';
     };
@@ -948,7 +1057,7 @@ async function deleteHistory(period) {
     if (!currentUser) return;
     const backend = getBackend();
     if (!backend) return;
-    
+
     try {
         const resultJson = await backend.DeleteSalaryHistoryEntry(currentUser.Username, period);
         const result = JSON.parse(resultJson);
@@ -966,16 +1075,16 @@ async function loadRanking() {
     if (!currentUser) return;
     const backend = getBackend();
     if (!backend) return;
-    
+
     try {
         const month = parseInt(inputs.month.value) || new Date().getMonth() + 1;
         const year = parseInt(inputs.year.value) || new Date().getFullYear();
-        
+
         const resultJson = await backend.GetRanking(month, year);
         const result = JSON.parse(resultJson);
         const tbody = document.getElementById('rankingTableBody');
         tbody.innerHTML = '';
-        
+
         if (result.success && result.ranking.length > 0) {
             result.ranking.forEach(item => {
                 const isTop3 = item.rank <= 3;

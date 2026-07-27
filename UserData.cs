@@ -54,7 +54,7 @@ namespace SalaryCalculator
         public decimal BasicSalary { get; set; }
         public decimal MealAllowance { get; set; }
         public decimal Allowance { get; set; }
-        public decimal AttendanceIncentive { get; set; }
+        public decimal AttendanceIncentive { get; set; } = 195500m;
         public int RecognizeCount { get; set; }
         public decimal TaxThreshold { get; set; }
         // New incentive components
@@ -98,7 +98,7 @@ namespace SalaryCalculator
                 Directory.CreateDirectory(DataFolder);
         }
 
-        public bool Register(string username, string fullName, string wwid, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 710000, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 195500m, decimal travelAllowancePerDay = 195500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
+        public bool Register(string username, string fullName, string wwid, int age, decimal basicSalary, decimal mealAllowance, decimal allowance, decimal attendanceIncentive = 195500m, int recognizeCount = 0, decimal taxThreshold = 0, string ratingBonus = "", decimal certificateBonus = 0, decimal attendancePerDay = 195500m, decimal travelAllowancePerDay = 195500m, decimal housingAllowance = 100000m, decimal? rankingABonusAmount = null, decimal? rankingBBonusAmount = null, decimal? rankingCBonusAmount = null)
         {
             try
             {

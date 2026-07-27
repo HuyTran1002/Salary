@@ -167,45 +167,24 @@ body {
     transform: translateZ(30px);
 }
 
-/* 7-Color Rainbow Neon Animation */
+/* Static Vibrant High-Contrast Neon Gradient Title */
 .rainbow-neon-text {
-    background: none !important;
-    -webkit-background-clip: initial !important;
-    -webkit-text-fill-color: initial !important;
-    font-weight: 800;
-    letter-spacing: 1px;
-    animation: rainbowNeon 2.5s linear infinite;
-}
-
-@keyframes rainbowNeon {
-    0%, 100% {
-        color: #ff2d55; /* Đỏ Neon */
-        text-shadow: 0 0 8px #ff2d55, 0 0 20px #ff2d55, 0 0 35px rgba(255, 45, 85, 0.9);
-    }
-    14% {
-        color: #ff9500; /* Cam Neon */
-        text-shadow: 0 0 8px #ff9500, 0 0 20px #ff9500, 0 0 35px rgba(255, 149, 0, 0.9);
-    }
-    28% {
-        color: #ffcc00; /* Vàng Neon */
-        text-shadow: 0 0 8px #ffcc00, 0 0 20px #ffcc00, 0 0 35px rgba(255, 204, 0, 0.9);
-    }
-    42% {
-        color: #4cd964; /* Lục Neon */
-        text-shadow: 0 0 8px #4cd964, 0 0 20px #4cd964, 0 0 35px rgba(76, 217, 100, 0.9);
-    }
-    57% {
-        color: #5ac8fa; /* Lam Neon */
-        text-shadow: 0 0 8px #5ac8fa, 0 0 20px #5ac8fa, 0 0 35px rgba(90, 200, 250, 0.9);
-    }
-    71% {
-        color: #5856d6; /* Chàm Neon */
-        text-shadow: 0 0 8px #5856d6, 0 0 20px #5856d6, 0 0 35px rgba(88, 86, 214, 0.9);
-    }
-    85% {
-        color: #ff2d55; /* Tím/Hồng Neon */
-        text-shadow: 0 0 8px #e040fb, 0 0 20px #e040fb, 0 0 35px rgba(224, 64, 251, 0.9);
-    }
+    display: inline-block !important;
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    background: linear-gradient(
+        90deg, 
+        #38bdf8 0%, 
+        #818cf8 25%, 
+        #ec4899 50%, 
+        #fde047 75%, 
+        #10b981 100%
+    ) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.45)) !important;
 }
 
 .glow-text-green {

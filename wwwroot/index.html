@@ -175,7 +175,7 @@
     <!-- Main Calculator Screen -->
     <div id="mainScreen" class="screen hidden">
         <header class="glass-header compact-header">
-            <h2 class="glow-text rainbow-neon-text">Bảng Tính Lương Chi Tiết</h2>
+            <h2 class="rainbow-neon-text" data-text="Bảng Tính Lương Chi Tiết">Bảng Tính Lương Chi Tiết</h2>
 
             <div class="tabs-nav">
                 <button class="tab-btn active" data-tab="tab-calc">Tính Lương</button>
@@ -264,7 +264,7 @@
                                 style="background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
                                 <h5 class="sub-category-title"
                                     style="color: var(--text-muted); font-size: 0.78rem; margin: 0 0 6px 0; text-transform: uppercase;">
-                                    Ngày tăng ca</h5>
+                                    Số ngày tăng ca</h5>
                                 <div style="display: flex; gap: 8px;">
                                     <div class="input-group" style="flex:1;"><input type="number" id="otDays12"
                                             step="any" min="0" required><label id="lblOtDays12" style="cursor: pointer;"
@@ -297,7 +297,8 @@
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="performanceBonus" readonly required><label>Thưởng Hiệu Suất</label></div>
+                                        id="performanceBonus" required><label id="lblPerformanceBonus" style="cursor: pointer;"
+                                        title="Nhấp vào bánh răng để cấu hình tiền trừ thưởng hiệu suất">Thưởng Hiệu Suất ⚙️</label></div>
                                 <div class="input-group"><input type="number" id="insurancePercent" step="any" min="0"
                                         required><label>% Trích BHXH</label></div>
                                 <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
@@ -391,6 +392,24 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- Gear Config Modal -->
+    <div id="gearConfigModal"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
+        <div class="glass-card 3d-hover" style="max-width: 520px; width: 92%; padding: 22px 26px; border-radius: 16px; background: rgba(20, 27, 44, 0.95); border: 1px solid rgba(255,255,255,0.12);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="glow-text" id="gearModalTitle" style="font-size: 1.2rem; margin: 0; color: var(--primary);">Cấu Hình ⚙️</h3>
+                <button id="btnCloseGearModal" class="modal-close-btn" style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div id="gearModalBody" style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- Inputs injected via JS -->
+            </div>
+            <div class="btn-row" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="btnCancelGear" class="btn-3d btn-ghost" style="width: auto; padding: 7px 20px; font-size: 0.88rem;">Hủy</button>
+                <button id="btnSaveGear" class="btn-3d btn-primary" style="width: auto; padding: 7px 24px; font-size: 0.88rem;">Lưu Thay Đổi</button>
+            </div>
+        </div>
     </div>
 
     <!-- History Detail Modal -->
