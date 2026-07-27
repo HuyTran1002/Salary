@@ -16,6 +16,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
     <InvariantGlobalization>false</InvariantGlobalization>
     <DebugType>none</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -26,7 +28,7 @@
   <!-- Copy any audio assets into the output folder so runtime can find fireworks.wav -->
   <ItemGroup>
     <None Include="Assets\audio\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <!-- If you include a fireworks.wav here it will be embedded into the single-file exe -->
     <EmbeddedResource Include="Assets\audio\fireworks.wav" Condition="Exists('Assets\\audio\\fireworks.wav')" />
@@ -39,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="wwwroot\**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="wwwroot\**\*.*" />
   </ItemGroup>

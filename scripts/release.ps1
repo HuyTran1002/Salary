@@ -111,6 +111,9 @@ dotnet @publishArgs
 
 if ($LASTEXITCODE -ne 0) { Write-Error 'dotnet publish failed'; Exit $LASTEXITCODE }
 
-Write-Host "Release published to: $outDir"
+# Clean up any non-exe files or directories to ensure strictly 1 single executable file exists
+Get-ChildItem -Path $outDir | Where-Object { $_.Name -ne 'SalaryCalculator.exe' } | Remove-Item -Recurse -Force
+
+Write-Host "Release published to: $outDir (1 single EXE file only)"
 Pop-Location
 Pop-Location

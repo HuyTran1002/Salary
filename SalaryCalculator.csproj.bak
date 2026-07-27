@@ -7,15 +7,17 @@
     <RootNamespace>SalaryCalculator</RootNamespace>
     <StartupObject>SalaryCalculator.Program</StartupObject>
     <ApplicationIcon>calculator_coin_dollar_money_icon_127186.ico</ApplicationIcon>
-    <Version>3.0.3.0</Version>
-    <AssemblyVersion>3.0.3.0</AssemblyVersion>
-    <FileVersion>3.0.3.0</FileVersion>
+    <Version>3.0.3.5</Version>
+    <AssemblyVersion>3.0.3.5</AssemblyVersion>
+    <FileVersion>3.0.3.5</FileVersion>
     <!-- Publish settings for single-file, smaller exe -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
     <InvariantGlobalization>false</InvariantGlobalization>
     <DebugType>none</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -26,7 +28,7 @@
   <!-- Copy any audio assets into the output folder so runtime can find fireworks.wav -->
   <ItemGroup>
     <None Include="Assets\audio\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <!-- If you include a fireworks.wav here it will be embedded into the single-file exe -->
     <EmbeddedResource Include="Assets\audio\fireworks.wav" Condition="Exists('Assets\\audio\\fireworks.wav')" />
@@ -39,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="wwwroot\**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
     <EmbeddedResource Include="wwwroot\**\*.*" />
   </ItemGroup>
