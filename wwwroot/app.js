@@ -1213,7 +1213,21 @@ function initCompanyLogoModals() {
     }
 }
 
+function initTitleGradientAnimation() {
+    const el = document.querySelector('.rainbow-neon-text');
+    if (!el) return;
+
+    let posX = 0;
+    function animate() {
+        posX = (posX + 0.7) % 300;
+        el.style.backgroundPosition = `-${posX}% 0%`;
+        requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+}
+
 initCurrencyInputs();
 initNonNegativeInputs();
 initCompanyLogoModals();
+initTitleGradientAnimation();
 
