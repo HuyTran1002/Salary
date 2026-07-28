@@ -295,7 +295,8 @@ namespace SalaryCalculator
                     // As requested by user: Insurance closed on NEW basic salary
                     insuranceDeduction = Math.Round(newBasic * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
 
-                    allowanceEligibleDays = workedDays1 + workedDays2;
+                    allowanceEligibleDays = workedDays1 + workedDays2 - payload.alDaysOff;
+                    if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
                 }
                 else
                 {
@@ -329,7 +330,7 @@ namespace SalaryCalculator
                 decimal travelAllowance = ComputeProratedAllowanceByWorkedDays(payload.travelAllowance, workingDays, allowanceEligibleDays);
                 decimal attendanceIncentive = ComputeProratedAllowanceByWorkedDays(payload.attendanceIncentive, workingDays, allowanceEligibleDays);
 
-                decimal leaveDays = payload.isMidMonthSalaryChange ? (payload.slDaysOff1 + payload.alDaysOff1 + payload.slDaysOff2 + payload.alDaysOff2) : (payload.slDaysOff + payload.alDaysOff);
+                decimal leaveDays = payload.isMidMonthSalaryChange ? (payload.slDaysOff1 + payload.slDaysOff2 + payload.alDaysOff) : (payload.slDaysOff + payload.alDaysOff);
                 decimal actualPerformanceBonus = payload.performanceBonus;
                 if (leaveDays > 0 && leaveDays <= 1) {
                     actualPerformanceBonus -= payload.perfDeduct1;
