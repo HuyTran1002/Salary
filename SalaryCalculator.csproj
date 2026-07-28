@@ -24,7 +24,6 @@
     <!-- Limit satellite resource languages to none to reduce output size -->
     <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="backup_v3.4.5.8\**" />
     <EmbeddedResource Remove="backup_v3.4.5.8\**" />
