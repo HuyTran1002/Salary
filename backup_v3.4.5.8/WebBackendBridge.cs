@@ -172,37 +172,6 @@ namespace SalaryCalculator
             return baseThreshold + insuranceDeduction + FixedThresholdAddon + additionalOTx2 + additionalOTx3 + additionalOTx15;
         }
 
-        private (decimal W1, decimal W2) GetMidMonthWorkingDays(int month, int year)
-        {
-            if (month <= 0 || year <= 0) return (10m, 12m);
-            int m1 = month == 1 ? 12 : month - 1;
-            int y1 = month == 1 ? year - 1 : year;
-            int daysInPrevMonth = DateTime.DaysInMonth(y1, m1);
-
-            decimal w1 = 0;
-            if (daysInPrevMonth >= 21)
-            {
-                DateTime start1 = new DateTime(y1, m1, 21);
-                DateTime end1 = new DateTime(y1, m1, daysInPrevMonth);
-                for (DateTime d = start1; d <= end1; d = d.AddDays(1))
-                {
-                    if (d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
-                        w1++;
-                }
-            }
-
-            decimal w2 = 0;
-            DateTime start2 = new DateTime(year, month, 1);
-            DateTime end2 = new DateTime(year, month, 20);
-            for (DateTime d = start2; d <= end2; d = d.AddDays(1))
-            {
-                if (d.DayOfWeek != DayOfWeek.Saturday && d.DayOfWeek != DayOfWeek.Sunday)
-                    w2++;
-            }
-
-            return (w1, w2);
-        }
-
         public string CalculateSalary(string payloadJson)
         {
             try
@@ -226,110 +195,32 @@ namespace SalaryCalculator
                 decimal hourlyRate = Math.Round(basicDailySalary / 8, 3, MidpointRounding.AwayFromZero);
 
                 decimal insurancePercent = payload.insurancePercent < 0 ? 0 : payload.insurancePercent;
-                
-                // Variables for mid-month calculation or standard calculation
-                decimal insuranceDeduction = 0;
-                decimal slSalaryDeduction = 0;
-                decimal regularSalary = 0;
-                decimal overtime15xSalary = 0;
-                decimal overtime2xSalary = 0;
-                decimal overtime3xSalary = 0;
-                decimal allowanceEligibleDays = 0;
+                decimal insuranceDeduction = Math.Round(payload.basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
 
-                // Mid-month breakdown variables for detailObject
-                decimal w1 = 0, w2 = 0;
-                decimal workedDays1 = 0, workedDays2 = 0;
-                decimal basicDaily1 = 0, basicDaily2 = 0;
-                decimal ot15xSalary1 = 0, ot2xSalary1 = 0, ot3xSalary1 = 0;
-                decimal ot15xSalary2 = 0, ot2xSalary2 = 0, ot3xSalary2 = 0;
-                decimal slSalaryDeduction1 = 0, slSalaryDeduction2 = 0;
+                decimal otFwdHours = 0;
+                decimal ot2xHours = payload.overtime2x;
 
-                if (payload.isMidMonthSalaryChange)
-                {
-                    var (midW1, midW2) = GetMidMonthWorkingDays(payload.month, payload.year);
-                    w1 = midW1;
-                    w2 = midW2;
-                    decimal totalWorkingDaysMid = (w1 + w2) > 0 ? (w1 + w2) : workingDays;
+                decimal taxThreshold = ComputeTaxThreshold(payload.taxThreshold, hourlyRate, otFwdHours, ot2xHours, payload.overtime3x, payload.overtime15x, insuranceDeduction);
 
-                    decimal oldBasic = payload.oldBasicSalary > 0 ? payload.oldBasicSalary : payload.basicSalary;
-                    decimal newBasic = payload.newBasicSalary > 0 ? payload.newBasicSalary : payload.basicSalary;
+                decimal slSalaryDeduction = payload.slDaysOff * dailySalaryForMeal;
+                decimal baseRegularSalary = workingDays * dailySalaryForMeal;
+                decimal regularSalary = baseRegularSalary - slSalaryDeduction;
+                if (regularSalary < 0) regularSalary = 0;
 
-                    basicDaily1 = oldBasic / totalWorkingDaysMid;
-                    basicDaily2 = newBasic / totalWorkingDaysMid;
-                    decimal mealDailyMid = payload.mealAllowance / totalWorkingDaysMid;
+                decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
+                decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
+                decimal overtime2xSalary = otFwdSalary + ot2xSalary;
 
-                    decimal dailyRate1 = basicDaily1 + mealDailyMid;
-                    decimal dailyRate2 = basicDaily2 + mealDailyMid;
+                decimal overtime3xSalary = Math.Round(payload.overtime3x * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
+                decimal overtime15xSalary = Math.Round(payload.overtime15x * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
 
-                    decimal hourlyRate1 = Math.Round(basicDaily1 / 8m, 3, MidpointRounding.AwayFromZero);
-                    decimal hourlyRate2 = Math.Round(basicDaily2 / 8m, 3, MidpointRounding.AwayFromZero);
-
-                    decimal regularSalary1 = 0, regularSalary2 = 0;
-
-                    workedDays1 = w1 - payload.slDaysOff1;
-                    if (workedDays1 < 0) workedDays1 = 0;
-
-                    workedDays2 = w2 - payload.slDaysOff2;
-                    if (workedDays2 < 0) workedDays2 = 0;
-
-                    slSalaryDeduction1 = payload.slDaysOff1 * dailyRate1;
-                    slSalaryDeduction2 = payload.slDaysOff2 * dailyRate2;
-                    slSalaryDeduction = slSalaryDeduction1 + slSalaryDeduction2;
-
-                    regularSalary1 = workedDays1 * dailyRate1;
-                    regularSalary2 = workedDays2 * dailyRate2;
-                    regularSalary = regularSalary1 + regularSalary2;
-
-                    ot15xSalary1 = Math.Round(payload.overtime15x1 * hourlyRate1 * 1.5m, 0, MidpointRounding.AwayFromZero);
-                    ot2xSalary1 = Math.Round(payload.overtime2x1 * hourlyRate1 * 2.0m, 0, MidpointRounding.AwayFromZero);
-                    ot3xSalary1 = Math.Round(payload.overtime3x1 * hourlyRate1 * 3.0m, 0, MidpointRounding.AwayFromZero);
-
-                    ot15xSalary2 = Math.Round(payload.overtime15x2 * hourlyRate2 * 1.5m, 0, MidpointRounding.AwayFromZero);
-                    ot2xSalary2 = Math.Round(payload.overtime2x2 * hourlyRate2 * 2.0m, 0, MidpointRounding.AwayFromZero);
-                    ot3xSalary2 = Math.Round(payload.overtime3x2 * hourlyRate2 * 3.0m, 0, MidpointRounding.AwayFromZero);
-
-                    overtime15xSalary = ot15xSalary1 + ot15xSalary2;
-                    overtime2xSalary = ot2xSalary1 + ot2xSalary2;
-                    overtime3xSalary = ot3xSalary1 + ot3xSalary2;
-
-                    // As requested by user: Insurance closed on NEW basic salary
-                    insuranceDeduction = Math.Round(newBasic * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
-
-                    allowanceEligibleDays = workedDays1 + workedDays2;
-                }
-                else
-                {
-                    insuranceDeduction = Math.Round(payload.basicSalary * (insurancePercent / 100m), 0, MidpointRounding.AwayFromZero);
-
-                    decimal otFwdHours = 0;
-                    decimal ot2xHours = payload.overtime2x;
-
-                    slSalaryDeduction = payload.slDaysOff * dailySalaryForMeal;
-                    decimal baseRegularSalary = workingDays * dailySalaryForMeal;
-                    regularSalary = baseRegularSalary - slSalaryDeduction;
-                    if (regularSalary < 0) regularSalary = 0;
-
-                    decimal otFwdSalary = Math.Round(otFwdHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
-                    decimal ot2xSalary = Math.Round(ot2xHours * hourlyRate * 2, 0, MidpointRounding.AwayFromZero);
-                    overtime2xSalary = otFwdSalary + ot2xSalary;
-
-                    overtime3xSalary = Math.Round(payload.overtime3x * hourlyRate * 3, 0, MidpointRounding.AwayFromZero);
-                    overtime15xSalary = Math.Round(payload.overtime15x * hourlyRate * 1.5m, 0, MidpointRounding.AwayFromZero);
-
-                    allowanceEligibleDays = workingDays - payload.slDaysOff - payload.alDaysOff;
-                    if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
-                }
-
-                decimal ot2xHoursTotal = payload.isMidMonthSalaryChange ? (payload.overtime2x1 + payload.overtime2x2) : payload.overtime2x;
-                decimal ot3xHoursTotal = payload.isMidMonthSalaryChange ? (payload.overtime3x1 + payload.overtime3x2) : payload.overtime3x;
-                decimal ot15xHoursTotal = payload.isMidMonthSalaryChange ? (payload.overtime15x1 + payload.overtime15x2) : payload.overtime15x;
-
-                decimal taxThreshold = ComputeTaxThreshold(payload.taxThreshold, hourlyRate, 0, ot2xHoursTotal, ot3xHoursTotal, ot15xHoursTotal, insuranceDeduction);
+                decimal allowanceEligibleDays = workingDays - payload.slDaysOff - payload.alDaysOff;
+                if (allowanceEligibleDays < 0) allowanceEligibleDays = 0;
 
                 decimal travelAllowance = ComputeProratedAllowanceByWorkedDays(payload.travelAllowance, workingDays, allowanceEligibleDays);
                 decimal attendanceIncentive = ComputeProratedAllowanceByWorkedDays(payload.attendanceIncentive, workingDays, allowanceEligibleDays);
 
-                decimal leaveDays = payload.isMidMonthSalaryChange ? (payload.slDaysOff1 + payload.alDaysOff1 + payload.slDaysOff2 + payload.alDaysOff2) : (payload.slDaysOff + payload.alDaysOff);
+                decimal leaveDays = payload.slDaysOff + payload.alDaysOff;
                 decimal actualPerformanceBonus = payload.performanceBonus;
                 if (leaveDays > 0 && leaveDays <= 1) {
                     actualPerformanceBonus -= payload.perfDeduct1;
@@ -368,37 +259,12 @@ namespace SalaryCalculator
                         insurance = insuranceDeduction,
                         basicSalary = payload.basicSalary,
                         workingDays = payload.workingDays,
-                        isMidMonthSalaryChange = payload.isMidMonthSalaryChange,
-                        oldBasicSalary = payload.oldBasicSalary,
-                        newBasicSalary = payload.newBasicSalary,
-                        w1 = w1,
-                        w2 = w2,
-                        workedDays1 = workedDays1,
-                        workedDays2 = workedDays2,
-                        regularSalary1 = (workedDays1 * basicDaily1),
-                        regularSalary2 = (workedDays2 * basicDaily2),
-                        slDaysOff1 = payload.slDaysOff1,
-                        slDaysOff2 = payload.slDaysOff2,
-                        slDeduction1 = slSalaryDeduction1,
-                        slDeduction2 = slSalaryDeduction2,
-                        overtime15x1 = payload.overtime15x1,
-                        overtime2x1 = payload.overtime2x1,
-                        overtime3x1 = payload.overtime3x1,
-                        overtime15x2 = payload.overtime15x2,
-                        overtime2x2 = payload.overtime2x2,
-                        overtime3x2 = payload.overtime3x2,
-                        ot15xSalary1 = ot15xSalary1,
-                        ot2xSalary1 = ot2xSalary1,
-                        ot3xSalary1 = ot3xSalary1,
-                        ot15xSalary2 = ot15xSalary2,
-                        ot2xSalary2 = ot2xSalary2,
-                        ot3xSalary2 = ot3xSalary2,
                         alDaysOff = payload.alDaysOff,
                         slDaysOff = payload.slDaysOff,
                         slDeduction = slSalaryDeduction,
-                        overtime15x = ot15xHoursTotal,
-                        overtime2x = ot2xHoursTotal,
-                        overtime3x = ot3xHoursTotal,
+                        overtime15x = payload.overtime15x,
+                        overtime2x = payload.overtime2x,
+                        overtime3x = payload.overtime3x,
                         overtime15xSalary = overtime15xSalary,
                         overtime2xSalary = overtime2xSalary,
                         overtime3xSalary = overtime3xSalary,
@@ -707,19 +573,6 @@ namespace SalaryCalculator
             public decimal perfDeduct2 { get; set; }
             public decimal otMeal8Amount { get; set; }
             public decimal otMeal12Amount { get; set; }
-            public bool isMidMonthSalaryChange { get; set; }
-            public decimal oldBasicSalary { get; set; }
-            public decimal newBasicSalary { get; set; }
-            public decimal alDaysOff1 { get; set; }
-            public decimal slDaysOff1 { get; set; }
-            public decimal alDaysOff2 { get; set; }
-            public decimal slDaysOff2 { get; set; }
-            public decimal overtime15x1 { get; set; }
-            public decimal overtime2x1 { get; set; }
-            public decimal overtime3x1 { get; set; }
-            public decimal overtime15x2 { get; set; }
-            public decimal overtime2x2 { get; set; }
-            public decimal overtime3x2 { get; set; }
         }
     }
 }

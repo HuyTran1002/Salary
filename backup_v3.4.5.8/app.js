@@ -43,20 +43,7 @@ const inputs = {
     certificateBonus: document.getElementById('certificateBonus'),
     performanceBonus: document.getElementById('performanceBonus'),
     insurancePercent: document.getElementById('insurancePercent'),
-    taxThreshold: document.getElementById('taxThreshold'),
-    midMonthSalaryToggle: document.getElementById('midMonthSalaryToggle'),
-    oldBasicSalary: document.getElementById('oldBasicSalary'),
-    newBasicSalary: document.getElementById('newBasicSalary'),
-    alDaysOff1: document.getElementById('alDaysOff1'),
-    slDaysOff1: document.getElementById('slDaysOff1'),
-    alDaysOff2: document.getElementById('alDaysOff2'),
-    slDaysOff2: document.getElementById('slDaysOff2'),
-    overtime15x1: document.getElementById('overtime15x1'),
-    overtime2x1: document.getElementById('overtime2x1'),
-    overtime3x1: document.getElementById('overtime3x1'),
-    overtime15x2: document.getElementById('overtime15x2'),
-    overtime2x2: document.getElementById('overtime2x2'),
-    overtime3x2: document.getElementById('overtime3x2')
+    taxThreshold: document.getElementById('taxThreshold')
 };
 
 // Outputs
@@ -291,22 +278,6 @@ inputs.month.addEventListener('change', handleMonthChange);
 inputs.month.addEventListener('input', handleMonthChange);
 inputs.year.addEventListener('change', () => calculateWorkingDays());
 inputs.year.addEventListener('input', () => calculateWorkingDays());
-
-// Mid-month salary increase toggle listener
-if (inputs.midMonthSalaryToggle) {
-    inputs.midMonthSalaryToggle.addEventListener('change', () => {
-        const container = document.getElementById('midMonthSalaryContainer');
-        if (container) {
-            if (inputs.midMonthSalaryToggle.checked) {
-                container.classList.remove('hidden');
-                if (inputs.oldBasicSalary && !inputs.oldBasicSalary.value) inputs.oldBasicSalary.value = inputs.basicSalary.value;
-                if (inputs.newBasicSalary && !inputs.newBasicSalary.value) inputs.newBasicSalary.value = inputs.basicSalary.value;
-            } else {
-                container.classList.add('hidden');
-            }
-        }
-    });
-}
 
 // Helpers
 const formatCurrency = (amount) => {
@@ -618,18 +589,7 @@ calcBtn.addEventListener('click', async () => {
             taxThreshold: parseNumber(inputs.taxThreshold.value) || 0,
             performanceBonus: parseNumber(inputs.performanceBonus.value) || 0,
             perfDeduct1: currentUser.PerfDeduct1 !== undefined ? currentUser.PerfDeduct1 : 500000,
-            perfDeduct2: currentUser.PerfDeduct2 !== undefined ? currentUser.PerfDeduct2 : 700000,
-            isMidMonthSalaryChange: inputs.midMonthSalaryToggle ? inputs.midMonthSalaryToggle.checked : false,
-            oldBasicSalary: inputs.oldBasicSalary ? parseNumber(inputs.oldBasicSalary.value) : 0,
-            newBasicSalary: inputs.newBasicSalary ? parseNumber(inputs.newBasicSalary.value) : 0,
-            slDaysOff1: inputs.slDaysOff1 ? parseNumber(inputs.slDaysOff1.value) : 0,
-            slDaysOff2: inputs.slDaysOff2 ? parseNumber(inputs.slDaysOff2.value) : 0,
-            overtime15x1: inputs.overtime15x1 ? parseNumber(inputs.overtime15x1.value) : 0,
-            overtime2x1: inputs.overtime2x1 ? parseNumber(inputs.overtime2x1.value) : 0,
-            overtime3x1: inputs.overtime3x1 ? parseNumber(inputs.overtime3x1.value) : 0,
-            overtime15x2: inputs.overtime15x2 ? parseNumber(inputs.overtime15x2.value) : 0,
-            overtime2x2: inputs.overtime2x2 ? parseNumber(inputs.overtime2x2.value) : 0,
-            overtime3x2: inputs.overtime3x2 ? parseNumber(inputs.overtime3x2.value) : 0
+            perfDeduct2: currentUser.PerfDeduct2 !== undefined ? currentUser.PerfDeduct2 : 700000
         };
 
         const backend = getBackend();
@@ -818,38 +778,6 @@ const lblPerformanceBonus = document.getElementById('lblPerformanceBonus');
 if (lblPerformanceBonus) {
     lblPerformanceBonus.addEventListener('click', openPerfBonusModal);
     lblPerformanceBonus.addEventListener('dblclick', openPerfBonusModal);
-}
-
-// Mid-month Salary Modal Handlers
-const lblBasicSalary = document.getElementById('lblBasicSalary');
-const midMonthSalaryModal = document.getElementById('midMonthSalaryModal');
-const btnCloseMidMonthModal = document.getElementById('btnCloseMidMonthModal');
-const btnSaveMidMonthModal = document.getElementById('btnSaveMidMonthModal');
-
-function openMidMonthSalaryModal(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (midMonthSalaryModal) {
-        midMonthSalaryModal.style.display = 'flex';
-        if (inputs.oldBasicSalary && !inputs.oldBasicSalary.value) inputs.oldBasicSalary.value = inputs.basicSalary.value;
-        if (inputs.newBasicSalary && !inputs.newBasicSalary.value) inputs.newBasicSalary.value = inputs.basicSalary.value;
-    }
-}
-
-function closeMidMonthSalaryModal() {
-    if (midMonthSalaryModal) {
-        midMonthSalaryModal.style.display = 'none';
-    }
-}
-
-if (lblBasicSalary) {
-    lblBasicSalary.addEventListener('click', openMidMonthSalaryModal);
-    lblBasicSalary.addEventListener('dblclick', openMidMonthSalaryModal);
-}
-if (btnCloseMidMonthModal) {
-    btnCloseMidMonthModal.addEventListener('click', closeMidMonthSalaryModal);
-}
-if (btnSaveMidMonthModal) {
-    btnSaveMidMonthModal.addEventListener('click', closeMidMonthSalaryModal);
 }
 
 // Edit OT 8h/12h Meal Allowance (Ô BÊN TRÁI)
@@ -1108,8 +1036,7 @@ function showHistoryDetail(item) {
                 </div>
             `;
 
-            const totalSlDays = d.isMidMonthSalaryChange ? ((d.slDaysOff1 || 0) + (d.slDaysOff2 || 0)) : (d.slDaysOff || 0);
-            let slDaysHtml = totalSlDays + ' ngày';
+            let slDaysHtml = (d.slDaysOff || 0) + ' ngày';
             if (slDeductionVal > 0) {
                 slDaysHtml += `<span style="color: #ef4444; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(239,68,68,0.12); padding: 1px 4px; border-radius: 4px;" title="Khấu trừ lương SL/NP">-${formatCurrency(slDeductionVal)}</span>`;
             }
@@ -1140,49 +1067,11 @@ function showHistoryDetail(item) {
 
             const dailyBasicSalary = Math.round((d.basicSalary || 0) / (d.workingDays || 22));
 
-            let basicSalaryLabelDisplay = formatCurrency(d.basicSalary || 0);
-            let dailyBasicSalaryLabelDisplay = formatCurrency(dailyBasicSalary);
-            if (d.isMidMonthSalaryChange) {
-                const d1 = Math.round((d.oldBasicSalary || 0) / (d.workingDays || 22));
-                const d2 = Math.round((d.newBasicSalary || 0) / (d.workingDays || 22));
-                basicSalaryLabelDisplay = `<span style="font-size:0.75rem;">${formatCurrency(d.oldBasicSalary || 0)} ➔ ${formatCurrency(d.newBasicSalary || 0)}</span>`;
-                dailyBasicSalaryLabelDisplay = `<span style="font-size:0.75rem;">${formatCurrency(d1)} ➔ ${formatCurrency(d2)}</span>`;
-            }
-
-            let midMonthHtml = '';
-            if (d.isMidMonthSalaryChange) {
-                const ot1Total = (d.ot15xSalary1 || 0) + (d.ot2xSalary1 || 0) + (d.ot3xSalary1 || 0);
-                const ot2Total = (d.ot15xSalary2 || 0) + (d.ot2xSalary2 || 0) + (d.ot3xSalary2 || 0);
-                midMonthHtml = `
-                    <div style="background: rgba(59, 130, 246, 0.14); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); margin-bottom: 12px; font-size: 0.82rem; color: #93c5fd;">
-                        <div style="font-weight: 700; font-size: 0.9rem; color: #60a5fa; margin-bottom: 8px;">📈 CHI TIẾT TÍNH LƯƠNG DỰA TRÊN 2 MỨC LƯƠNG TRƯỚC VÀ SAU KHI TĂNG</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.78rem;">
-                            <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                                <div style="color: #fbbf24; font-weight: 700; margin-bottom: 4px;">🔸 GD 1 (21 - 31) - Lương Cũ: ${formatCurrency(d.oldBasicSalary || 0)}</div>
-                                <div>• Công chuẩn: <strong>${d.w1 || 0} ngày</strong> | Đi làm: <strong>${d.workedDays1 || 0} ngày</strong></div>
-                                <div>• Lương đi làm: <strong style="color: #34d399;">+${formatCurrency(d.regularSalary1 || 0)}</strong></div>
-                                <div>• Trừ SL/NP: <strong style="color: #f87171;">-${formatCurrency(d.slDeduction1 || 0)}</strong> (${d.slDaysOff1 || 0}d)</div>
-                                <div>• Tăng ca OT: <strong style="color: #38bdf8;">+${formatCurrency(ot1Total)}</strong> (1.5x:${d.overtime15x1||0}h, 2x:${d.overtime2x1||0}h, 3x:${d.overtime3x1||0}h)</div>
-                            </div>
-                            <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.2);">
-                                <div style="color: #38bdf8; font-weight: 700; margin-bottom: 4px;">🔹 GD 2 (01 - 20) - Lương Mới: ${formatCurrency(d.newBasicSalary || 0)}</div>
-                                <div>• Công chuẩn: <strong>${d.w2 || 0} ngày</strong> | Đi làm: <strong>${d.workedDays2 || 0} ngày</strong></div>
-                                <div>• Lương đi làm: <strong style="color: #34d399;">+${formatCurrency(d.regularSalary2 || 0)}</strong></div>
-                                <div>• Trừ SL/NP: <strong style="color: #f87171;">-${formatCurrency(d.slDeduction2 || 0)}</strong> (${d.slDaysOff2 || 0}d)</div>
-                                <div>• Tăng ca OT: <strong style="color: #38bdf8;">+${formatCurrency(ot2Total)}</strong> (1.5x:${d.overtime15x2||0}h, 2x:${d.overtime2x2||0}h, 3x:${d.overtime3x2||0}h)</div>
-                            </div>
-                        </div>
-                        <div style="font-size: 0.78rem; color: #38bdf8; margin-top: 8px; font-weight: 600;">🛡️ Trích BHXH tính theo Mức Lương Mới (${formatCurrency(d.newBasicSalary || 0)}): <span style="color: #ef4444;">-${formatCurrency(d.insurance || 0)}</span></div>
-                    </div>
-                `;
-            }
-
             content.innerHTML = `
-                ${midMonthHtml}
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-                    ${makeItem('Lương Cơ Bản', basicSalaryLabelDisplay)}
+                    ${makeItem('Lương Cơ Bản', formatCurrency(d.basicSalary || 0))}
                     ${makeItem('Ngày công chuẩn', (d.workingDays || 0) + ' ngày')}
-                    ${makeItem('Lương CB 1 ngày', dailyBasicSalaryLabelDisplay)}
+                    ${makeItem('Lương CB 1 ngày', formatCurrency(dailyBasicSalary))}
                     ${makeItem('Tiền Cơm', mealDisplayHtml)}
                     ${makeItem('Tiền đi lại', travelDisplayHtml)}
                     ${makeItem('Tiền nhà ở', formatCurrency(d.housingAllowance || 0))}

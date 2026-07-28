@@ -23,6 +23,7 @@ namespace SalaryCalculator
         private const int MAX_RETRIES = 3;
         private DateTime lastUpdateTime = DateTime.Now;
         private long lastDownloadedBytes = 0;
+        private bool isUpdating = false;
 
         public UpdateForm(string newVersion, string downloadUrl)
         {
@@ -121,7 +122,7 @@ namespace SalaryCalculator
 
             // Cancel Button
             Button cancelBtn = new Button();
-            cancelBtn.Text = "Hủy";
+            cancelBtn.Text = "Hủy & Thoát";
             cancelBtn.Location = new Point(280, 200);
             cancelBtn.Size = new Size(120, 35);
             cancelBtn.Font = new Font("Segoe UI", 10);
@@ -133,6 +134,7 @@ namespace SalaryCalculator
         {
             Button downloadBtn = (Button)sender;
             downloadBtn.Enabled = false;
+            isUpdating = true;
 
             try
             {
@@ -355,9 +357,9 @@ del ""{newExePath}""
 
         private void CancelBtn_Click(object sender, EventArgs e)
         {
-            cancellationTokenSource.Cancel();
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            try { cancellationTokenSource?.Cancel(); } catch { }
+            Application.Exit();
+            Environment.Exit(0);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -365,6 +367,12 @@ del ""{newExePath}""
             httpClient?.Dispose();
             cancellationTokenSource?.Dispose();
             base.OnFormClosing(e);
+
+            if (!isUpdating)
+            {
+                Application.Exit();
+                Environment.Exit(0);
+            }
         }
     }
 
