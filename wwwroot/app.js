@@ -292,6 +292,55 @@ inputs.month.addEventListener('input', handleMonthChange);
 inputs.year.addEventListener('change', () => calculateWorkingDays());
 inputs.year.addEventListener('input', () => calculateWorkingDays());
 
+function updateMidMonthLockState() {
+    const isMidMonthActive = inputs.midMonthSalaryToggle && inputs.midMonthSalaryToggle.checked;
+    const lockedInputs = [
+        inputs.basicSalary,
+        inputs.slDaysOff,
+        inputs.overtime15x,
+        inputs.overtime2x,
+        inputs.overtime3x
+    ];
+
+    lockedInputs.forEach(input => {
+        if (!input) return;
+        if (isMidMonthActive) {
+            input.readOnly = true;
+            input.classList.add('auto-mode');
+            input.style.cursor = 'not-allowed';
+            input.style.opacity = '0.75';
+            input.title = `🔒 Đã khóa: Thông số này được tính từ 2 mốc lương đan xen trong "Lương Cơ Bản ⚙️"`;
+        } else {
+            input.readOnly = false;
+            input.classList.remove('auto-mode');
+            input.style.cursor = '';
+            input.style.opacity = '';
+            input.title = '';
+        }
+    });
+
+    if (isMidMonthActive) {
+        if (inputs.newBasicSalary && inputs.newBasicSalary.value) {
+            inputs.basicSalary.value = inputs.newBasicSalary.value;
+        }
+        const sl1 = inputs.slDaysOff1 ? parseNumber(inputs.slDaysOff1.value) : 0;
+        const sl2 = inputs.slDaysOff2 ? parseNumber(inputs.slDaysOff2.value) : 0;
+        inputs.slDaysOff.value = (sl1 + sl2).toString();
+
+        const ot15_1 = inputs.overtime15x1 ? parseNumber(inputs.overtime15x1.value) : 0;
+        const ot15_2 = inputs.overtime15x2 ? parseNumber(inputs.overtime15x2.value) : 0;
+        inputs.overtime15x.value = (ot15_1 + ot15_2).toString();
+
+        const ot20_1 = inputs.overtime2x1 ? parseNumber(inputs.overtime2x1.value) : 0;
+        const ot20_2 = inputs.overtime2x2 ? parseNumber(inputs.overtime2x2.value) : 0;
+        inputs.overtime2x.value = (ot20_1 + ot20_2).toString();
+
+        const ot30_1 = inputs.overtime3x1 ? parseNumber(inputs.overtime3x1.value) : 0;
+        const ot30_2 = inputs.overtime3x2 ? parseNumber(inputs.overtime3x2.value) : 0;
+        inputs.overtime3x.value = (ot30_1 + ot30_2).toString();
+    }
+}
+
 // Mid-month salary increase toggle listener
 if (inputs.midMonthSalaryToggle) {
     inputs.midMonthSalaryToggle.addEventListener('change', () => {
@@ -305,8 +354,24 @@ if (inputs.midMonthSalaryToggle) {
                 container.classList.add('hidden');
             }
         }
+        updateMidMonthLockState();
     });
 }
+
+// Real-time sync from modal inputs to main screen locked inputs
+const midMonthSubInputs = [
+    inputs.oldBasicSalary, inputs.newBasicSalary,
+    inputs.slDaysOff1, inputs.slDaysOff2,
+    inputs.overtime15x1, inputs.overtime15x2,
+    inputs.overtime2x1, inputs.overtime2x2,
+    inputs.overtime3x1, inputs.overtime3x2
+];
+midMonthSubInputs.forEach(inp => {
+    if (inp) {
+        inp.addEventListener('input', updateMidMonthLockState);
+        inp.addEventListener('change', updateMidMonthLockState);
+    }
+});
 
 // Helpers
 const formatCurrency = (amount) => {
@@ -839,6 +904,7 @@ function closeMidMonthSalaryModal() {
     if (midMonthSalaryModal) {
         midMonthSalaryModal.style.display = 'none';
     }
+    updateMidMonthLockState();
 }
 
 if (lblBasicSalary) {
