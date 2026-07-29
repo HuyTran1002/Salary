@@ -16,6 +16,21 @@ namespace SalaryCalculator
             _dataManager = new UserDataManager();
         }
 
+        public static DateTime GetPayDate(int year, int month)
+        {
+            int lastDay = DateTime.DaysInMonth(year, month);
+            DateTime payDate = new DateTime(year, month, lastDay);
+            if (payDate.DayOfWeek == DayOfWeek.Saturday)
+            {
+                payDate = payDate.AddDays(-1);
+            }
+            else if (payDate.DayOfWeek == DayOfWeek.Sunday)
+            {
+                payDate = payDate.AddDays(-2);
+            }
+            return payDate.Date;
+        }
+
         public string GetCurrentPayrollPeriod()
         {
             try
@@ -24,8 +39,12 @@ namespace SalaryCalculator
                 int month = now.Month;
                 int year = now.Year;
 
-                // Cutoff rule: 21st to 20th next month
-                if (now.Day >= 21)
+                // Quy tắc chọn tháng tự động:
+                // Ngày trả lương là ngày cuối tháng (30, 31). Nếu rơi vào T7, CN thì được trả trước vào T6.
+                // Cho tới hết ngày trả lương thì vẫn tính/hiển thị lương của tháng hiện tại.
+                // Sau ngày trả lương mới chuyển sang tháng tiếp theo.
+                DateTime payDate = GetPayDate(year, month);
+                if (now.Date > payDate.Date)
                 {
                     month += 1;
                     if (month > 12)
@@ -330,16 +349,25 @@ namespace SalaryCalculator
                 decimal travelAllowance = ComputeProratedAllowanceByWorkedDays(payload.travelAllowance, workingDays, allowanceEligibleDays);
                 decimal attendanceIncentive = ComputeProratedAllowanceByWorkedDays(payload.attendanceIncentive, workingDays, allowanceEligibleDays);
 
+                decimal defaultPerfBonus = user != null && user.PerformanceBonus > 0 ? user.PerformanceBonus : 900000m;
                 decimal leaveDays = payload.isMidMonthSalaryChange ? (payload.slDaysOff1 + payload.slDaysOff2 + payload.alDaysOff) : (payload.slDaysOff + payload.alDaysOff);
                 decimal actualPerformanceBonus = payload.performanceBonus;
-                if (leaveDays > 0 && leaveDays <= 1) {
-                    actualPerformanceBonus -= payload.perfDeduct1;
-                } else if (leaveDays > 1 && leaveDays <= 2) {
-                    actualPerformanceBonus -= payload.perfDeduct2;
-                } else if (leaveDays > 2) {
-                    actualPerformanceBonus = 0;
+
+                // Điều kiện trừ tiền thưởng hiệu suất chỉ hoạt động khi số tiền nhập vào BẰNG số mặc định HOẶC BẰNG 400.000đ.
+                // Nếu người dùng nhập bất kỳ số nào khác (khác mặc định và khác 400k) thì điều kiện trừ tiền sẽ tự động bị vô hiệu hóa.
+                bool isDeductionActive = (payload.performanceBonus == defaultPerfBonus) || (payload.performanceBonus == 400000m);
+
+                if (isDeductionActive)
+                {
+                    if (leaveDays > 0 && leaveDays <= 1) {
+                        actualPerformanceBonus -= payload.perfDeduct1;
+                    } else if (leaveDays > 1 && leaveDays <= 2) {
+                        actualPerformanceBonus -= payload.perfDeduct2;
+                    } else if (leaveDays > 2) {
+                        actualPerformanceBonus = 0;
+                    }
+                    if (actualPerformanceBonus < 0) actualPerformanceBonus = 0;
                 }
-                if (actualPerformanceBonus < 0) actualPerformanceBonus = 0;
 
                 decimal totalIncentive = travelAllowance + attendanceIncentive + payload.housingAllowance + payload.certificateBonus + payload.otherBonus + actualPerformanceBonus;
 
@@ -359,6 +387,21 @@ namespace SalaryCalculator
 
                 decimal net = netSalary;
                 decimal gross = grossSalary;
+
+                if (user != null)
+                {
+                    user.IsMidMonthSalaryChange = payload.isMidMonthSalaryChange;
+                    user.OldBasicSalary = payload.oldBasicSalary;
+                    user.NewBasicSalary = payload.newBasicSalary;
+                    user.SlDaysOff1 = payload.slDaysOff1;
+                    user.SlDaysOff2 = payload.slDaysOff2;
+                    user.Overtime15x1 = payload.overtime15x1;
+                    user.Overtime2x1 = payload.overtime2x1;
+                    user.Overtime3x1 = payload.overtime3x1;
+                    user.Overtime15x2 = payload.overtime15x2;
+                    user.Overtime2x2 = payload.overtime2x2;
+                    user.Overtime3x2 = payload.overtime3x2;
+                }
 
                 if (payload.month > 0)
                 {
@@ -423,7 +466,33 @@ namespace SalaryCalculator
                         otherBonus = payload.otherBonus
                     };
                     string detailJson = JsonSerializer.Serialize(detailObject);
-                    _dataManager.UpdateLastCalculation(payload.username, payload.month, payload.year, net, detailJson);
+                    
+                    if (user != null)
+                    {
+                        string key = $"{payload.month:D2}-{payload.year}";
+                        if (user.SalaryHistory == null) user.SalaryHistory = new System.Collections.Generic.Dictionary<string, decimal>();
+                        user.SalaryHistory[key] = net;
+
+                        if (user.SalaryResultHistory == null) user.SalaryResultHistory = new System.Collections.Generic.Dictionary<string, string>();
+                        user.SalaryResultHistory[key] = detailJson;
+
+                        if (payload.month == DateTime.Now.Month && payload.year == DateTime.Now.Year)
+                        {
+                            user.LastCalculatedMonth = payload.month;
+                            user.LastCalculatedYear = payload.year;
+                            user.LastNetSalary = net;
+                        }
+
+                        _dataManager.SaveUser(user);
+                    }
+                    else
+                    {
+                        _dataManager.UpdateLastCalculation(payload.username, payload.month, payload.year, net, detailJson);
+                    }
+                }
+                else if (user != null)
+                {
+                    _dataManager.SaveUser(user);
                 }
 
                 return JsonSerializer.Serialize(new { success = true, gross = gross, tax = taxDeduction, insurance = insuranceDeduction, net = net });

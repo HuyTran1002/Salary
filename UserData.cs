@@ -76,6 +76,19 @@ namespace SalaryCalculator
         public decimal PerfDeduct1 { get; set; } = 500000m; // Trừ khi nghỉ <= 1
         public decimal PerfDeduct2 { get; set; } = 700000m; // Trừ khi nghỉ <= 2
 
+        // Cấu hình tính 2 mức lương đan xen từ ngày 01
+        public bool IsMidMonthSalaryChange { get; set; } = false;
+        public decimal OldBasicSalary { get; set; } = 0;
+        public decimal NewBasicSalary { get; set; } = 0;
+        public decimal SlDaysOff1 { get; set; } = 0;
+        public decimal SlDaysOff2 { get; set; } = 0;
+        public decimal Overtime15x1 { get; set; } = 0;
+        public decimal Overtime2x1 { get; set; } = 0;
+        public decimal Overtime3x1 { get; set; } = 0;
+        public decimal Overtime15x2 { get; set; } = 0;
+        public decimal Overtime2x2 { get; set; } = 0;
+        public decimal Overtime3x2 { get; set; } = 0;
+
         // Lưu lịch sử lương theo tháng/năm
         public Dictionary<string, decimal> SalaryHistory { get; set; } = new Dictionary<string, decimal>();
         // Lưu chi tiết kết quả lương theo tháng/năm

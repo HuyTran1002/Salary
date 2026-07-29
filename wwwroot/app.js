@@ -67,7 +67,18 @@ const resNet = document.getElementById('resNet');
 
 let currentUser = null;
 
-// Helper to determine default salary period based on 21st-to-20th cutoff from C# backend (live OS time)
+function getPayDateJS(year, month) {
+    const lastDayDate = new Date(year, month, 0); // Ngày cuối cùng của tháng
+    const dayOfWeek = lastDayDate.getDay(); // 0: CN, 6: T7
+    if (dayOfWeek === 6) { // T7 -> chuyển lên T6
+        lastDayDate.setDate(lastDayDate.getDate() - 1);
+    } else if (dayOfWeek === 0) { // CN -> chuyển lên T6
+        lastDayDate.setDate(lastDayDate.getDate() - 2);
+    }
+    return lastDayDate;
+}
+
+// Helper to determine default salary period based on company payday rule (end of month / Friday before weekend)
 async function getDefaultPayrollPeriod() {
     try {
         const backend = getBackend();
@@ -84,7 +95,10 @@ async function getDefaultPayrollPeriod() {
     const now = new Date();
     let month = now.getMonth() + 1;
     let year = now.getFullYear();
-    if (now.getDate() >= 21) {
+    const payDate = getPayDateJS(year, month);
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (todayZero > payDate) {
         month += 1;
         if (month > 12) {
             month = 1;
@@ -320,9 +334,14 @@ function updateMidMonthLockState() {
     });
 
     if (isMidMonthActive) {
-        if (inputs.newBasicSalary && inputs.newBasicSalary.value) {
-            inputs.basicSalary.value = inputs.newBasicSalary.value;
-        }
+        const oldVal = inputs.oldBasicSalary && inputs.oldBasicSalary.value ? inputs.oldBasicSalary.value.trim() : (currentUser ? formatCurrencyInput(currentUser.BasicSalary || 0) : '0');
+        const newVal = inputs.newBasicSalary && inputs.newBasicSalary.value ? inputs.newBasicSalary.value.trim() : (currentUser ? formatCurrencyInput(currentUser.BasicSalary || 0) : '0');
+
+        let oldStr = oldVal.endsWith('₫') || oldVal.endsWith('VNĐ') ? oldVal : `${oldVal} ₫`;
+        let newStr = newVal.endsWith('₫') || newVal.endsWith('VNĐ') ? newVal : `${newVal} ₫`;
+
+        inputs.basicSalary.value = `${oldStr} ➔ ${newStr}`;
+
         const sl1 = inputs.slDaysOff1 ? parseNumber(inputs.slDaysOff1.value) : 0;
         const sl2 = inputs.slDaysOff2 ? parseNumber(inputs.slDaysOff2.value) : 0;
         inputs.slDaysOff.value = (sl1 + sl2).toString();
@@ -338,6 +357,14 @@ function updateMidMonthLockState() {
         const ot30_1 = inputs.overtime3x1 ? parseNumber(inputs.overtime3x1.value) : 0;
         const ot30_2 = inputs.overtime3x2 ? parseNumber(inputs.overtime3x2.value) : 0;
         inputs.overtime3x.value = (ot30_1 + ot30_2).toString();
+    } else {
+        if (currentUser && inputs.basicSalary) {
+            inputs.basicSalary.value = formatCurrencyInput(currentUser.BasicSalary || 0);
+        }
+        if (inputs.slDaysOff) inputs.slDaysOff.value = currentUser && currentUser.SlDaysOff ? currentUser.SlDaysOff.toString() : "0";
+        if (inputs.overtime15x) inputs.overtime15x.value = currentUser && currentUser.Overtime15x ? currentUser.Overtime15x.toString() : "0";
+        if (inputs.overtime2x) inputs.overtime2x.value = currentUser && currentUser.Overtime2x ? currentUser.Overtime2x.toString() : "0";
+        if (inputs.overtime3x) inputs.overtime3x.value = currentUser && currentUser.Overtime3x ? currentUser.Overtime3x.toString() : "0";
     }
 }
 
@@ -386,6 +413,25 @@ const switchScreen = (screenName) => {
         setTimeout(() => screens[screenName].classList.add('active'), 50);
     }, 500); // Wait for transition
 };
+
+function resetToDefaultTab() {
+    const btns = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    btns.forEach(btn => {
+        if (btn.getAttribute('data-tab') === 'tab-calc') {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    contents.forEach(content => {
+        if (content.id === 'tab-calc') {
+            content.classList.add('active');
+        } else {
+            content.classList.remove('active');
+        }
+    });
+}
 
 // C# Interop wrapper
 const getBackend = () => {
@@ -444,6 +490,29 @@ loginBtn.addEventListener('click', async () => {
                 inputs.insurancePercent.value = currentUser.InsurancePercent || 10.5;
                 inputs.taxThreshold.value = formatCurrencyInput(currentUser.TaxThreshold || 15500000);
 
+                // Remember mid-month salary data for currentUser, but DO NOT auto-enable toggle on login
+                if (inputs.midMonthSalaryToggle) {
+                    inputs.midMonthSalaryToggle.checked = false;
+                }
+                const midMonthContainer = document.getElementById('midMonthSalaryContainer');
+                if (midMonthContainer) {
+                    midMonthContainer.classList.add('hidden');
+                }
+
+                if (inputs.oldBasicSalary) inputs.oldBasicSalary.value = currentUser.OldBasicSalary ? formatCurrencyInput(currentUser.OldBasicSalary) : formatCurrencyInput(currentUser.BasicSalary || 0);
+                if (inputs.newBasicSalary) inputs.newBasicSalary.value = currentUser.NewBasicSalary ? formatCurrencyInput(currentUser.NewBasicSalary) : formatCurrencyInput(currentUser.BasicSalary || 0);
+                if (inputs.slDaysOff1) inputs.slDaysOff1.value = currentUser.SlDaysOff1 || 0;
+                if (inputs.slDaysOff2) inputs.slDaysOff2.value = currentUser.SlDaysOff2 || 0;
+                if (inputs.overtime15x1) inputs.overtime15x1.value = currentUser.Overtime15x1 || 0;
+                if (inputs.overtime2x1) inputs.overtime2x1.value = currentUser.Overtime2x1 || 0;
+                if (inputs.overtime3x1) inputs.overtime3x1.value = currentUser.Overtime3x1 || 0;
+                if (inputs.overtime15x2) inputs.overtime15x2.value = currentUser.Overtime15x2 || 0;
+                if (inputs.overtime2x2) inputs.overtime2x2.value = currentUser.Overtime2x2 || 0;
+                if (inputs.overtime3x2) inputs.overtime3x2.value = currentUser.Overtime3x2 || 0;
+
+                updateMidMonthLockState();
+
+                resetToDefaultTab();
                 switchScreen('main');
                 loginError.classList.add('hidden');
             } else if (result.needsRegistration) {
@@ -535,6 +604,48 @@ logoutBtn.addEventListener('click', () => {
     resTax.textContent = '0 VNĐ';
     resInsurance.textContent = '0 VNĐ';
     resNet.textContent = '0 VNĐ';
+
+    // Reset Mid-month salary toggle and container
+    if (inputs.midMonthSalaryToggle) {
+        inputs.midMonthSalaryToggle.checked = false;
+    }
+    const midMonthContainer = document.getElementById('midMonthSalaryContainer');
+    if (midMonthContainer) {
+        midMonthContainer.classList.add('hidden');
+    }
+
+    // Clear mid-month inputs
+    if (inputs.oldBasicSalary) inputs.oldBasicSalary.value = '';
+    if (inputs.newBasicSalary) inputs.newBasicSalary.value = '';
+    if (inputs.slDaysOff1) inputs.slDaysOff1.value = '0';
+    if (inputs.slDaysOff2) inputs.slDaysOff2.value = '0';
+    if (inputs.overtime15x1) inputs.overtime15x1.value = '0';
+    if (inputs.overtime2x1) inputs.overtime2x1.value = '0';
+    if (inputs.overtime3x1) inputs.overtime3x1.value = '0';
+    if (inputs.overtime15x2) inputs.overtime15x2.value = '0';
+    if (inputs.overtime2x2) inputs.overtime2x2.value = '0';
+    if (inputs.overtime3x2) inputs.overtime3x2.value = '0';
+
+    updateMidMonthLockState();
+
+    // Reset main screen inputs
+    if (inputs.basicSalary) inputs.basicSalary.value = '';
+    if (inputs.mealAllowance) inputs.mealAllowance.value = '';
+    if (inputs.travelAllowance) inputs.travelAllowance.value = '';
+    if (inputs.housingAllowance) inputs.housingAllowance.value = '';
+    if (inputs.otherBonus) inputs.otherBonus.value = '';
+    if (inputs.alDaysOff) inputs.alDaysOff.value = '0';
+    if (inputs.slDaysOff) inputs.slDaysOff.value = '0';
+    if (inputs.overtime15x) inputs.overtime15x.value = '0';
+    if (inputs.overtime2x) inputs.overtime2x.value = '0';
+    if (inputs.overtime3x) inputs.overtime3x.value = '0';
+    if (inputs.otDays8) inputs.otDays8.value = '0';
+    if (inputs.otDays12) inputs.otDays12.value = '0';
+    if (inputs.attendanceIncentive) inputs.attendanceIncentive.value = '';
+    if (inputs.certificateBonus) inputs.certificateBonus.value = '';
+    if (inputs.performanceBonus) inputs.performanceBonus.value = '';
+
+    resetToDefaultTab();
     switchScreen('login');
 });
 
@@ -632,7 +743,7 @@ calcBtn.addEventListener('click', async () => {
 
     // Auto-sanitize all inputs: reset any empty or negative values to 0
     Object.values(inputs).forEach(input => {
-        if (!input) return;
+        if (!input || input.readOnly) return;
         let rawVal = input.value !== undefined && input.value !== null ? input.value.toString().trim() : "";
         let num = parseNumber(input.value);
         if (rawVal === "" || num < 0 || rawVal.includes('-')) {
@@ -653,13 +764,18 @@ calcBtn.addEventListener('click', async () => {
     calcBtn.innerHTML = "Đang tính...";
     calcBtn.disabled = true;
 
+    const isMidMonthActive = inputs.midMonthSalaryToggle ? inputs.midMonthSalaryToggle.checked : false;
+    const calcBasicSalary = isMidMonthActive 
+        ? (inputs.newBasicSalary ? parseNumber(inputs.newBasicSalary.value) : 0)
+        : (parseNumber(inputs.basicSalary.value) || 0);
+
     try {
         const payload = {
             username: currentUser.Username,
             month: month,
             year: parseInt(inputs.year.value) || 0,
             workingDays: parseNumber(inputs.workingDays.value) || 0,
-            basicSalary: parseNumber(inputs.basicSalary.value) || 0,
+            basicSalary: calcBasicSalary,
             mealAllowance: parseNumber(inputs.mealAllowance.value) || 0,
             travelAllowance: parseNumber(inputs.travelAllowance.value) || 0,
             housingAllowance: parseNumber(inputs.housingAllowance.value) || 0,
@@ -1383,10 +1499,19 @@ function initCompanyLogoModals() {
             companyModalName.textContent = 'ManpowerGroup Vietnam';
             companyModalDesc.innerHTML = `
                 <div style="font-size:0.88rem; line-height:1.55; color:#cbd5e1;">
-                    <p style="margin:0 0 10px 0;"><strong>ManpowerGroup</strong> là tập đoàn giải pháp nhân sự toàn cầu hàng đầu thế giới với hơn 75 năm kinh nghiệm hoạt động tại 75+ quốc gia.</p>
+                    <p style="margin:0 0 10px 0;"><strong>ManpowerGroup</strong> là tập đoàn giải pháp nhân sự toàn cầu hàng đầu thế giới với hơn 75 năm kinh nghiệm hoạt động tại 75+ quốc gia & vùng lãnh thổ.</p>
                     
                     <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:10px;">
-                        <strong style="color:var(--primary); display:block; margin-bottom:6px; font-size:0.9rem;">🤝 Các Đối Tác Chiến Lược Hợp Tác Tiêu Biểu:</strong>
+                        <strong style="color:var(--primary); display:block; margin-bottom:6px; font-size:0.88rem;">🎯 Chiến Lược Nhân Sự Trọng Tâm 2025 - 2026:</strong>
+                        <ul style="margin:0; padding-left:18px; font-size:0.83rem;">
+                            <li style="margin-bottom:3px;"><strong>Precision Hiring:</strong> Tuyển dụng chính xác nguồn nhân lực chất lượng cao theo nhu cầu doanh nghiệp.</li>
+                            <li style="margin-bottom:3px;"><strong>Workforce AI Transformation:</strong> Đào tạo nâng cao kỹ năng (upskilling) ứng dụng AI trong công việc.</li>
+                            <li><strong>Green Talent & ESG:</strong> Cung cấp giải pháp nhân sự xanh chuyển đổi bền vững.</li>
+                        </ul>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:10px;">
+                        <strong style="color:#fbbf24; display:block; margin-bottom:6px; font-size:0.88rem;">🤝 Các Đối Tác Chiến Lược Tiêu Biểu:</strong>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.83rem;">
                             <div>• 🌐 <strong>Intel Products VN</strong></div>
                             <div>• 📱 <strong>Samsung Electronics</strong></div>
@@ -1399,8 +1524,8 @@ function initCompanyLogoModals() {
                         </div>
                     </div>
 
-                    <div style="font-size:0.82rem; color:var(--text-muted);">
-                        ✨ <em>Chuyên cung cấp dịch vụ quản trị nhân sự, giải pháp khoán dịch vụ lao động (BPO) & tư vấn nhân tài chiến lược cho các tập đoàn đa quốc gia.</em>
+                    <div style="font-size:0.81rem; color:var(--text-muted);">
+                        ✨ <em>Chuyên cung cấp dịch vụ quản trị nhân sự, giải pháp khoán dịch vụ lao động (BPO) & tư vấn nhân tài chiến lược cho các tập đoàn đa quốc gia tại Việt Nam.</em>
                     </div>
                 </div>
             `;
@@ -1429,23 +1554,24 @@ function initCompanyLogoModals() {
             companyModalName.textContent = 'Intel Corporation';
             companyModalDesc.innerHTML = `
                 <div style="font-size:0.88rem; line-height:1.55; color:#cbd5e1;">
-                    <p style="margin:0 0 10px 0;"><strong>Intel Corporation</strong> là tập đoàn công nghệ vi xử lý & bán dẫn hàng đầu thế giới, tiên phong dẫn dắt kỷ nguyên AI PC và điện toán đám mây.</p>
+                    <p style="margin:0 0 10px 0;"><strong>Intel Corporation</strong> là tập đoàn công nghệ vi xử lý & bán dẫn hàng đầu thế giới, tiên phong dẫn dắt kỷ nguyên AI PC, Data Center & công nghệ đúc chip (Foundry).</p>
 
                     <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:10px;">
-                        <strong style="color:#38bdf8; display:block; margin-bottom:4px; font-size:0.88rem;">🔥 Sản Phẩm Hot Nổi Bật Hiện Nay:</strong>
+                        <strong style="color:#38bdf8; display:block; margin-bottom:4px; font-size:0.88rem;">🔥 Sản Phẩm Nổi Bật & Flagship (2025 - 2026):</strong>
                         <ul style="margin:0; padding-left:18px; font-size:0.83rem;">
-                            <li style="margin-bottom:3px;"><strong>Core Ultra 200V (Lunar Lake):</strong> Vi xử lý AI PC tối ưu năng lượng đỉnh cao.</li>
-                            <li style="margin-bottom:3px;"><strong>Xeon 6 (Granite Rapids):</strong> Chip máy chủ Data Center siêu hiệu năng.</li>
-                            <li><strong>Gaudi 3 AI Accelerator:</strong> Chip tăng tốc huấn luyện AI thế hệ mới.</li>
+                            <li style="margin-bottom:3px;"><strong>Core Ultra 200S & 200V (Arrow/Lunar Lake):</strong> Chip AI PC thế hệ mới hiệu năng cao & tiết kiệm điện.</li>
+                            <li style="margin-bottom:3px;"><strong>Panther Lake (Core Ultra Series 3):</strong> Vi xử lý 2026 sản xuất trên tiến trình đột phá <strong>Intel 18A (1.8nm)</strong>.</li>
+                            <li style="margin-bottom:3px;"><strong>Xeon 6 (Granite Rapids / Sierra Forest):</strong> Chip máy chủ Data Center siêu mật độ nhân.</li>
+                            <li><strong>Gaudi 3 AI Accelerator:</strong> Chip tăng tốc huấn luyện & suy luận AI thế hệ mới.</li>
                         </ul>
                     </div>
 
                     <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
-                        <strong style="color:#6366f1; display:block; margin-bottom:4px; font-size:0.88rem;">🚀 Công Nghệ Tương Lai Roadmap:</strong>
+                        <strong style="color:#6366f1; display:block; margin-bottom:4px; font-size:0.88rem;">🚀 Tiến Trình & Roadmap Tương Lai:</strong>
                         <ul style="margin:0; padding-left:18px; font-size:0.83rem;">
-                            <li style="margin-bottom:3px;"><strong>Tiến trình Intel 18A (1.8nm):</strong> Tiến trình sản xuất chip 2025 đột phá với RibbonFET & PowerVia.</li>
-                            <li style="margin-bottom:3px;"><strong>Panther Lake & Nova Lake:</strong> Kiến trúc vi xử lý AI PC tương lai.</li>
-                            <li><strong>Glass Substrates & Quantum:</strong> Đế chip bằng thủy tinh & Điện toán lượng tử.</li>
+                            <li style="margin-bottom:3px;"><strong>Tiến trình Intel 18A:</strong> Công nghệ bóng bán dẫn RibbonFET & cấp nguồn mặt lưng PowerVia.</li>
+                            <li style="margin-bottom:3px;"><strong>Nova Lake Architecture:</strong> Kiến trúc vi xử lý PC thế hệ tiếp theo (Core Ultra 300).</li>
+                            <li><strong>Glass Substrates & Quantum:</strong> Đế chip bằng thủy tinh & nghiên cứu điện toán lượng tử.</li>
                         </ul>
                     </div>
                 </div>

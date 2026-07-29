@@ -931,7 +931,8 @@ namespace SalaryCalculator
             DateTime now = DateTime.Now;
             int defaultMonth = now.Month;
             int defaultYear = now.Year;
-            if (now.Day >= 21) {
+            DateTime payDate = WebBackendBridge.GetPayDate(defaultYear, defaultMonth);
+            if (now.Date > payDate.Date) {
                 defaultMonth++;
                 if (defaultMonth > 12) {
                     defaultMonth = 1;
@@ -3015,12 +3016,13 @@ namespace SalaryCalculator
                     bool leaveSheetSuccess = false;
                     bool leaveParsed = false;
                     try {
-                        // Xác định tháng để lấy dữ liệu leave dựa trên ngày hiện tại
+                        // Xác định tháng để lấy dữ liệu leave dựa trên ngày nhận lương thực tế
                         DateTime now = DateTime.Now;
                         int targetMonth = now.Month;
                         int targetYear = now.Year;
-                        if (now.Day >= 21) {
-                            // Nếu ngày >= 21, dữ liệu trong bảng là cho tháng tiếp theo
+                        DateTime targetPayDate = WebBackendBridge.GetPayDate(targetYear, targetMonth);
+                        if (now.Date > targetPayDate.Date) {
+                            // Nếu đã qua ngày nhận lương của tháng hiện tại, chuyển sang tháng tiếp theo
                             targetMonth++;
                             if (targetMonth > 12) {
                                 targetMonth = 1;
