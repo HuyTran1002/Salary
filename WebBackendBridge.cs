@@ -353,9 +353,12 @@ namespace SalaryCalculator
                 decimal leaveDays = payload.isMidMonthSalaryChange ? (payload.slDaysOff1 + payload.slDaysOff2 + payload.alDaysOff) : (payload.slDaysOff + payload.alDaysOff);
                 decimal actualPerformanceBonus = payload.performanceBonus;
 
-                // Điều kiện trừ tiền thưởng hiệu suất chỉ hoạt động khi số tiền nhập vào BẰNG số mặc định HOẶC BẰNG 400.000đ.
-                // Nếu người dùng nhập bất kỳ số nào khác (khác mặc định và khác 400k) thì điều kiện trừ tiền sẽ tự động bị vô hiệu hóa.
-                bool isDeductionActive = (payload.performanceBonus == defaultPerfBonus) || (payload.performanceBonus == 400000m);
+                // Điều kiện trừ tiền thưởng hiệu suất chỉ hoạt động khi số tiền nhập vào BẰNG số mặc định HOẶC BẰNG 400.000đ, 850.000đ, 875.000đ.
+                // Nếu người dùng nhập bất kỳ số nào khác thì điều kiện trừ tiền sẽ tự động bị vô hiệu hóa.
+                bool isDeductionActive = (payload.performanceBonus == defaultPerfBonus) || 
+                                         (payload.performanceBonus == 400000m) ||
+                                         (payload.performanceBonus == 850000m) ||
+                                         (payload.performanceBonus == 875000m);
 
                 if (isDeductionActive)
                 {

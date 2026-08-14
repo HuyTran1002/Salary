@@ -246,8 +246,37 @@ if (workingDaysModeToggle) {
     workingDaysModeToggle.addEventListener('change', updateWorkingDaysToggleUI);
 }
 
+// Function to update the weekend days (Saturdays and Sundays) label
+const updateWeekendDaysInfo = () => {
+    const lblWeekend = document.getElementById('lblWeekendCount');
+    if (!lblWeekend || !inputs.month || !inputs.year) return;
+    const m = parseInt(inputs.month.value);
+    const y = parseInt(inputs.year.value);
+    if (!m || !y || m < 1 || m > 12) return;
+
+    let startMonth = m === 1 ? 12 : m - 1;
+    let startYear = m === 1 ? y - 1 : y;
+
+    let start = new Date(startYear, startMonth - 1, 21);
+    let end = new Date(y, m - 1, 20);
+
+    let satCount = 0;
+    let sunCount = 0;
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        let day = d.getDay();
+        if (day === 6) satCount++;
+        else if (day === 0) sunCount++;
+    }
+    let total = satCount + sunCount;
+    let smStr = startMonth < 10 ? '0' + startMonth : startMonth;
+    let mStr = m < 10 ? '0' + m : m;
+    lblWeekend.innerHTML = `<div style="color: var(--text-muted); margin-bottom: 2px;">🗓️ T7 & CN kỳ này (21/${smStr} - 20/${mStr}):</div><div style="font-size: 0.82rem;"><strong style="color: #60a5fa;">${satCount} Thứ 7</strong>, <strong style="color: #f472b6;">${sunCount} Chủ Nhật</strong></div>`;
+};
+
 // Auto-calculate working days based on month and year (21st of prev to 20th of current)
 const calculateWorkingDays = (force = false) => {
+    updateWeekendDaysInfo();
     if (workingDaysModeToggle && workingDaysModeToggle.checked && !force) {
         return;
     }
