@@ -4,13 +4,12 @@
 // ⚙️ CẤU HÌNH FIREBASE (Dán mã firebaseConfig của bạn vào biến dưới đây)
 // =========================================================================
 window.firebaseConfig = window.firebaseConfig || {
-  apiKey: "AIzaSyAeA6arqYldNyini3JkZLBBD7zgd5Eb-rM",
-  authDomain: "salary-8c0ca.firebaseapp.com",
-  projectId: "salary-8c0ca",
-  storageBucket: "salary-8c0ca.firebasestorage.app",
-  messagingSenderId: "277337938330",
-  appId: "1:277337938330:web:b93c16a9801be9832c8223",
-  measurementId: "G-6QS56CQ5KK"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 (function () {

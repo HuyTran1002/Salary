@@ -25,3 +25,10 @@ Desktop.ini
 
 # Temporary workspace folders
 tmpclaude-*
+
+# Firebase Secrets & Private Configs (Local Only)
+wwwroot/firebase-config.js
+wwwroot/firebase-config.json
+*firebase-config*.js
+*credentials*.json
+
