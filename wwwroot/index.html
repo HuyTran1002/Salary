@@ -6,7 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salary Calculator 3D</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="cloud-sync.css">
+    <link rel="stylesheet" href="schedule.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Firebase Web SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body class="no-scroll">
@@ -200,15 +208,17 @@
                             style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
                             1. Thông tin & Thu nhập chính</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px;">
-                            <div class="input-group"><input type="number" id="month"
-                                    required><label>Tháng</label></div>
+                            <div class="input-group"><input type="number" id="month" required><label>Tháng</label></div>
                             <div class="input-group"><input type="number" id="year" min="2000"
                                     required><label>Năm</label></div>
                             <div class="input-group">
                                 <input type="number" id="workingDays" min="0" required readonly class="auto-mode">
-                                <div class="working-days-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                <div class="working-days-header"
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                                     <label style="margin: 0; padding: 0;">Số ngày công chuẩn</label>
-                                    <div class="working-days-toggle-container" style="display: flex; align-items: center; gap: 5px;" title="Gạt sang trái: AUTO (Tự tính) | Gạt sang phải: MANUAL (Nhập tay)">
+                                    <div class="working-days-toggle-container"
+                                        style="display: flex; align-items: center; gap: 5px;"
+                                        title="Gạt sang trái: AUTO (Tự tính) | Gạt sang phải: MANUAL (Nhập tay)">
                                         <label class="switch-toggle">
                                             <input type="checkbox" id="workingDaysModeToggle">
                                             <span class="switch-slider"></span>
@@ -218,7 +228,9 @@
                                 </div>
                             </div>
                             <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                    id="basicSalary" required><label id="lblBasicSalary" style="cursor: pointer;" title="Nhấp vào chữ này để cài đặt đan xen 2 mức lương từ ngày 01">Lương Cơ Bản ⚙️</label></div>
+                                    id="basicSalary" required><label id="lblBasicSalary" style="cursor: pointer;"
+                                    title="Nhấp vào chữ này để cài đặt đan xen 2 mức lương từ ngày 01">Lương Cơ Bản
+                                    ⚙️</label></div>
                             <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
                                     id="mealAllowance" required><label>Tiền Cơm</label></div>
                             <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
@@ -297,8 +309,10 @@
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="performanceBonus" required><label id="lblPerformanceBonus" style="cursor: pointer;"
-                                        title="Nhấp vào bánh răng để cấu hình tiền trừ thưởng hiệu suất">Thưởng Hiệu Suất ⚙️</label></div>
+                                        id="performanceBonus" required><label id="lblPerformanceBonus"
+                                        style="cursor: pointer;"
+                                        title="Nhấp vào bánh răng để cấu hình tiền trừ thưởng hiệu suất">Thưởng Hiệu
+                                        Suất ⚙️</label></div>
                                 <div class="input-group"><input type="number" id="insurancePercent" step="any" min="0"
                                         required><label>% Trích BHXH</label></div>
                                 <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
@@ -340,7 +354,9 @@
                             </div>
                             <div id="weekendInfoBox"
                                 style="margin-top: 6px; background: rgba(0, 0, 0, 0.25); padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.78rem; text-align: center;">
-                                <div id="lblWeekendCount" style="color: var(--text-muted); width: 100%; text-align: center;">T7 & CN: 0 Thứ 7, 0 Chủ Nhật</div>
+                                <div id="lblWeekendCount"
+                                    style="color: var(--text-muted); width: 100%; text-align: center;">T7 & CN: 0 Thứ 7,
+                                    0 Chủ Nhật</div>
                             </div>
                         </div>
 
@@ -401,17 +417,22 @@
     <!-- Gear Config Modal -->
     <div id="gearConfigModal"
         style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
-        <div class="glass-card 3d-hover" style="max-width: 520px; width: 92%; padding: 22px 26px; border-radius: 16px; background: rgba(20, 27, 44, 0.95); border: 1px solid rgba(255,255,255,0.12);">
+        <div class="glass-card 3d-hover"
+            style="max-width: 520px; width: 92%; padding: 22px 26px; border-radius: 16px; background: rgba(20, 27, 44, 0.95); border: 1px solid rgba(255,255,255,0.12);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h3 class="glow-text" id="gearModalTitle" style="font-size: 1.2rem; margin: 0; color: var(--primary);">Cấu Hình ⚙️</h3>
-                <button id="btnCloseGearModal" class="modal-close-btn" style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+                <h3 class="glow-text" id="gearModalTitle" style="font-size: 1.2rem; margin: 0; color: var(--primary);">
+                    Cấu Hình ⚙️</h3>
+                <button id="btnCloseGearModal" class="modal-close-btn"
+                    style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
             </div>
             <div id="gearModalBody" style="display: flex; flex-direction: column; gap: 14px;">
                 <!-- Inputs injected via JS -->
             </div>
             <div class="btn-row" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="btnCancelGear" class="btn-3d btn-ghost" style="width: auto; padding: 7px 20px; font-size: 0.88rem;">Hủy</button>
-                <button id="btnSaveGear" class="btn-3d btn-primary" style="width: auto; padding: 7px 24px; font-size: 0.88rem;">Lưu Thay Đổi</button>
+                <button id="btnCancelGear" class="btn-3d btn-ghost"
+                    style="width: auto; padding: 7px 20px; font-size: 0.88rem;">Hủy</button>
+                <button id="btnSaveGear" class="btn-3d btn-primary"
+                    style="width: auto; padding: 7px 24px; font-size: 0.88rem;">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>
@@ -419,14 +440,20 @@
     <!-- Mid-month Salary Config Modal -->
     <div id="midMonthSalaryModal"
         style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
-        <div class="glass-card 3d-hover" style="max-width: 620px; width: 94%; padding: 22px 26px; border-radius: 16px; background: rgba(20, 27, 44, 0.95); border: 1px solid rgba(59, 130, 246, 0.3);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                <h3 class="glow-text" style="font-size: 1.15rem; margin: 0; color: #60a5fa;">📈 Điều Chỉnh Tăng Lương Từ Ngày 01 ⚙️</h3>
-                <button id="btnCloseMidMonthModal" class="modal-close-btn" style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        <div class="glass-card 3d-hover"
+            style="max-width: 620px; width: 94%; padding: 22px 26px; border-radius: 16px; background: rgba(20, 27, 44, 0.95); border: 1px solid rgba(59, 130, 246, 0.3);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <h3 class="glow-text" style="font-size: 1.15rem; margin: 0; color: #60a5fa;">📈 Điều Chỉnh Tăng Lương Từ
+                    Ngày 01 ⚙️</h3>
+                <button id="btnCloseMidMonthModal" class="modal-close-btn"
+                    style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
             </div>
-            
-            <div style="margin-bottom: 14px; padding: 10px 14px; background: rgba(59, 130, 246, 0.12); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.25); display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-size: 0.88rem; font-weight: 600; color: #93c5fd;">Kích hoạt tính 2 mức lương đan xen kỳ này</span>
+
+            <div
+                style="margin-bottom: 14px; padding: 10px 14px; background: rgba(59, 130, 246, 0.12); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.25); display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 0.88rem; font-weight: 600; color: #93c5fd;">Kích hoạt tính 2 mức lương đan xen
+                    kỳ này</span>
                 <label class="switch-toggle">
                     <input type="checkbox" id="midMonthSalaryToggle">
                     <span class="switch-slider"></span>
@@ -447,38 +474,49 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <!-- Giai đoạn 1 -->
-                    <div style="background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                    <div
+                        style="background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
                         <div style="font-size: 0.8rem; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">
                             🗓️ GD 1 (21 - 31 Tháng trước - Lương Cũ)
                         </div>
                         <div style="margin-bottom: 8px;">
-                            <div class="input-group"><input type="number" id="slDaysOff1" step="any" min="0" value="0"><label>Nghỉ SL/NP Giai Đoạn 1</label></div>
+                            <div class="input-group"><input type="number" id="slDaysOff1" step="any" min="0"
+                                    value="0"><label>Nghỉ SL/NP Giai Đoạn 1</label></div>
                         </div>
                         <div style="display: flex; gap: 6px;">
-                            <div class="input-group" style="flex:1;"><input type="number" id="overtime15x1" step="any" min="0" value="0"><label>OT1.5x(1)</label></div>
-                            <div class="input-group" style="flex:1;"><input type="number" id="overtime2x1" step="any" min="0" value="0"><label>OT2x(1)</label></div>
-                            <div class="input-group" style="flex:1;"><input type="number" id="overtime3x1" step="any" min="0" value="0"><label>OT3x(1)</label></div>
+                            <div class="input-group" style="flex:1;"><input type="number" id="overtime15x1" step="any"
+                                    min="0" value="0"><label>OT1.5x(1)</label></div>
+                            <div class="input-group" style="flex:1;"><input type="number" id="overtime2x1" step="any"
+                                    min="0" value="0"><label>OT2x(1)</label></div>
+                            <div class="input-group" style="flex:1;"><input type="number" id="overtime3x1" step="any"
+                                    min="0" value="0"><label>OT3x(1)</label></div>
                         </div>
                     </div>
                     <!-- Giai đoạn 2 -->
-                    <div style="background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.25);">
+                    <div
+                        style="background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.25);">
                         <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">
                             🗓️ GD 2 (01 - 20 Tháng này - Lương Mới)
                         </div>
                         <div style="margin-bottom: 8px;">
-                            <div class="input-group"><input type="number" id="slDaysOff2" step="any" min="0" value="0"><label>Nghỉ SL/NP Giai Đoạn 2</label></div>
+                            <div class="input-group"><input type="number" id="slDaysOff2" step="any" min="0"
+                                    value="0"><label>Nghỉ SL/NP Giai Đoạn 2</label></div>
                         </div>
                         <div style="display: flex; gap: 6px;">
-                            <div class="input-group" style="flex:1;"><input type="number" id="overtime15x2" step="any" min="0" value="0"><label>OT1.5x(2)</label></div>
-                            <div class="input-group" style="flex:1;"><input type="number" id="overtime2x2" step="any" min="0" value="0"><label>OT2x(2)</label></div>
-                            <div class="input-group" style="flex:1;"><input type="number" id="overtime3x2" step="any" min="0" value="0"><label>OT3x(2)</label></div>
+                            <div class="input-group" style="flex:1;"><input type="number" id="overtime15x2" step="any"
+                                    min="0" value="0"><label>OT1.5x(2)</label></div>
+                            <div class="input-group" style="flex:1;"><input type="number" id="overtime2x2" step="any"
+                                    min="0" value="0"><label>OT2x(2)</label></div>
+                            <div class="input-group" style="flex:1;"><input type="number" id="overtime3x2" step="any"
+                                    min="0" value="0"><label>OT3x(2)</label></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="btn-row" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="btnSaveMidMonthModal" class="btn-3d btn-primary" style="width: auto; padding: 7px 24px; font-size: 0.88rem;">Xác Nhận & Áp Dụng</button>
+                <button id="btnSaveMidMonthModal" class="btn-3d btn-primary"
+                    style="width: auto; padding: 7px 24px; font-size: 0.88rem;">Xác Nhận & Áp Dụng</button>
             </div>
         </div>
     </div>
@@ -499,7 +537,216 @@
         </div>
     </div>
 
+    <!-- Sliding Panel Trigger Button -->
+    <button id="btnToggleCloudPanel" class="cloud-toggle-btn" title="Mở Sync Firebase">
+        <span class="arrow-icon">◀</span> ☁️
+    </button>
+
+    <!-- Cloud Sync Sliding Panel -->
+    <div id="cloudSyncPanel" class="cloud-panel">
+        <div class="panel-header">
+            <h3>☁️ Firebase Cloud Sync</h3>
+            <button id="btnCloseCloudPanel" class="close-panel-btn">&times;</button>
+        </div>
+
+        <div class="panel-body">
+            <!-- Trạng thái Chưa Đăng Nhập -->
+            <div id="firebaseAuthSection" class="auth-section">
+                <!-- Auth Tabs -->
+                <div class="auth-tabs" style="margin-bottom: 12px;">
+                    <button id="tabLoginBtn" class="auth-tab-btn active">Đăng Nhập</button>
+                    <button id="tabRegisterBtn" class="auth-tab-btn">Đăng Ký Mới</button>
+                </div>
+
+                <!-- Form Đăng Nhập -->
+                <div id="loginForm">
+                    <p class="section-desc">Đăng nhập tài khoản Firebase để tự động đồng bộ dữ liệu thời gian thực.</p>
+                    <div class="input-group">
+                        <label>Email tài khoản</label>
+                        <input type="email" id="txtLoginEmail" placeholder="user@company.com" />
+                    </div>
+                    <div class="input-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" id="txtLoginPassword" placeholder="••••••••" />
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                        <button id="btnForgotPassword" class="link-btn">Quên mật khẩu?</button>
+                    </div>
+                    <button id="btnLoginSubmit" class="btn-primary-cloud">
+                        🔑 Đăng Nhập Cloud
+                    </button>
+                </div>
+
+                <!-- Form Đăng Ký -->
+                <div id="registerForm" class="hidden">
+                    <p class="section-desc">Tạo tài khoản mới. Email xác thực sẽ được gửi để kích hoạt tài khoản.</p>
+                    <div class="input-group">
+                        <label>Email đăng ký</label>
+                        <input type="email" id="txtRegEmail" placeholder="user@company.com" />
+                    </div>
+                    <div class="input-group">
+                        <label>Mật khẩu (ít nhất 6 ký tự)</label>
+                        <input type="password" id="txtRegPassword" placeholder="••••••••" />
+                    </div>
+                    <div class="input-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" id="txtRegPasswordConfirm" placeholder="••••••••" />
+                    </div>
+                    <button id="btnRegisterSubmit" class="btn-primary-cloud"
+                        style="background: #a6e3a1; color: #11111b;">
+                        ✉️ Đăng Ký & Gửi Email Xác Thực
+                    </button>
+                </div>
+            </div>
+
+            <!-- Trạng thái Cảnh báo Email Chưa Xác Minh -->
+            <div id="firebaseVerificationSection" class="verification-banner hidden">
+                <h4>⚠️ Email chưa được xác minh!</h4>
+                <p>Tài khoản <strong id="lblUnverifiedEmail">user@company.com</strong> đã được đăng ký nhưng chưa nhấp
+                    link xác minh. Vui lòng mở hộp thư email (kiểm tra cả thư rác/spam) và nhấp link xác thực.</p>
+                <button id="btnResendVerification" class="btn-secondary-cloud" style="margin-bottom: 6px;">
+                    📩 Gửi lại Email Xác Thực
+                </button>
+                <button id="btnCheckVerification" class="btn-primary-cloud">
+                    🔄 Tôi đã bấm link xác minh (Tải lại)
+                </button>
+            </div>
+
+            <!-- Trạng thái Đã Đăng Nhập & Email Đã Xác Minh -->
+            <div id="firebaseStatusSection" class="status-section hidden">
+                <div class="user-badge">
+                    <div style="font-size: 0.78rem; color: #a6adc8;">Tài khoản đã xác minh:</div>
+                    <div class="user-email" id="lblFirebaseUserEmail">user@company.com</div>
+                    <div class="user-status">🟢 Đang kết nối Firestore Realtime</div>
+                </div>
+                <div class="sync-actions">
+                    <button id="btnManualSync" class="btn-secondary-cloud">
+                        🔄 Sao lưu toàn bộ (Sync Now)
+                    </button>
+                    <button id="btnRestoreFromCloud" class="btn-secondary-cloud"
+                        style="background: rgba(137, 180, 250, 0.15); border-color: rgba(137, 180, 250, 0.3); color: #89b4fa;">
+                        📥 Tải về từ Cloud (Restore All)
+                    </button>
+                    <button id="btnFirebaseLogout" class="btn-danger-cloud">
+                        🚪 Đăng xuất Cloud
+                    </button>
+                </div>
+                <div class="sync-log" id="cloudSyncLog">
+                    <p class="log-item success">🟢 Sẵn sàng đồng bộ real-time...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nút Mũi Tên Bật Lịch Làm Việc Bên Trái (Left Toggle) -->
+    <button id="btnToggleSchedule" class="schedule-toggle-btn" title="Mở Lịch Làm Việc Số 2026">
+        <span>📅 Lịch Ca</span> <span id="scheduleArrowIcon">▶</span>
+    </button>
+
+    <!-- Khung Panel Lịch Làm Việc Số (Left Drawer) -->
+    <div id="schedulePanelLeft" class="schedule-panel-left">
+        <div class="schedule-panel-header">
+            <h3 id="schedulePanelTitle">📅 LỊCH LÀM VIỆC SỐ 2026</h3>
+            <button id="btnCloseSchedulePanel" class="btn-close">&times;</button>
+        </div>
+        <div class="schedule-panel-body">
+            <!-- Thanh Bộ Lọc Shift & Tháng -->
+            <div class="schedule-controls">
+                <div class="schedule-control-group">
+                    <label>Chọn Shift / Nhóm ca:</label>
+                    <select id="selShiftTeam" class="schedule-select">
+                        <option value="A1">Shift A1</option>
+                        <option value="A2">Shift A2</option>
+                        <option value="B1">Shift B1</option>
+                        <option value="B2">Shift B2</option>
+                        <option value="C1">Shift C1</option>
+                        <option value="C2">Shift C2</option>
+                        <option value="D1">Shift D1</option>
+                        <option value="D2">Shift D2</option>
+                        <option value="ALL">-- Tất cả 8 Shift --</option>
+                    </select>
+                </div>
+                <div class="schedule-control-group">
+                    <label>Chọn Tháng:</label>
+                    <select id="selShiftMonth" class="schedule-select">
+                        <option value="1">Tháng 1 (JAN)</option>
+                        <option value="2">Tháng 2 (FEB)</option>
+                        <option value="3">Tháng 3 (MAR)</option>
+                        <option value="4">Tháng 4 (APR)</option>
+                        <option value="5">Tháng 5 (MAY)</option>
+                        <option value="6">Tháng 6 (JUN)</option>
+                        <option value="7">Tháng 7 (JUL)</option>
+                        <option value="8">Tháng 8 (AUG)</option>
+                        <option value="9">Tháng 9 (SEP)</option>
+                        <option value="10">Tháng 10 (OCT)</option>
+                        <option value="11">Tháng 11 (NOV)</option>
+                        <option value="12">Tháng 12 (DEC)</option>
+                    </select>
+                </div>
+                <div class="schedule-control-group">
+                    <label>Chọn Năm:</label>
+                    <select id="selShiftYear" class="schedule-select">
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Thẻ tóm tắt Ca làm việc hiện tại -->
+            <div class="shift-summary-box">
+                <h4>📌 Ca làm việc hiện tại</h4>
+                <div id="shiftSummaryText" class="shift-summary-text">Đang tải lịch ca...</div>
+            </div>
+
+            <!-- Bảng Ma Trận Lịch Ca -->
+            <div class="schedule-table-container">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Thứ</th>
+                            <th>Ca Trực</th>
+                            <th>Giờ Làm Việc</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleTableBody">
+                        <!-- Dữ liệu render tự động từ JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Chú thích Ký hiệu Ca -->
+            <div class="schedule-legend">
+                <div class="legend-item">
+                    <span class="shift-badge night">n</span>
+                    <span class="legend-text">Ca Đêm</span>
+                </div>
+                <div class="legend-item">
+                    <span class="shift-badge day">d</span>
+                    <span class="legend-text">Ca Sáng</span>
+                </div>
+                <div class="legend-item">
+                    <span class="shift-badge mid">m</span>
+                    <span class="legend-text">Ca Chiều</span>
+                </div>
+                <div class="legend-item">
+                    <span class="shift-badge off">Off</span>
+                    <span class="legend-text">Nghỉ</span>
+                </div>
+                <div class="legend-item">
+                    <span class="shift-badge fwd">FWD</span>
+                    <span class="legend-text">Làm việc linh hoạt</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script src="cloud-sync.js"></script>
+    <script src="schedule.js"></script>
 </body>
 
 </html>

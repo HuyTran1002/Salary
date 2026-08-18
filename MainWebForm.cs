@@ -97,6 +97,12 @@ namespace SalaryCalculator
             // Inject the C# backend bridge into JS
             _webView.CoreWebView2.AddHostObjectToScript("backend", _backendBridge);
 
+            // Register WebMessageReceived handler for JS postMessage (Sliding Panel Resize Form)
+            _webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+
+            // Initialize FirebaseSyncService with WebView2 reference
+            FirebaseSyncService.Instance.InitializeWebView(_webView);
+
             // Navigate to the local index.html
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string htmlPath = Path.Combine(appDir, "wwwroot", "index.html");
@@ -117,6 +123,61 @@ namespace SalaryCalculator
             else
             {
                 MessageBox.Show($"Cannot find frontend files at: {htmlPath}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                string jsonMessage = e.WebMessageAsJson;
+                using (var doc = System.Text.Json.JsonDocument.Parse(jsonMessage))
+                {
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("action", out var action) && action.GetString() == "resize_form")
+                    {
+                        int targetWidth = root.GetProperty("targetWidth").GetInt32();
+
+                        if (this.InvokeRequired)
+                        {
+                            this.BeginInvoke(new Action(() => {
+                                UpdateFormWidthSmart(targetWidth);
+                            }));
+                        }
+                        else
+                        {
+                            UpdateFormWidthSmart(targetWidth);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[WebMessageReceived Error]: {ex.Message}");
+            }
+        }
+
+        private void UpdateFormWidthSmart(int targetWidth)
+        {
+            if (this.Width == targetWidth) return;
+
+            var screen = Screen.FromControl(this).WorkingArea;
+            
+            if (targetWidth <= 1180)
+            {
+                // Khi đóng panel (thu nhỏ về 1180px): Căn giữa lại màn hình
+                this.Width = targetWidth;
+                this.CenterToScreen();
+            }
+            else
+            {
+                // Khi mở panel (nới rộng lên 1560px): Nếu bị tràn lề phải, đẩy Left sang trái
+                if (this.Left + targetWidth > screen.Right)
+                {
+                    int newLeft = screen.Right - targetWidth;
+                    this.Left = Math.Max(screen.Left, newLeft);
+                }
+                this.Width = targetWidth;
             }
         }
 

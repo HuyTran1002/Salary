@@ -114,6 +114,34 @@ namespace SalaryCalculator
             }
         }
 
+        public string SaveRawUserJson(string username, string userJson)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(userJson))
+                    return JsonSerializer.Serialize(new { success = false, message = "Invalid parameters" });
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var user = JsonSerializer.Deserialize<UserInfo>(userJson, options);
+
+                if (user == null)
+                {
+                    user = new UserInfo { Username = username };
+                }
+                else if (string.IsNullOrEmpty(user.Username))
+                {
+                    user.Username = username;
+                }
+
+                bool saved = _dataManager.SaveUser(user);
+                return JsonSerializer.Serialize(new { success = saved });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
+            }
+        }
+
         public string UpdateProfile(string payloadJson)
         {
             try
@@ -747,6 +775,67 @@ namespace SalaryCalculator
 
             if (!usedComments.Contains(fallback)) return fallback;
             return $"{fallback} ✨";
+        }
+
+        public string FirebaseLogin(string projectId, string userUid, string credentialsPath = "")
+        {
+            try
+            {
+                (bool success, string message) result;
+                if (!string.IsNullOrEmpty(credentialsPath) && System.IO.File.Exists(credentialsPath))
+                {
+                    result = FirebaseSyncService.Instance.LoginAsync(projectId, credentialsPath, userUid).GetAwaiter().GetResult();
+                }
+                else
+                {
+                    result = FirebaseSyncService.Instance.LoginWithProjectIdAsync(projectId, userUid).GetAwaiter().GetResult();
+                }
+
+                return JsonSerializer.Serialize(new { success = result.success, message = result.message });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
+            }
+        }
+
+        public string FirebaseSyncAll()
+        {
+            try
+            {
+                var result = FirebaseSyncService.Instance.SyncAllLocalToJsonToCloudAsync().GetAwaiter().GetResult();
+                return JsonSerializer.Serialize(new { success = result.success, count = result.count, message = result.message });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
+            }
+        }
+
+        public string GetAllUsersJson()
+        {
+            try
+            {
+                var users = _dataManager.GetAllUsers();
+                return JsonSerializer.Serialize(new { success = true, users = users });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
+            }
+        }
+
+        public string FirebaseSaveSalaryTransaction(string username, string periodKey, decimal netSalary, string detailJson)
+        {
+            try
+            {
+                bool success = FirebaseSyncService.Instance.SaveSalaryWithTransactionAsync(username, periodKey, netSalary, detailJson).GetAwaiter().GetResult();
+                return JsonSerializer.Serialize(new { success = success });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
+            }
         }
         // DTO for payload
         private class CalcPayload

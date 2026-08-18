@@ -489,6 +489,8 @@ loginBtn.addEventListener('click', async () => {
 
             if (result.success) {
                 currentUser = result.user;
+                window.currentUser = currentUser;
+                window.currentUsername = currentUser.Username;
                 if (welcomeText) welcomeText.textContent = `Xin chào, ${currentUser.FullName || currentUser.Username}`;
 
                 // Pre-fill default month & year based on payroll cutoff (21st to 20th next month)
@@ -610,6 +612,13 @@ btnRegister.addEventListener('click', async () => {
 
             if (result.success) {
                 usernameInput.value = username;
+
+                // Tự động đồng bộ Nhân viên mới lên Cloud ngay lập tức
+                if (typeof window.autoSyncCurrentUserToCloud === 'function') {
+                    window.currentUsername = username;
+                    window.autoSyncCurrentUserToCloud();
+                }
+
                 switchScreen('login');
                 btnLogin.click();
             } else {
@@ -748,6 +757,11 @@ btnSaveProfile.addEventListener('click', async () => {
                 inputs.insurancePercent.value = currentUser.InsurancePercent || 10.5;
                 inputs.taxThreshold.value = formatCurrencyInput(currentUser.TaxThreshold || 15500000);
 
+                // Tự động đồng bộ Hồ Sơ mới lên Cloud ngay lập tức
+                if (typeof window.autoSyncCurrentUserToCloud === 'function') {
+                    window.autoSyncCurrentUserToCloud();
+                }
+
                 setTimeout(() => {
                     switchScreen('main');
                 }, 100);
@@ -852,6 +866,11 @@ calcBtn.addEventListener('click', async () => {
                 animateValue(resInsurance, 0, result.insurance, 1200);
                 animateValue(resTax, 0, result.tax, 1200);
                 animateValue(resNet, 0, result.net, 1500);
+
+                // Tự động đẩy kết quả vừa tính toán lên Cloud Firestore ngay lập tức
+                if (typeof window.autoSyncCurrentUserToCloud === 'function') {
+                    window.autoSyncCurrentUserToCloud();
+                }
             } else {
                 alert(result.message);
             }
@@ -1286,9 +1305,18 @@ function showHistoryDetail(item) {
                 if (d.otDays8 > 0) bonusMealVal += d.otDays8 * m8;
             }
 
-            let mealDisplayHtml = formatCurrency(d.mealAllowance || 0);
+            const totalSlDays = d.isMidMonthSalaryChange ? ((d.slDaysOff1 || 0) + (d.slDaysOff2 || 0)) : (d.slDaysOff || 0);
+
+            // 1. Tiền Cơm: Khấu trừ do nghỉ SL/NP + Cộng tiền cơm OT -> Hiển thị tổng thực nhận & các badge tương ứng
+            const slMealDeductionVal = totalSlDays > 0 ? Math.round(((d.mealAllowance || 0) / (d.workingDays || 22)) * totalSlDays) : 0;
+            const actualMealEarned = Math.max(0, (d.mealAllowance || 0) - slMealDeductionVal + bonusMealVal);
+            let mealDisplayHtml = formatCurrency(actualMealEarned);
+
+            if (slMealDeductionVal > 0) {
+                mealDisplayHtml += `<span style="color: #ef4444; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(239,68,68,0.12); padding: 1px 4px; border-radius: 4px;" title="Trừ tiền cơm do nghỉ SL/NP">-${formatCurrency(slMealDeductionVal)}</span>`;
+            }
             if (bonusMealVal > 0) {
-                mealDisplayHtml += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Cộng thêm từ ngày OT">+${formatCurrency(bonusMealVal)}</span>`;
+                mealDisplayHtml += `<span style="color: #10b981; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(16,185,129,0.12); padding: 1px 4px; border-radius: 4px;" title="Cộng thêm tiền cơm từ ngày OT">+${formatCurrency(bonusMealVal)}</span>`;
             }
 
             // Calculate OT monetary earnings
@@ -1319,7 +1347,6 @@ function showHistoryDetail(item) {
                 </div>
             `;
 
-            const totalSlDays = d.isMidMonthSalaryChange ? ((d.slDaysOff1 || 0) + (d.slDaysOff2 || 0)) : (d.slDaysOff || 0);
             let slDaysHtml = totalSlDays + ' ngày';
             if (slDeductionVal > 0) {
                 slDaysHtml += `<span style="color: #ef4444; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(239,68,68,0.12); padding: 1px 4px; border-radius: 4px;" title="Khấu trừ lương SL/NP">-${formatCurrency(slDeductionVal)}</span>`;
@@ -1351,7 +1378,17 @@ function showHistoryDetail(item) {
 
             const dailyBasicSalary = Math.round((d.basicSalary || 0) / (d.workingDays || 22));
 
+            // 2. Lương Cơ Bản: Badge trừ chỉ tính phần Lương Cơ Bản (không cộng tiền cơm)
+            const slBasicDeductionVal = totalSlDays > 0 ? Math.round(((d.basicSalary || 0) / (d.workingDays || 22)) * totalSlDays) : 0;
             let basicSalaryLabelDisplay = formatCurrency(d.basicSalary || 0);
+            if (slBasicDeductionVal > 0 && !d.isMidMonthSalaryChange) {
+                const actualEarnedBasic = Math.max(0, (d.basicSalary || 0) - slBasicDeductionVal);
+                basicSalaryLabelDisplay = `${formatCurrency(actualEarnedBasic)} <span style="color: #ef4444; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(239,68,68,0.12); padding: 1px 4px; border-radius: 4px;" title="Trừ Lương Cơ Bản do nghỉ SL/NP">-${formatCurrency(slBasicDeductionVal)}</span>`;
+            } else if (d.isMidMonthSalaryChange) {
+                const d1 = Math.round((d.oldBasicSalary || 0) / (d.workingDays || 22));
+                const d2 = Math.round((d.newBasicSalary || 0) / (d.workingDays || 22));
+                basicSalaryLabelDisplay = `<span style="font-size:0.75rem;">${formatCurrency(d.oldBasicSalary || 0)} ➔ ${formatCurrency(d.newBasicSalary || 0)}</span>`;
+            }
             let dailyBasicSalaryLabelDisplay = formatCurrency(dailyBasicSalary);
             if (d.isMidMonthSalaryChange) {
                 const d1 = Math.round((d.oldBasicSalary || 0) / (d.workingDays || 22));
