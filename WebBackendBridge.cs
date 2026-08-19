@@ -779,37 +779,12 @@ namespace SalaryCalculator
 
         public string FirebaseLogin(string projectId, string userUid, string credentialsPath = "")
         {
-            try
-            {
-                (bool success, string message) result;
-                if (!string.IsNullOrEmpty(credentialsPath) && System.IO.File.Exists(credentialsPath))
-                {
-                    result = FirebaseSyncService.Instance.LoginAsync(projectId, credentialsPath, userUid).GetAwaiter().GetResult();
-                }
-                else
-                {
-                    result = FirebaseSyncService.Instance.LoginWithProjectIdAsync(projectId, userUid).GetAwaiter().GetResult();
-                }
-
-                return JsonSerializer.Serialize(new { success = result.success, message = result.message });
-            }
-            catch (Exception ex)
-            {
-                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
-            }
+            return JsonSerializer.Serialize(new { success = false, message = "Cloud sync has been disabled." });
         }
 
         public string FirebaseSyncAll()
         {
-            try
-            {
-                var result = FirebaseSyncService.Instance.SyncAllLocalToJsonToCloudAsync().GetAwaiter().GetResult();
-                return JsonSerializer.Serialize(new { success = result.success, count = result.count, message = result.message });
-            }
-            catch (Exception ex)
-            {
-                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
-            }
+            return JsonSerializer.Serialize(new { success = false, count = 0, message = "Cloud sync has been disabled." });
         }
 
         public string GetAllUsersJson()
@@ -827,15 +802,7 @@ namespace SalaryCalculator
 
         public string FirebaseSaveSalaryTransaction(string username, string periodKey, decimal netSalary, string detailJson)
         {
-            try
-            {
-                bool success = FirebaseSyncService.Instance.SaveSalaryWithTransactionAsync(username, periodKey, netSalary, detailJson).GetAwaiter().GetResult();
-                return JsonSerializer.Serialize(new { success = success });
-            }
-            catch (Exception ex)
-            {
-                return JsonSerializer.Serialize(new { success = false, message = ex.Message });
-            }
+            return JsonSerializer.Serialize(new { success = false });
         }
         // DTO for payload
         private class CalcPayload

@@ -6,15 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salary Calculator 3D</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="cloud-sync.css">
     <link rel="stylesheet" href="schedule.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <!-- Firebase Web SDK Compat -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body class="no-scroll">
@@ -537,105 +532,6 @@
         </div>
     </div>
 
-    <!-- Sliding Panel Trigger Button -->
-    <button id="btnToggleCloudPanel" class="cloud-toggle-btn" title="Mở Sync Firebase">
-        <span class="arrow-icon">◀</span> ☁️
-    </button>
-
-    <!-- Cloud Sync Sliding Panel -->
-    <div id="cloudSyncPanel" class="cloud-panel">
-        <div class="panel-header">
-            <h3>☁️ Firebase Cloud Sync</h3>
-            <button id="btnCloseCloudPanel" class="close-panel-btn">&times;</button>
-        </div>
-
-        <div class="panel-body">
-            <!-- Trạng thái Chưa Đăng Nhập -->
-            <div id="firebaseAuthSection" class="auth-section">
-                <!-- Auth Tabs -->
-                <div class="auth-tabs" style="margin-bottom: 12px;">
-                    <button id="tabLoginBtn" class="auth-tab-btn active">Đăng Nhập</button>
-                    <button id="tabRegisterBtn" class="auth-tab-btn">Đăng Ký Mới</button>
-                </div>
-
-                <!-- Form Đăng Nhập -->
-                <div id="loginForm">
-                    <p class="section-desc">Đăng nhập tài khoản Firebase để tự động đồng bộ dữ liệu thời gian thực.</p>
-                    <div class="input-group">
-                        <label>Email tài khoản</label>
-                        <input type="email" id="txtLoginEmail" placeholder="user@company.com" />
-                    </div>
-                    <div class="input-group">
-                        <label>Mật khẩu</label>
-                        <input type="password" id="txtLoginPassword" placeholder="••••••••" />
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                        <button id="btnForgotPassword" class="link-btn">Quên mật khẩu?</button>
-                    </div>
-                    <button id="btnLoginSubmit" class="btn-primary-cloud">
-                        🔑 Đăng Nhập Cloud
-                    </button>
-                </div>
-
-                <!-- Form Đăng Ký -->
-                <div id="registerForm" class="hidden">
-                    <p class="section-desc">Tạo tài khoản mới. Email xác thực sẽ được gửi để kích hoạt tài khoản.</p>
-                    <div class="input-group">
-                        <label>Email đăng ký</label>
-                        <input type="email" id="txtRegEmail" placeholder="user@company.com" />
-                    </div>
-                    <div class="input-group">
-                        <label>Mật khẩu (ít nhất 6 ký tự)</label>
-                        <input type="password" id="txtRegPassword" placeholder="••••••••" />
-                    </div>
-                    <div class="input-group">
-                        <label>Xác nhận mật khẩu</label>
-                        <input type="password" id="txtRegPasswordConfirm" placeholder="••••••••" />
-                    </div>
-                    <button id="btnRegisterSubmit" class="btn-primary-cloud"
-                        style="background: #a6e3a1; color: #11111b;">
-                        ✉️ Đăng Ký & Gửi Email Xác Thực
-                    </button>
-                </div>
-            </div>
-
-            <!-- Trạng thái Cảnh báo Email Chưa Xác Minh -->
-            <div id="firebaseVerificationSection" class="verification-banner hidden">
-                <h4>⚠️ Email chưa được xác minh!</h4>
-                <p>Tài khoản <strong id="lblUnverifiedEmail">user@company.com</strong> đã được đăng ký nhưng chưa nhấp
-                    link xác minh. Vui lòng mở hộp thư email (kiểm tra cả thư rác/spam) và nhấp link xác thực.</p>
-                <button id="btnResendVerification" class="btn-secondary-cloud" style="margin-bottom: 6px;">
-                    📩 Gửi lại Email Xác Thực
-                </button>
-                <button id="btnCheckVerification" class="btn-primary-cloud">
-                    🔄 Tôi đã bấm link xác minh (Tải lại)
-                </button>
-            </div>
-
-            <!-- Trạng thái Đã Đăng Nhập & Email Đã Xác Minh -->
-            <div id="firebaseStatusSection" class="status-section hidden">
-                <div class="user-badge">
-                    <div style="font-size: 0.78rem; color: #a6adc8;">Tài khoản đã xác minh:</div>
-                    <div class="user-email" id="lblFirebaseUserEmail">user@company.com</div>
-                    <div class="user-status">🟢 Đang kết nối Firestore Realtime</div>
-                </div>
-                <div class="sync-actions">
-                    <button id="btnManualSync" class="btn-secondary-cloud">
-                        🔄 Sao lưu toàn bộ (Sync Now)
-                    </button>
-                    <button id="btnRestoreFromCloud" class="btn-secondary-cloud"
-                        style="background: rgba(137, 180, 250, 0.15); border-color: rgba(137, 180, 250, 0.3); color: #89b4fa;">
-                        📥 Tải về từ Cloud (Restore All)
-                    </button>
-                    <button id="btnFirebaseLogout" class="btn-danger-cloud">
-                        🚪 Đăng xuất Cloud
-                    </button>
-                </div>
-                <div class="sync-log" id="cloudSyncLog">
-                    <p class="log-item success">🟢 Sẵn sàng đồng bộ real-time...</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Nút Mũi Tên Bật Lịch Làm Việc Bên Trái (Left Toggle) -->
@@ -745,8 +641,6 @@
     </div>
 
     <script src="app.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="cloud-sync.js"></script>
     <script src="schedule.js"></script>
 </body>
 

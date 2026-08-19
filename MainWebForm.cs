@@ -100,9 +100,6 @@ namespace SalaryCalculator
             // Register WebMessageReceived handler for JS postMessage (Sliding Panel Resize Form)
             _webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
-            // Initialize FirebaseSyncService with WebView2 reference
-            FirebaseSyncService.Instance.InitializeWebView(_webView);
-
             // Navigate to the local index.html
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string htmlPath = Path.Combine(appDir, "wwwroot", "index.html");
