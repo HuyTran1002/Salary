@@ -189,6 +189,25 @@
     }
     }
 
+    let scheduleAutoRefreshTimer = null;
+
+    function startAutoRefreshTimer() {
+        stopAutoRefreshTimer();
+        // Cập nhật real-time mỗi 10 giây nếu bảng lịch đang mở
+        scheduleAutoRefreshTimer = setInterval(() => {
+            if (isScheduleOpen) {
+                renderScheduleTable();
+            }
+        }, 10000);
+    }
+
+    function stopAutoRefreshTimer() {
+        if (scheduleAutoRefreshTimer) {
+            clearInterval(scheduleAutoRefreshTimer);
+            scheduleAutoRefreshTimer = null;
+        }
+    }
+
     function toggleSchedulePanel(show) {
         const panel = document.getElementById('schedulePanelLeft');
         const icon = document.getElementById('scheduleArrowIcon');
@@ -198,10 +217,26 @@
         if (isScheduleOpen) {
             if (panel) panel.classList.add('open');
             if (icon) icon.textContent = '◀';
+
+            // Tự động đồng bộ Tháng / Năm hiện tại từ màn hình chính (nếu có)
+            const mainMonthInput = document.getElementById('month');
+            const mainYearInput = document.getElementById('year');
+            const selMonth = document.getElementById('selShiftMonth');
+            const selYear = document.getElementById('selShiftYear');
+
+            if (mainMonthInput && mainMonthInput.value && selMonth) {
+                selMonth.value = mainMonthInput.value;
+            }
+            if (mainYearInput && mainYearInput.value && selYear) {
+                selYear.value = mainYearInput.value;
+            }
+
             renderScheduleTable();
+            startAutoRefreshTimer();
         } else {
             if (panel) panel.classList.remove('open');
             if (icon) icon.textContent = '▶';
+            stopAutoRefreshTimer();
         }
     }
 
@@ -228,6 +263,8 @@
         const selTeam = document.getElementById('selShiftTeam');
         const selMonth = document.getElementById('selShiftMonth');
         const selYear = document.getElementById('selShiftYear');
+        const mainMonth = document.getElementById('month');
+        const mainYear = document.getElementById('year');
 
         if (btnToggleLeft) {
             btnToggleLeft.addEventListener('click', () => toggleSchedulePanel());
@@ -250,6 +287,25 @@
         if (selYear) {
             selYear.value = selectedYear;
             selYear.addEventListener('change', () => renderScheduleTable());
+        }
+
+        // Lắng nghe sự kiện đổi Tháng/Năm ở màn hình chính để tự động đồng bộ lịch
+        if (mainMonth) {
+            mainMonth.addEventListener('change', () => {
+                if (selMonth && mainMonth.value) {
+                    selMonth.value = mainMonth.value;
+                    if (isScheduleOpen) renderScheduleTable();
+                }
+            });
+        }
+
+        if (mainYear) {
+            mainYear.addEventListener('change', () => {
+                if (selYear && mainYear.value) {
+                    selYear.value = mainYear.value;
+                    if (isScheduleOpen) renderScheduleTable();
+                }
+            });
         }
 
         // MutationObserver theo dõi khi chuyển sang màn hình loginScreen
