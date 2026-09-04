@@ -8,6 +8,7 @@
     let selectedTeam = localStorage.getItem('user_shift_team') || 'A1';
     let selectedMonth = new Date().getMonth() + 1; // Default current month (1-12)
     let selectedYear = 2026;
+    let lastRenderedDateString = '';
 
     // Chu kỳ 20 ngày xoay ca chuẩn:
     // 0..4   : 5 ca Night (n)
@@ -100,6 +101,7 @@
         localStorage.setItem('user_shift_team', selectedTeam);
 
         const today = new Date();
+        lastRenderedDateString = today.toDateString();
         const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
         const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
@@ -263,6 +265,12 @@
             tbody.appendChild(tr);
         });
 
+
+
+    // 3. Cập nhật thẻ tóm tắt Ca làm việc hiện tại
+    updateCurrentShiftSummary();
+}
+
     // Helper lấy ca làm việc thực tế theo giờ mở app
     function getCurrentTimeShiftInfo() {
         const now = new Date();
@@ -286,7 +294,11 @@
         return { code, timeStr };
     }
 
-    // 3. Cập nhật thẻ tóm tắt Ca làm việc hiện tại
+function updateCurrentShiftSummary() {
+    const summaryText = document.getElementById('shiftSummaryText');
+    const teamSelect = document.getElementById('selShiftTeam');
+    const selectedTeam = teamSelect ? teamSelect.value : 'ALL';
+    
     if (summaryText) {
         const currentTodayDate = new Date();
         const timeShift = getCurrentTimeShiftInfo();
@@ -303,18 +315,45 @@
             summaryText.innerHTML = `Shift <strong>${selectedTeam}</strong> hôm nay (${currentTodayDate.getDate()}/${currentTodayDate.getMonth() + 1}): ${activeInfo.label} (${activeInfo.time})`;
         }
     }
+
+    // Cập nhật nhãn Tuần (WW) theo chuẩn Intel (Chủ nhật là .0, tuần bắt đầu từ Chủ nhật)
+    const wwBadge = document.getElementById('currentWwBadge');
+    if (wwBadge) {
+        const dObj = new Date();
+        const day = dObj.getDay(); // 0 (CN) -> 6 (T7)
+        
+        const sunday = new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate());
+        sunday.setDate(sunday.getDate() - day);
+        
+        const year = sunday.getFullYear();
+        const jan1 = new Date(year, 0, 1);
+        const jan1Day = jan1.getDay();
+        
+        const firstSunday = new Date(year, 0, 1);
+        firstSunday.setDate(firstSunday.getDate() - jan1Day);
+        
+        const ww = Math.floor((sunday - firstSunday) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        
+        wwBadge.innerText = `WW${ww < 10 ? '0' + ww : ww}.${day}`;
     }
+}
 
     let scheduleAutoRefreshTimer = null;
 
     function startAutoRefreshTimer() {
         stopAutoRefreshTimer();
-        // Cập nhật real-time mỗi 10 giây nếu bảng lịch đang mở
+        // Cập nhật real-time trạng thái ca hiện tại mỗi 1 giây (rất nhẹ vì chỉ update text)
         scheduleAutoRefreshTimer = setInterval(() => {
             if (isScheduleOpen) {
-                renderScheduleTable();
+                if (new Date().toDateString() !== lastRenderedDateString) {
+                    // Nếu đã qua ngày mới, render lại toàn bộ để cập nhật cột highlight
+                    renderScheduleTable();
+                } else {
+                    // Nếu vẫn trong ngày cũ, chỉ update text cực nhẹ
+                    updateCurrentShiftSummary();
+                }
             }
-        }, 10000);
+        }, 1000);
     }
 
     function stopAutoRefreshTimer() {

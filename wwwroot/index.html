@@ -542,7 +542,10 @@
     <!-- Khung Panel Lịch Làm Việc Số (Left Drawer) -->
     <div id="schedulePanelLeft" class="schedule-panel-left">
         <div class="schedule-panel-header">
-            <h3 id="schedulePanelTitle">📅 LỊCH LÀM VIỆC SỐ 2026</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h3 id="schedulePanelTitle" style="margin: 0;">📅 LỊCH LÀM VIỆC SỐ 2026</h3>
+                <span id="currentWwBadge" style="background: #cba6f7; color: #1e1e2e; padding: 2px 6px; font-size: 0.75rem; border-radius: 4px; font-weight: bold;" title="Tuần làm việc hiện tại (Chuẩn Intel)">WW--.-</span>
+            </div>
             <button id="btnCloseSchedulePanel" class="btn-close">&times;</button>
         </div>
         <div class="schedule-panel-body">
