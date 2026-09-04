@@ -35,6 +35,13 @@
     const ANCHOR_DATE = new Date(2026, 7, 1); // 01/08/2026
 
     function getShiftForDate(team, targetDate) {
+        if (team === 'N') {
+            const day = targetDate.getDay();
+            if (day >= 1 && day <= 5) return 'd'; // Mon-Fri
+            if (day === 6) return 'FWD'; // Sat
+            return 'Off'; // Sun
+        }
+
         if (!TEAM_OFFSETS.hasOwnProperty(team)) return 'Off';
 
         // Tính toán theo mốc chu kỳ 20 ngày
@@ -99,6 +106,7 @@
         // 1. Render Header Rows (Hàng Ngày & Hàng Thứ)
         if (thead) {
             let rowDaysHtml = `<tr><th class="sticky-col">Ngày</th>`;
+            let rowLunarDaysHtml = `<tr><th class="sticky-col" style="color: #f38ba8; font-size: 0.85em;">Âm Lịch</th>`;
             let rowDaysOfWeekHtml = `<tr><th class="sticky-col">Thứ</th>`;
 
             for (let d = 1; d <= daysInMonth; d++) {
@@ -107,19 +115,127 @@
                 const isToday = (today.getFullYear() === selectedYear && (today.getMonth() + 1) === selectedMonth && today.getDate() === d);
                 const todayClass = isToday ? 'today-col' : '';
 
-                rowDaysHtml += `<th class="${todayClass}">${d < 10 ? '0' + d : d}</th>`;
                 rowDaysOfWeekHtml += `<th class="${todayClass}" style="color: ${dateObj.getDay() === 0 ? '#f38ba8' : '#a6adc8'};">${dayOfWeekStr}</th>`;
+
+                // Calculate Lunar Date & Holidays
+                let lunarDayStr = "";
+                let solarHolidayTitle = "";
+                let lunarHolidayTitle = "";
+                try {
+                    if (typeof window.Lunar !== 'undefined') {
+                        const lunar = window.Lunar.fromDate(dateObj);
+                        const lD = lunar.getDay();
+                        const lM = lunar.getMonth();
+                        lunarDayStr = lD === 1 ? `${lD}/${lM}` : `${lD}`;
+                        
+                        const sD = dateObj.getDate();
+                        const sM = dateObj.getMonth() + 1;
+                        let solarHols = [];
+                        let lunarHols = [];
+                        
+                        // Solar Holidays
+                        const solarKey = `${sD}/${sM}`;
+                        const SOLAR_HOLIDAYS = {
+                            "1/1": "Tết DL", "9/1": "Ngày HSSV VN", "14/2": "Valentine", "27/2": "Ngày Thầy thuốc VN",
+                            "8/3": "Quốc tế Phụ nữ", "20/3": "Quốc tế Hạnh phúc", "26/3": "Thành lập Đoàn", "1/4": "Cá tháng Tư",
+                            "30/4": "Giải Phóng MN", "1/5": "Quốc Tế LĐ", "7/5": "Chiến thắng ĐBP", "15/5": "Thành lập Đội",
+                            "19/5": "Sinh nhật Bác", "1/6": "Quốc tế Thiếu nhi", "21/6": "Ngày Báo chí VN", "28/6": "Ngày Gia đình VN",
+                            "27/7": "Thương binh Liệt sĩ", "19/8": "Cách mạng T8", "2/9": "Quốc Khánh", "1/10": "Người cao tuổi",
+                            "10/10": "Giải phóng Thủ đô", "20/10": "Phụ nữ VN", "31/10": "Halloween", "9/11": "Pháp luật VN",
+                            "20/11": "Nhà giáo VN", "23/11": "Khởi nghĩa Nam Kỳ", "24/11": "Ngày VH VN", "22/12": "Thành lập QĐND",
+                            "24/12": "Giáng sinh (Eve)", "25/12": "Giáng sinh"
+                        };
+                        
+                        if (SOLAR_HOLIDAYS[solarKey]) solarHols.push(SOLAR_HOLIDAYS[solarKey]);
+                        if (sD === 1 && sM === 9) solarHols.push("Quốc Khánh"); // Additional day for National Day
+                        
+                        // Lunar Holidays
+                        const lunarKey = `${lD}/${lM}`;
+                        const LUNAR_HOLIDAYS = {
+                            "15/1": "Tết Nguyên Tiêu", "3/3": "Tết Hàn Thực", "10/3": "Giỗ Tổ HV", "15/4": "Lễ Phật Đản",
+                            "5/5": "Tết Đoan Ngọ", "15/7": "Lễ Vu Lan", "15/8": "Tết Trung Thu", "9/9": "Tết Trùng Cửu",
+                            "10/10": "Tết Trùng Thập", "15/10": "Tết Hạ Nguyên", "23/12": "Ông Công Ông Táo"
+                        };
+                        
+                        if (LUNAR_HOLIDAYS[lunarKey]) lunarHols.push(LUNAR_HOLIDAYS[lunarKey]);
+                        if ((lM === 12 && lD >= 29) || (lM === 1 && lD >= 1 && lD <= 5)) {
+                            // Deduplicate if we already added Tet ND
+                            if (!lunarHols.includes("Tết NĐ")) lunarHols.push("Tết NĐ");
+                        }
+                        
+                        const HOLIDAY_HISTORY = {
+                            "Tết DL": "🎉 Tết Dương lịch (01/01)\nNgày đầu tiên của năm mới theo lịch Gregorius. Đánh dấu sự chuyển giao năm cũ và năm mới trên toàn thế giới.",
+                            "Ngày HSSV VN": "🎓 Ngày Học sinh - Sinh viên Việt Nam (09/01)\nKỷ niệm ngày truyền thống của phong trào học sinh, sinh viên và Hội Sinh viên Việt Nam.",
+                            "Valentine": "❤️ Lễ Tình nhân (14/02)\nNgày tôn vinh tình yêu đôi lứa trên toàn thế giới, gắn liền với truyền thuyết về vị Thánh tình yêu Valentine.",
+                            "Ngày Thầy thuốc VN": "⚕️ Ngày Thầy thuốc Việt Nam (27/02)\nNgày tôn vinh y bác sĩ, gắn liền với bức thư Bác Hồ gửi cán bộ y tế năm 1955: 'Lương y phải như từ mẫu'.",
+                            "Quốc tế Phụ nữ": "🌹 Quốc tế Phụ nữ (08/03)\nNgày tôn vinh vẻ đẹp, sự hy sinh của phụ nữ toàn cầu. Ở VN còn là ngày kỷ niệm Khởi nghĩa Hai Bà Trưng hào hùng.",
+                            "Quốc tế Hạnh phúc": "😊 Quốc tế Hạnh phúc (20/03)\nNgày lễ của Liên Hợp Quốc truyền tải thông điệp về sự cân bằng, hài hòa và lan tỏa niềm vui trong cuộc sống.",
+                            "Thành lập Đoàn": "🚩 Thành lập Đoàn TNCS Hồ Chí Minh (26/03)\nKỷ niệm ngày thành lập lực lượng nòng cốt, tiên phong của thanh niên Việt Nam (1931).",
+                            "Cá tháng Tư": "🤡 Cá tháng Tư (01/04)\nNgày hội vui vẻ của những lời nói dối vô hại, mang lại tiếng cười và sự bất ngờ thú vị.",
+                            "Giải Phóng MN": "🇻🇳 Giải phóng miền Nam (30/04)\nNgày 30/04/1975, cờ Mặt trận tung bay trên Dinh Độc Lập, đánh dấu sự kiện thống nhất đất nước trọn vẹn.",
+                            "Quốc Tế LĐ": "👷 Quốc tế Lao động (01/05)\nBắt nguồn từ cuộc bãi công tại Chicago (Mỹ) năm 1886 đòi quyền làm việc 8 giờ/ngày. Tôn vinh người lao động.",
+                            "Chiến thắng ĐBP": "🎖️ Chiến thắng Điện Biên Phủ (07/05)\nKỷ niệm chiến thắng lịch sử năm 1954 'lừng lẫy năm châu, chấn động địa cầu', đập tan ách thực dân Pháp.",
+                            "Thành lập Đội": "🧣 Thành lập Đội TNTP Hồ Chí Minh (15/05)\nNgày truyền thống của Đội Thiếu niên Tiền phong, ươm mầm thế hệ tương lai.",
+                            "Sinh nhật Bác": "🌻 Sinh nhật Bác (19/05)\nKỷ niệm ngày sinh vị cha già dân tộc, danh nhân văn hóa thế giới Hồ Chí Minh (1890 - 1969).",
+                            "Quốc tế Thiếu nhi": "🧸 Quốc tế Thiếu nhi (01/06)\nNgày tết dành riêng cho trẻ em, nhắc nhở toàn nhân loại về quyền và sự bảo vệ trẻ em.",
+                            "Ngày Báo chí VN": "📰 Ngày Báo chí Cách mạng VN (21/06)\nKỷ niệm ngày Bác Hồ sáng lập ra tờ báo Thanh Niên (1925), tiếng nói của cách mạng.",
+                            "Ngày Gia đình VN": "👨‍👩‍👧‍👦 Ngày Gia đình Việt Nam (28/06)\nNgày tôn vinh, gìn giữ và phát huy những giá trị văn hóa truyền thống tốt đẹp của gia đình Việt.",
+                            "Thương binh Liệt sĩ": "🕯️ Thương binh Liệt sĩ (27/07)\nNgày đền ơn đáp nghĩa, tri ân sâu sắc những anh hùng, thương bệnh binh đã đổ máu vì độc lập tự do.",
+                            "Cách mạng T8": "⭐ Cách mạng tháng Tám (19/08)\nKỷ niệm thành công của Cách mạng tháng Tám (1945) và Ngày truyền thống lực lượng Công an Nhân dân.",
+                            "Quốc Khánh": "🇻🇳 Quốc khánh (02/09)\nNgày 02/09/1945 tại Quảng trường Ba Đình, Bác Hồ đọc Tuyên ngôn Độc lập khai sinh nước Việt Nam Dân chủ Cộng hòa.",
+                            "Người cao tuổi": "👵 Quốc tế Người cao tuổi (01/10)\nNgày tôn vinh những đóng góp và nâng cao nhận thức bảo vệ, chăm sóc người cao tuổi.",
+                            "Giải phóng Thủ đô": "🕊️ Giải phóng Thủ đô (10/10)\nKỷ niệm ngày đoàn quân chiến thắng tiến về tiếp quản Thủ đô Hà Nội rợp bóng cờ hoa (1954).",
+                            "Phụ nữ VN": "🌸 Ngày Phụ nữ Việt Nam (20/10)\nKỷ niệm thành lập Hội Liên hiệp Phụ nữ Việt Nam, tôn vinh người phụ nữ đảm đang, bất khuất.",
+                            "Halloween": "🎃 Lễ hội Halloween (31/10)\nLễ hội hóa trang truyền thống mang ý nghĩa xua đuổi tà ma và vui chơi vào đêm trước Lễ Các Thánh.",
+                            "Pháp luật VN": "⚖️ Ngày Pháp luật Việt Nam (09/11)\nNgày tôn vinh Hiến pháp, pháp luật và giáo dục ý thức thượng tôn pháp luật cho toàn dân.",
+                            "Nhà giáo VN": "📚 Ngày Nhà giáo Việt Nam (20/11)\nNgày truyền thống 'tôn sư trọng đạo', tri ân sâu sắc các thầy cô giáo trong sự nghiệp trồng người cao cả.",
+                            "Khởi nghĩa Nam Kỳ": "🔥 Khởi nghĩa Nam Kỳ (23/11)\nKỷ niệm cuộc khởi nghĩa oanh liệt năm 1940, rung chuyển chính quyền thực dân tại Nam Kỳ.",
+                            "Ngày VH VN": "🏛️ Ngày Di sản Văn hóa VN (24/11)\nKỷ niệm Hội nghị Văn hóa toàn quốc 1946: 'Văn hóa soi đường cho quốc dân đi'. Tôn vinh di sản dân tộc.",
+                            "Thành lập QĐND": "⚔️ Ngày thành lập Quân đội Nhân dân (22/12)\nKỷ niệm thành lập lực lượng vũ trang nhân dân (1944), đội quân 'từ nhân dân mà ra, vì nhân dân mà chiến đấu'.",
+                            "Giáng sinh (Eve)": "🎄 Đêm Giáng Sinh (24/12)\nĐêm Thánh vô cùng, thời khắc thiêng liêng chuẩn bị đón mừng Chúa Giê-su giáng sinh.",
+                            "Giáng sinh": "⛪ Lễ Giáng Sinh (25/12)\nLễ kỷ niệm Chúa Giê-su ra đời của tín đồ Công giáo, ngày nay đã trở thành một lễ hội văn hóa toàn cầu.",
+                            "Tết Nguyên Tiêu": "🏮 Tết Nguyên Tiêu (Rằm tháng Giêng)\nĐêm trăng tròn đầu tiên của năm, người dân thường lên chùa cầu an, thả hoa đăng và ngắm trăng sáng.",
+                            "Tết Hàn Thực": "🍡 Tết Hàn Thực (03/03 ÂL)\nTết ăn đồ nguội lạnh. Ở VN, mọi người làm bánh trôi, bánh chay dâng lên cúng tổ tiên với lòng thành kính.",
+                            "Giỗ Tổ HV": "🐉 Giỗ Tổ Hùng Vương (10/03 ÂL)\n'Dù ai đi ngược về xuôi/ Nhớ ngày giỗ Tổ mùng Mười tháng Ba'. Lễ hội tín ngưỡng thờ cúng quốc tổ thiêng liêng.",
+                            "Lễ Phật Đản": "🪷 Lễ Phật Đản (Vesak - 15/04 ÂL)\nKỷ niệm ngày Đức Phật Thích Ca Mâu Ni đản sinh. Một trong những ngày lễ thiêng liêng, lớn nhất của Phật giáo.",
+                            "Tết Đoan Ngọ": "🌿 Tết Đoan Ngọ (05/05 ÂL)\n'Tết diệt sâu bọ', vào giữa trưa (giờ Ngọ), người dân ăn trái cây, cơm rượu nếp để tiêu trừ bệnh tật trong năm.",
+                            "Lễ Vu Lan": "🙏🏻 Lễ Vu Lan báo hiếu (15/07 ÂL)\nNgày lễ lớn của Đạo Phật để con cái báo hiếu công ơn sinh thành của cha mẹ. Đồng thời là ngày Xá tội vong nhân.",
+                            "Tết Trung Thu": "🥮 Tết Trung Thu (15/08 ÂL)\nTết của thiếu nhi với đèn ông sao, múa lân. Đồng thời là Tết Đoàn viên để gia đình quây quần thưởng trăng, ăn bánh.",
+                            "Tết Trùng Cửu": "🌼 Tết Trùng Cửu (09/09 ÂL)\nNgày Tết cổ truyền mang ý nghĩa trường thọ. Thời xưa thường có tục leo núi cao, ngắm hoa cúc nở rộ.",
+                            "Tết Trùng Thập": "🌾 Tết Thường Tân (10/10 ÂL)\nTết Cơm mới, lễ tạ ơn thần linh, đất trời đã ban cho một vụ mùa màng bội thu, no ấm.",
+                            "Tết Hạ Nguyên": "🌕 Tết Hạ Nguyên (15/10 ÂL)\nRằm tháng Mười, lễ tạ ân thần linh, tổ tiên vào kỳ rằm cuối cùng của năm trước khi đón năm mới.",
+                            "Ông Công Ông Táo": "🐟 Tiễn Ông Công Ông Táo (23/12 ÂL)\nNgày Táo Quân cưỡi cá chép bay về trời báo cáo Ngọc Hoàng về những việc làm, sinh hoạt của gia đình trong năm.",
+                            "Tết NĐ": "🧨 Tết Nguyên Đán\nTết cổ truyền thiêng liêng và lớn nhất của Việt Nam. Là dịp gia đình sum vầy, tưởng nhớ tổ tiên, hy vọng năm mới an khang."
+                        };
+                        
+                        if (solarHols.length > 0) {
+                            solarHolidayTitle = solarHols.map(h => HOLIDAY_HISTORY[h]).join('&#10;&#10;-------------------------&#10;&#10;');
+                        }
+                        if (lunarHols.length > 0) {
+                            lunarHolidayTitle = lunarHols.map(h => HOLIDAY_HISTORY[h]).join('&#10;&#10;-------------------------&#10;&#10;');
+                        }
+                    }
+                } catch(e) {}
+                
+                let solarTitleAttr = solarHolidayTitle ? `title="${solarHolidayTitle}"` : "";
+                let solarStyle = solarHolidayTitle ? `color: #f9e2af; font-weight: bold; cursor: help;` : ``;
+                rowDaysHtml += `<th class="${todayClass}" style="${solarStyle}" ${solarTitleAttr}>${d < 10 ? '0' + d : d}${solarHolidayTitle ? '★' : ''}</th>`;
+                
+                let lunarTitleAttr = lunarHolidayTitle ? `title="${lunarHolidayTitle}"` : "";
+                let lunarStyle = lunarHolidayTitle ? `color: #f9e2af; font-weight: bold; cursor: help;` : `color: #f38ba8; font-weight: normal;`;
+                rowLunarDaysHtml += `<th class="${todayClass}" style="font-size: 0.85em; ${lunarStyle}" ${lunarTitleAttr}>${lunarDayStr}${lunarHolidayTitle ? '★' : ''}</th>`;
             }
 
             rowDaysHtml += `</tr>`;
+            rowLunarDaysHtml += `</tr>`;
             rowDaysOfWeekHtml += `</tr>`;
-            thead.innerHTML = rowDaysHtml + rowDaysOfWeekHtml;
+            thead.innerHTML = rowDaysHtml + rowLunarDaysHtml + rowDaysOfWeekHtml;
         }
 
-        // 2. Render Rows cho từng Kíp (A1..D2)
+        // 2. Render Rows cho từng Kíp (N, A1..D2)
         tbody.innerHTML = '';
         const teamsToRender = selectedTeam === 'ALL' 
-            ? ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2']
+            ? ['N', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2']
             : [selectedTeam];
 
         let todayShiftInfo = null;
@@ -177,7 +293,7 @@
         const currentShiftInfo = getShiftLabelAndClass(timeShift.code);
 
         if (selectedTeam === 'ALL') {
-            const allTeams = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2'];
+            const allTeams = ['N', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2'];
             const workingTeams = allTeams.filter(t => getShiftForDate(t, currentTodayDate) === timeShift.code);
 
             summaryText.innerHTML = `${currentShiftInfo.label} (${currentShiftInfo.time}) — <strong>Đang trực:</strong> ${workingTeams.length > 0 ? workingTeams.map(t => 'Shift ' + t).join(', ') : 'Không có'}`;
