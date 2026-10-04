@@ -1835,4 +1835,22 @@ window.fitMobileViewport = fitMobileViewport;
 window.addEventListener('resize', fitMobileViewport);
 window.addEventListener('orientationchange', fitMobileViewport);
 
+// Auto-lock to Landscape on Mobile (Capacitor Android & Mobile Web)
+async function lockLandscapeOnMobile() {
+    try {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ScreenOrientation) {
+            await window.Capacitor.Plugins.ScreenOrientation.lock({ orientation: 'landscape' });
+            return;
+        }
+    } catch (e) {
+        // Ignored if in browser or desktop
+    }
 
+    try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+            window.screen.orientation.lock('landscape').catch(() => {});
+        }
+    } catch (e) {}
+}
+window.addEventListener('load', lockLandscapeOnMobile);
+document.addEventListener('deviceready', lockLandscapeOnMobile, false);

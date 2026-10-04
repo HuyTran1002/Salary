@@ -1720,12 +1720,12 @@ body.no-scroll {
 }
 
 .history-detail-box {
-    max-width: 860px;
+    max-width: 1060px;
     width: 95%;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    padding: 20px 24px;
+    padding: 22px 28px;
     box-sizing: border-box;
 }
 
@@ -1767,9 +1767,9 @@ body.no-scroll {
 .history-detail-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 10px 14px;
     background: rgba(0, 0, 0, 0.25);
-    padding: 12px;
+    padding: 14px 16px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -1779,16 +1779,17 @@ body.no-scroll {
     justify-content: space-between;
     align-items: center;
     background: rgba(255, 255, 255, 0.03);
-    padding: 6px 10px;
+    padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.04);
     min-width: 0;
+    gap: 8px;
 }
 
 .detail-label {
     color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-right: 6px;
+    font-size: 0.82rem;
+    margin-right: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1797,9 +1798,13 @@ body.no-scroll {
 
 .detail-value {
     font-size: 0.86rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: flex-end;
     white-space: nowrap;
+    text-align: right;
+    margin-left: auto;
+    gap: 4px;
 }
 
 .history-detail-summary {
@@ -3562,8 +3567,8 @@ body.no-scroll {
     }
 
     .history-detail-box {
-        width: 92% !important;
-        max-width: 740px !important;
+        width: 95% !important;
+        max-width: 880px !important;
         max-height: 94vh !important;
         padding: 10px 16px !important;
         border-radius: 14px !important;
@@ -3596,6 +3601,7 @@ body.no-scroll {
         align-items: center !important;
         padding: 3px 8px !important;
         min-height: 30px !important;
+        gap: 4px !important;
     }
 
     .detail-label {
@@ -3604,7 +3610,11 @@ body.no-scroll {
     }
 
     .detail-value {
-        font-size: 0.8rem !important;
+        font-size: 0.78rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 3px !important;
     }
 
     .history-detail-summary {
