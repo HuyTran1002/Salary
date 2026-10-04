@@ -1854,3 +1854,33 @@ async function lockLandscapeOnMobile() {
 }
 window.addEventListener('load', lockLandscapeOnMobile);
 document.addEventListener('deviceready', lockLandscapeOnMobile, false);
+
+// Smart Keyboard Handler on Mobile: Tự động cuộn trường đang nhập lên giữa màn hình khi mở bàn phím
+(function initMobileKeyboardHandler() {
+    let focusTimer = null;
+    document.addEventListener('focusin', (e) => {
+        const el = e.target;
+        if (!el || !['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return;
+        if (window.innerWidth > 1024) return;
+
+        document.body.classList.add('keyboard-open');
+        clearTimeout(focusTimer);
+        focusTimer = setTimeout(() => {
+            try {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (err) {
+                el.scrollIntoView(false);
+            }
+        }, 280);
+    });
+
+    document.addEventListener('focusout', (e) => {
+        clearTimeout(focusTimer);
+        focusTimer = setTimeout(() => {
+            const active = document.activeElement;
+            if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+                document.body.classList.remove('keyboard-open');
+            }
+        }, 150);
+    });
+})();

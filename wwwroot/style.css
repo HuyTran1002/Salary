@@ -5029,4 +5029,37 @@ body.no-scroll {
     border-radius: 12px;
 }
 
+/* =========================================================
+   Mobile Keyboard Active: Khi mở bàn phím trên điện thoại
+   ========================================================= */
+@media (max-width: 1024px) {
+    body.keyboard-open .modal-overlay,
+    body.keyboard-open .history-detail-overlay,
+    body.keyboard-open .company-modal-overlay,
+    body.keyboard-open .cloud-sync-overlay {
+        align-items: flex-start !important;
+        padding-top: 6px !important;
+        padding-bottom: 260px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    body.keyboard-open .history-detail-box,
+    body.keyboard-open .company-box-modal,
+    body.keyboard-open .cloud-sync-box {
+        max-height: calc(100vh - 12px) !important;
+        overflow-y: auto !important;
+        margin-bottom: 200px !important;
+    }
+
+    body.keyboard-open .modal-header-row {
+        margin-bottom: 4px !important;
+    }
+
+    body.keyboard-open .main-screen-container {
+        padding-bottom: 260px !important;
+    }
+}
+
+
 
