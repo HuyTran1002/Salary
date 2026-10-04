@@ -1918,17 +1918,14 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         document.body.classList.add('keyboard-open');
         clearTimeout(focusTimer);
 
-        // NẾU LÀ Ô TRONG MODAL 2 MỨC LƯƠNG: Chỉ cuộn cục bộ trong hộp modal, TUYỆT ĐỐI không gọi window.scrollIntoView làm giật nháy!
-        const midMonthBox = el.closest('.mid-month-box');
-        if (midMonthBox) {
+        // NẾU LÀ Ô TRONG MODAL 2 MỨC LƯƠNG: Cuộn nhẹ nhàng trong mid-month overlay, TUYỆT ĐỐI không gọi window.scrollIntoView làm giật nháy!
+        const midMonthOverlay = el.closest('#midMonthSalaryModal');
+        if (midMonthOverlay) {
             focusTimer = setTimeout(() => {
                 try {
                     const elRect = el.getBoundingClientRect();
-                    const boxRect = midMonthBox.getBoundingClientRect();
-                    if (elRect.top < boxRect.top + 8) {
-                        midMonthBox.scrollTop -= (boxRect.top + 8 - elRect.top);
-                    } else if (elRect.bottom > boxRect.bottom - 12) {
-                        midMonthBox.scrollTop += (elRect.bottom - (boxRect.bottom - 12));
+                    if (elRect.top > 120 || elRect.top < 30) {
+                        midMonthOverlay.scrollTop += (elRect.top - 50);
                     }
                 } catch (err) {}
             }, 80);
@@ -1949,6 +1946,9 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         const panel = document.querySelector('#tab-calc .inputs-panel-stacked');
         if (panel && (!midMonthSalaryModal || midMonthSalaryModal.style.display !== 'flex')) {
             panel.scrollTop = 0;
+        }
+        if (midMonthSalaryModal && midMonthSalaryModal.style.display === 'flex') {
+            midMonthSalaryModal.scrollTop = 0;
         }
     }
 

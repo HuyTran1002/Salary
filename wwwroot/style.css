@@ -5263,6 +5263,9 @@ body.no-scroll {
         justify-content: center !important;
         overflow: hidden !important;
         overscroll-behavior: contain !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(10, 15, 29, 0.96) !important;
     }
 
     .mid-month-box {
@@ -5270,7 +5273,7 @@ body.no-scroll {
         max-width: 680px !important;
         max-height: 98vh !important;
         max-height: 98dvh !important;
-        padding: 5px 12px 25px 12px !important;
+        padding: 5px 12px 10px 12px !important;
         border-radius: 12px !important;
         box-sizing: border-box !important;
         overflow-y: auto !important;
@@ -5278,6 +5281,20 @@ body.no-scroll {
         overscroll-behavior: contain !important;
         touch-action: pan-y !important;
         margin: 0 !important;
+    }
+
+    /* Triệt tiêu hoàn toàn 3D translateZ gây mất ô trên Android WebView */
+    .mid-month-box,
+    .mid-month-box .input-group,
+    .mid-month-box .stage-card,
+    .mid-month-box input,
+    .mid-month-box label {
+        transform: none !important;
+        perspective: none !important;
+        -webkit-transform: none !important;
+        -webkit-perspective: none !important;
+        backface-visibility: visible !important;
+        -webkit-backface-visibility: visible !important;
     }
 
     .mid-month-header {
@@ -5775,24 +5792,26 @@ body.no-scroll {
         min-height: auto !important;
     }
 
-    /* 3. Tối ưu bảng điền số 2 mức lương khi mở bàn phím: Giữ vững 2 cột, không giật màn hình, không mất ô */
+    /* 3. Tối ưu bảng điền số 2 mức lương khi mở bàn phím: Cho phép cuộn trôi toàn bộ lên trên bàn phím */
     body.keyboard-open .mid-month-overlay {
-        align-items: center !important;
+        align-items: flex-start !important;
         justify-content: center !important;
-        padding: 4px !important;
-        overflow: hidden !important;
-    }
-
-    body.keyboard-open .mid-month-box {
-        max-height: 98vh !important;
-        max-height: 98dvh !important;
-        margin: 0 !important;
-        margin-bottom: 0 !important;
+        padding: 4px 4px 220px 4px !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
         overscroll-behavior: contain !important;
         touch-action: pan-y !important;
-        padding-bottom: 45px !important; /* Đệm cuộn êm bên trong để đưa ô đang gõ lên trên bàn phím */
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(10, 15, 29, 0.96) !important;
+    }
+
+    body.keyboard-open .mid-month-box {
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        margin: 0 auto !important;
+        padding-bottom: 8px !important;
     }
 
     body.keyboard-open .mid-month-stages-row {
