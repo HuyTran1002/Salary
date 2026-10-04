@@ -4047,16 +4047,16 @@ body.no-scroll {
     #tab-calc .inputs-panel-stacked > .input-category {
         display: flex !important;
         flex-direction: column !important;
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
-        padding: 3px 8px 4px !important;
+        flex: 0 0 auto !important;
+        min-height: auto !important;
+        padding: 4px 8px 6px !important;
         margin: 0 !important;
         border-radius: 10px !important;
         box-sizing: border-box !important;
         transform: none !important;
     }
 
-    #tab-calc #catGroup2 { flex-grow: 0.75 !important; }
+    #tab-calc #catGroup2 { flex: 0 0 auto !important; }
 
     #tab-calc .category-title {
         flex: 0 0 auto !important;
@@ -4067,13 +4067,13 @@ body.no-scroll {
     }
 
     #tab-calc .category-content-body {
-        flex: 1 1 auto !important;
+        flex: 0 0 auto !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
         margin: 0 !important;
         padding: 0 !important;
-        min-height: 0 !important;
+        min-height: auto !important;
     }
 
     /* Nhãn + ô nhập chuẩn hoá */
@@ -5060,6 +5060,35 @@ body.no-scroll {
         padding-bottom: 260px !important;
     }
 }
+
+/* Tối ưu riêng khi mở bàn phím trên điện thoại xoay ngang (Landscape Keyboard Mode) */
+@media (max-width: 1024px) and (orientation: landscape) {
+    /* 1. Tạm ẩn thanh Header trên cùng để lấy thêm 40px chiều cao màn hình */
+    body.keyboard-open #mainScreen .glass-header.compact-header {
+        display: none !important;
+    }
+
+    /* 2. Tạm ẩn cột Kết quả bên phải để cột nhập liệu mở rộng 100% bề ngang */
+    body.keyboard-open #tab-calc .results-panel {
+        display: none !important;
+    }
+
+    /* 3. Cho vùng nhập chiếm trọn 100% bề ngang */
+    body.keyboard-open #tab-calc .main-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* 4. Thêm đệm cuộn để người dùng dễ dàng lướt qua mọi ô nhập */
+    body.keyboard-open #tab-calc .inputs-panel-stacked {
+        padding-bottom: 140px !important;
+    }
+
+    body.keyboard-open #mainScreen.active {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+}
+
 
 
 
