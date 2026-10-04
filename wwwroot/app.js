@@ -1517,46 +1517,86 @@ function showHistoryDetail(item) {
             // 2. Lương Cơ Bản: Badge trừ chỉ tính phần Lương Cơ Bản (không cộng tiền cơm)
             const slBasicDeductionVal = totalSlDays > 0 ? Math.round(((d.basicSalary || 0) / (d.workingDays || 22)) * totalSlDays) : 0;
             let basicSalaryLabelDisplay = formatCurrency(d.basicSalary || 0);
+            let dailyBasicSalaryLabelDisplay = formatCurrency(dailyBasicSalary);
             if (slBasicDeductionVal > 0 && !d.isMidMonthSalaryChange) {
                 const actualEarnedBasic = Math.max(0, (d.basicSalary || 0) - slBasicDeductionVal);
                 basicSalaryLabelDisplay = `${formatCurrency(actualEarnedBasic)} <span style="color: #ef4444; font-size: 0.72rem; font-weight: 700; margin-left: 3px; background: rgba(239,68,68,0.12); padding: 1px 4px; border-radius: 4px;" title="Trừ Lương Cơ Bản do nghỉ SL/NP">-${formatCurrency(slBasicDeductionVal)}</span>`;
             } else if (d.isMidMonthSalaryChange) {
                 const d1 = Math.round((d.oldBasicSalary || 0) / (d.workingDays || 22));
                 const d2 = Math.round((d.newBasicSalary || 0) / (d.workingDays || 22));
-                basicSalaryLabelDisplay = `<span style="font-size:0.75rem;">${formatCurrency(d.oldBasicSalary || 0)} ➔ ${formatCurrency(d.newBasicSalary || 0)}</span>`;
-            }
-            let dailyBasicSalaryLabelDisplay = formatCurrency(dailyBasicSalary);
-            if (d.isMidMonthSalaryChange) {
-                const d1 = Math.round((d.oldBasicSalary || 0) / (d.workingDays || 22));
-                const d2 = Math.round((d.newBasicSalary || 0) / (d.workingDays || 22));
-                basicSalaryLabelDisplay = `<span style="font-size:0.75rem;">${formatCurrency(d.oldBasicSalary || 0)} ➔ ${formatCurrency(d.newBasicSalary || 0)}</span>`;
-                dailyBasicSalaryLabelDisplay = `<span style="font-size:0.75rem;">${formatCurrency(d1)} ➔ ${formatCurrency(d2)}</span>`;
+                basicSalaryLabelDisplay = `<span class="val-salary-transition">${formatCurrency(d.oldBasicSalary || 0)} <span class="arrow-sep">➔</span> ${formatCurrency(d.newBasicSalary || 0)}</span>`;
+                dailyBasicSalaryLabelDisplay = `<span class="val-salary-transition">${formatCurrency(d1)} <span class="arrow-sep">➔</span> ${formatCurrency(d2)}</span>`;
             }
 
             let midMonthHtml = '';
             if (d.isMidMonthSalaryChange) {
                 const ot1Total = (d.ot15xSalary1 || 0) + (d.ot2xSalary1 || 0) + (d.ot3xSalary1 || 0);
                 const ot2Total = (d.ot15xSalary2 || 0) + (d.ot2xSalary2 || 0) + (d.ot3xSalary2 || 0);
+                const otHours1 = (d.overtime15x1 || 0) + (d.overtime2x1 || 0) + (d.overtime3x1 || 0);
+                const otHours2 = (d.overtime15x2 || 0) + (d.overtime2x2 || 0) + (d.overtime3x2 || 0);
                 midMonthHtml = `
-                    <div style="background: rgba(59, 130, 246, 0.14); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); margin-bottom: 12px; font-size: 0.82rem; color: #93c5fd;">
-                        <div style="font-weight: 700; font-size: 0.9rem; color: #60a5fa; margin-bottom: 8px;">📈 CHI TIẾT TÍNH LƯƠNG DỰA TRÊN 2 MỨC LƯƠNG TRƯỚC VÀ SAU KHI TĂNG</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.78rem;">
-                            <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                                <div style="color: #fbbf24; font-weight: 700; margin-bottom: 4px;">🔸 GD 1 (21 - 31) - Lương Cũ: ${formatCurrency(d.oldBasicSalary || 0)}</div>
-                                <div>• Công chuẩn: <strong>${d.w1 || 0} ngày</strong> | Đi làm: <strong>${d.workedDays1 || 0} ngày</strong></div>
-                                <div>• Lương đi làm: <strong style="color: #34d399;">+${formatCurrency(d.regularSalary1 || 0)}</strong></div>
-                                <div>• Trừ SL/NP: <strong style="color: #f87171;">-${formatCurrency(d.slDeduction1 || 0)}</strong> (${d.slDaysOff1 || 0}d)</div>
-                                <div>• Tăng ca OT: <strong style="color: #38bdf8;">+${formatCurrency(ot1Total)}</strong> (1.5x:${d.overtime15x1||0}h, 2x:${d.overtime2x1||0}h, 3x:${d.overtime3x1||0}h)</div>
+                    <div class="history-midmonth-card">
+                        <div class="hmm-header">
+                            <span class="hmm-title">📈 Điều Chỉnh Tăng Lương Giữa Kỳ</span>
+                            <span class="hmm-badge">2 Mức Lương Đan Xen</span>
+                        </div>
+                        <div class="hmm-stages-grid">
+                            <!-- GD 1 -->
+                            <div class="hmm-stage-box hmm-stage-gd1">
+                                <div class="hmm-stage-head">
+                                    <span class="hmm-stage-name">🗓️ GD 1 (21 - 31)</span>
+                                    <span class="hmm-stage-salary text-amber">${formatCurrency(d.oldBasicSalary || 0)}</span>
+                                </div>
+                                <div class="hmm-metrics-list">
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Công chuẩn / Làm:</span>
+                                        <span class="hmm-val"><strong>${d.workedDays1 || 0}</strong>/${d.w1 || 0} ngày</span>
+                                    </div>
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Lương đi làm:</span>
+                                        <span class="hmm-val text-green">+${formatCurrency(d.regularSalary1 || 0)}</span>
+                                    </div>
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Trừ SL/NP:</span>
+                                        <span class="hmm-val ${d.slDeduction1 > 0 ? 'text-red' : ''}">${d.slDeduction1 > 0 ? '-' + formatCurrency(d.slDeduction1) : '0 đ'} (${d.slDaysOff1 || 0}d)</span>
+                                    </div>
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Tăng ca OT:</span>
+                                        <span class="hmm-val text-blue">+${formatCurrency(ot1Total)} <small class="hmm-ot-detail">(${otHours1}h)</small></span>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.2);">
-                                <div style="color: #38bdf8; font-weight: 700; margin-bottom: 4px;">🔹 GD 2 (01 - 20) - Lương Mới: ${formatCurrency(d.newBasicSalary || 0)}</div>
-                                <div>• Công chuẩn: <strong>${d.w2 || 0} ngày</strong> | Đi làm: <strong>${d.workedDays2 || 0} ngày</strong></div>
-                                <div>• Lương đi làm: <strong style="color: #34d399;">+${formatCurrency(d.regularSalary2 || 0)}</strong></div>
-                                <div>• Trừ SL/NP: <strong style="color: #f87171;">-${formatCurrency(d.slDeduction2 || 0)}</strong> (${d.slDaysOff2 || 0}d)</div>
-                                <div>• Tăng ca OT: <strong style="color: #38bdf8;">+${formatCurrency(ot2Total)}</strong> (1.5x:${d.overtime15x2||0}h, 2x:${d.overtime2x2||0}h, 3x:${d.overtime3x2||0}h)</div>
+
+                            <!-- GD 2 -->
+                            <div class="hmm-stage-box hmm-stage-gd2">
+                                <div class="hmm-stage-head">
+                                    <span class="hmm-stage-name">🗓️ GD 2 (01 - 20)</span>
+                                    <span class="hmm-stage-salary text-cyan">${formatCurrency(d.newBasicSalary || 0)}</span>
+                                </div>
+                                <div class="hmm-metrics-list">
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Công chuẩn / Làm:</span>
+                                        <span class="hmm-val"><strong>${d.workedDays2 || 0}</strong>/${d.w2 || 0} ngày</span>
+                                    </div>
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Lương đi làm:</span>
+                                        <span class="hmm-val text-green">+${formatCurrency(d.regularSalary2 || 0)}</span>
+                                    </div>
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Trừ SL/NP:</span>
+                                        <span class="hmm-val ${d.slDeduction2 > 0 ? 'text-red' : ''}">${d.slDeduction2 > 0 ? '-' + formatCurrency(d.slDeduction2) : '0 đ'} (${d.slDaysOff2 || 0}d)</span>
+                                    </div>
+                                    <div class="hmm-metric-row">
+                                        <span class="hmm-lbl">Tăng ca OT:</span>
+                                        <span class="hmm-val text-blue">+${formatCurrency(ot2Total)} <small class="hmm-ot-detail">(${otHours2}h)</small></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div style="font-size: 0.78rem; color: #38bdf8; margin-top: 8px; font-weight: 600;">🛡️ Trích BHXH tính theo Mức Lương Mới (${formatCurrency(d.newBasicSalary || 0)}): <span style="color: #ef4444;">-${formatCurrency(d.insurance || 0)}</span></div>
+                        <div class="hmm-footer">
+                            <span class="hmm-footer-icon">🛡️</span>
+                            <span class="hmm-footer-text">Trích BHXH theo Lương Mới (${formatCurrency(d.newBasicSalary || 0)}): <strong class="text-red">-${formatCurrency(d.insurance || 0)}</strong></span>
+                        </div>
                     </div>
                 `;
             }
