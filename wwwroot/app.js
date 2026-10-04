@@ -1874,13 +1874,30 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         }, 280);
     });
 
+    function exitKeyboardMode() {
+        document.body.classList.remove('keyboard-open');
+        const panel = document.querySelector('#tab-calc .inputs-panel-stacked');
+        if (panel) {
+            panel.scrollTop = 0;
+        }
+    }
+
     document.addEventListener('focusout', (e) => {
         clearTimeout(focusTimer);
         focusTimer = setTimeout(() => {
             const active = document.activeElement;
             if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
-                document.body.classList.remove('keyboard-open');
+                exitKeyboardMode();
             }
         }, 150);
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 1024 && window.innerHeight >= 300) {
+            const active = document.activeElement;
+            if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+                exitKeyboardMode();
+            }
+        }
     });
 })();

@@ -4032,31 +4032,30 @@ body.no-scroll {
         display: inline !important;
     }
 
-    /* Cột trái: 3 nhóm co giãn vừa vặn chiều cao, hiển thị 100% các ô */
+    /* Cột trái: 3 nhóm co giãn vừa vặn chiều cao, lấp đầy 100% màn hình, không cuộn */
     #tab-calc .inputs-panel-stacked {
         height: 100% !important;
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 4px !important;
+        gap: 3px !important;
         padding: 0 !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
+        overflow: hidden !important;
     }
 
     #tab-calc .inputs-panel-stacked > .input-category {
         display: flex !important;
         flex-direction: column !important;
-        flex: 0 0 auto !important;
-        min-height: auto !important;
-        padding: 4px 8px 6px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        padding: 2px 8px 3px !important;
         margin: 0 !important;
         border-radius: 10px !important;
         box-sizing: border-box !important;
         transform: none !important;
     }
 
-    #tab-calc #catGroup2 { flex: 0 0 auto !important; }
+    #tab-calc #catGroup2 { flex-grow: 0.75 !important; }
 
     #tab-calc .category-title {
         flex: 0 0 auto !important;
@@ -4067,13 +4066,13 @@ body.no-scroll {
     }
 
     #tab-calc .category-content-body {
-        flex: 0 0 auto !important;
+        flex: 1 1 auto !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
         margin: 0 !important;
         padding: 0 !important;
-        min-height: auto !important;
+        min-height: 0 !important;
     }
 
     /* Nhãn + ô nhập chuẩn hoá */
@@ -5078,9 +5077,23 @@ body.no-scroll {
         grid-template-columns: 1fr !important;
     }
 
-    /* 4. Thêm đệm cuộn để người dùng dễ dàng lướt qua mọi ô nhập */
+    /* 4. CHUYỂN SANG DẠNG THÍCH NGHI KHI GÕ: Cho phép cuộn lên xuống mượt mà */
     body.keyboard-open #tab-calc .inputs-panel-stacked {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
         padding-bottom: 140px !important;
+    }
+
+    /* 5. Giữ kích thước tự nhiên khi gõ bàn phím để không bao giờ bị đè chữ */
+    body.keyboard-open #tab-calc .inputs-panel-stacked > .input-category {
+        flex: 0 0 auto !important;
+        min-height: auto !important;
+        padding: 4px 8px 6px !important;
+    }
+
+    body.keyboard-open #tab-calc .category-content-body {
+        flex: 0 0 auto !important;
+        min-height: auto !important;
     }
 
     body.keyboard-open #mainScreen.active {
