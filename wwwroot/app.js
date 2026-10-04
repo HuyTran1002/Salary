@@ -1167,6 +1167,8 @@ function openMidMonthSalaryModal(e) {
         midMonthSalaryModal.style.display = 'flex';
         if (inputs.oldBasicSalary && !inputs.oldBasicSalary.value) inputs.oldBasicSalary.value = inputs.basicSalary.value;
         if (inputs.newBasicSalary && !inputs.newBasicSalary.value) inputs.newBasicSalary.value = inputs.basicSalary.value;
+        const box = midMonthSalaryModal.querySelector('.mid-month-box');
+        if (box) box.scrollTop = 0;
     }
 }
 
@@ -1175,6 +1177,9 @@ function closeMidMonthSalaryModal() {
         midMonthSalaryModal.style.display = 'none';
     }
     updateMidMonthLockState();
+    if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        document.activeElement.blur();
+    }
 }
 
 if (lblBasicSalary) {
