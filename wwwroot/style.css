@@ -5262,6 +5262,7 @@ body.no-scroll {
         align-items: center !important;
         justify-content: center !important;
         overflow: hidden !important;
+        overscroll-behavior: contain !important;
     }
 
     .mid-month-box {
@@ -5269,11 +5270,13 @@ body.no-scroll {
         max-width: 680px !important;
         max-height: 98vh !important;
         max-height: 98dvh !important;
-        padding: 5px 12px 6px 12px !important;
+        padding: 5px 12px 25px 12px !important;
         border-radius: 12px !important;
         box-sizing: border-box !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
+        touch-action: pan-y !important;
         margin: 0 !important;
     }
 
@@ -5724,8 +5727,7 @@ body.no-scroll {
     body.keyboard-open .modal-overlay,
     body.keyboard-open .history-detail-overlay,
     body.keyboard-open .company-modal-overlay,
-    body.keyboard-open .cloud-sync-overlay,
-    body.keyboard-open .mid-month-overlay {
+    body.keyboard-open .cloud-sync-overlay {
         align-items: flex-start !important;
         padding-top: 6px !important;
         padding-bottom: 260px !important;
@@ -5735,8 +5737,7 @@ body.no-scroll {
 
     body.keyboard-open .history-detail-box,
     body.keyboard-open .company-box-modal,
-    body.keyboard-open .cloud-sync-box,
-    body.keyboard-open .mid-month-box {
+    body.keyboard-open .cloud-sync-box {
         max-height: calc(100vh - 12px) !important;
         overflow-y: auto !important;
         margin-bottom: 200px !important;
@@ -5789,7 +5790,9 @@ body.no-scroll {
         margin-bottom: 0 !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
-        padding-bottom: 75px !important; /* Đệm cuộn êm bên trong để đưa ô đang gõ lên trên bàn phím */
+        overscroll-behavior: contain !important;
+        touch-action: pan-y !important;
+        padding-bottom: 45px !important; /* Đệm cuộn êm bên trong để đưa ô đang gõ lên trên bàn phím */
     }
 
     body.keyboard-open .mid-month-stages-row {

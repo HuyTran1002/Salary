@@ -1864,6 +1864,7 @@ window.switchCalcSubtab = function(groupId) {
 function fitMobileViewport() {
     if (window.innerWidth > 900) return; // Tuyệt đối không can thiệp giao diện PC
     if (document.body.classList.contains('keyboard-open')) return; // Không can thiệp vị trí cuộn khi đang mở bàn phím
+    if (midMonthSalaryModal && midMonthSalaryModal.style.display === 'flex') return; // Không can thiệp khi đang mở modal 2 mức lương
 
     try {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -1916,6 +1917,24 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
 
         document.body.classList.add('keyboard-open');
         clearTimeout(focusTimer);
+
+        // NẾU LÀ Ô TRONG MODAL 2 MỨC LƯƠNG: Chỉ cuộn cục bộ trong hộp modal, TUYỆT ĐỐI không gọi window.scrollIntoView làm giật nháy!
+        const midMonthBox = el.closest('.mid-month-box');
+        if (midMonthBox) {
+            focusTimer = setTimeout(() => {
+                try {
+                    const elRect = el.getBoundingClientRect();
+                    const boxRect = midMonthBox.getBoundingClientRect();
+                    if (elRect.top < boxRect.top + 8) {
+                        midMonthBox.scrollTop -= (boxRect.top + 8 - elRect.top);
+                    } else if (elRect.bottom > boxRect.bottom - 12) {
+                        midMonthBox.scrollTop += (elRect.bottom - (boxRect.bottom - 12));
+                    }
+                } catch (err) {}
+            }, 80);
+            return;
+        }
+
         focusTimer = setTimeout(() => {
             try {
                 el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1928,7 +1947,7 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
     function exitKeyboardMode() {
         document.body.classList.remove('keyboard-open');
         const panel = document.querySelector('#tab-calc .inputs-panel-stacked');
-        if (panel) {
+        if (panel && (!midMonthSalaryModal || midMonthSalaryModal.style.display !== 'flex')) {
             panel.scrollTop = 0;
         }
     }
@@ -1940,7 +1959,7 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
             if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
                 exitKeyboardMode();
             }
-        }, 120);
+        }, 250);
     });
 
     window.addEventListener('resize', () => {
