@@ -1629,20 +1629,20 @@ function showHistoryDetail(item) {
                 <div class="history-detail-summary">
                     <div class="summary-stat-row">
                         <div class="stat-col">
-                            <span class="stat-lbl">Gross Thu Nhập</span>
+                            <span class="stat-lbl">Gross</span>
                             <strong class="stat-val text-blue">${formatCurrency(d.gross || 0)}</strong>
                         </div>
                         <div class="stat-col">
-                            <span class="stat-lbl">Bảo Hiểm (BHXH)</span>
+                            <span class="stat-lbl">BHXH</span>
                             <strong class="stat-val text-red">-${formatCurrency(d.insurance || 0)}</strong>
                         </div>
                         <div class="stat-col">
-                            <span class="stat-lbl">Thuế TNCN</span>
+                            <span class="stat-lbl">Thuế</span>
                             <strong class="stat-val text-red">-${formatCurrency(d.tax || 0)}</strong>
                         </div>
                     </div>
                     <div class="summary-net-row">
-                        <span class="net-lbl">Thực Nhận (NET)</span>
+                        <span class="net-lbl">Thực Nhận</span>
                         <strong class="net-val glow-text-green">${formatCurrency(d.net || item.netSalary)}</strong>
                     </div>
                 </div>

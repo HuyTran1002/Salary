@@ -4110,16 +4110,33 @@ body.no-scroll {
     }
 
     .val-salary-transition {
-        font-size: 0.68rem !important;
+        font-size: 0.58rem !important;
+        font-weight: 700 !important;
+        white-space: normal !important;
+        display: inline-flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        line-height: 1.15 !important;
+        gap: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
 
-    /* 15 chỉ số chi tiết chia làm 5 cột x 3 hàng siêu gọn gàng */
+    .val-salary-transition .arrow-sep {
+        font-size: 0.52rem !important;
+        margin-right: 2px !important;
+        color: #38bdf8 !important;
+    }
+
+    /* 15 chỉ số chi tiết chia làm 5 cột x 3 hàng siêu gọn gàng, không bị tràn ô */
     .history-detail-grid {
         display: grid !important;
         grid-template-columns: repeat(5, 1fr) !important;
         gap: 2px 4px !important;
         padding: 3px 6px !important;
         border-radius: 8px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
     }
 
     .history-detail-item {
@@ -4131,12 +4148,19 @@ body.no-scroll {
         height: auto !important;
         gap: 0 !important;
         border-radius: 5px !important;
+        overflow: hidden !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
     }
 
     .detail-label {
         font-size: 0.58rem !important;
         margin-bottom: 0 !important;
         line-height: 1.15 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        width: 100% !important;
     }
 
     .detail-value {
@@ -4146,58 +4170,82 @@ body.no-scroll {
         align-items: center !important;
         line-height: 1.2 !important;
         gap: 2px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        min-width: 0 !important;
+        width: 100% !important;
     }
 
-    /* Thanh tổng kết 1 hàng ngang */
+    /* Thanh tổng kết 1 hàng ngang vừa khít mọi bề ngang màn hình */
     .history-detail-summary {
         margin-top: 4px !important;
-        padding: 3px 8px !important;
+        padding: 2px 6px !important;
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
-        gap: 8px !important;
+        gap: 4px !important;
         border-radius: 8px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
 
     .summary-stat-row {
         display: grid !important;
         grid-template-columns: 1fr 1fr 1fr !important;
-        gap: 6px !important;
-        flex: 1 !important;
+        gap: 4px !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
     }
 
     .stat-col {
-        padding: 2px 6px !important;
-        gap: 4px !important;
+        padding: 2px 4px !important;
+        gap: 3px !important;
         border-radius: 5px !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
     }
 
     .stat-lbl {
-        font-size: 0.62rem !important;
+        font-size: 0.58rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     .stat-val {
-        font-size: 0.74rem !important;
+        font-size: 0.68rem !important;
+        white-space: nowrap !important;
     }
 
     .summary-net-row {
         border-top: none !important;
         border-left: 1px dashed rgba(255, 255, 255, 0.2) !important;
-        padding: 2px 10px !important;
+        padding: 2px 8px !important;
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        gap: 6px !important;
+        gap: 4px !important;
         border-radius: 6px !important;
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        box-sizing: border-box !important;
     }
 
     .net-lbl {
-        font-size: 0.68rem !important;
+        font-size: 0.62rem !important;
+        white-space: nowrap !important;
     }
 
     .net-val {
-        font-size: 0.88rem !important;
+        font-size: 0.82rem !important;
+        white-space: nowrap !important;
     }
 
     .modal-actions-center {
