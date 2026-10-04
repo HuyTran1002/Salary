@@ -1127,6 +1127,191 @@ body.no-scroll {
     line-height: 1.45;
 }
 
+/* =========================================================
+   Mid-Month Salary Adjustment Modal (2 Chế Độ Lương)
+   ========================================================= */
+.mid-month-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    width: 100dvw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(10, 15, 29, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999 !important;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.mid-month-box {
+    position: relative;
+    max-width: 680px;
+    width: 100%;
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 24px;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(99, 102, 241, 0.2);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.mid-month-box::-webkit-scrollbar {
+    width: 5px;
+}
+.mid-month-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+}
+
+.mid-month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.mid-month-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.mid-month-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    flex-shrink: 0;
+}
+
+.mid-month-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.mid-month-container.hidden {
+    display: none !important;
+}
+
+.mid-month-salaries-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+.mid-month-salaries-row .input-group input {
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.lbl-new-salary {
+    color: #38bdf8 !important;
+}
+
+.mid-month-stages-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+.stage-card {
+    padding: 10px 12px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+}
+
+.stage-card-gd1 {
+    background: rgba(234, 179, 8, 0.06);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.stage-card-gd2 {
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.stage-card-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+
+.stage-gd1-title {
+    color: #facc15;
+}
+
+.stage-gd2-title {
+    color: #38bdf8;
+}
+
+.stage-card-input-row .input-group input {
+    text-align: center;
+    font-weight: 700;
+}
+
+.stage-card-ot-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+}
+
+.stage-card-ot-row .input-group input {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 4px;
+}
+
+.mid-month-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.mid-month-actions button {
+    width: 100%;
+    max-width: 320px;
+    padding: 10px 24px;
+    font-weight: 700;
+    border-radius: 12px;
+}
+
 .compact-inputs {
     display: flex;
     flex-wrap: nowrap;
@@ -2721,7 +2906,8 @@ body.no-scroll {
     .modal-overlay .glass-card,
     .modal-box,
     .company-modal-box,
-    .cloud-sync-modal-box {
+    .cloud-sync-modal-box,
+    .mid-month-box {
         width: 94vw !important;
         max-width: 440px !important;
         max-height: 90vh !important;
@@ -2730,6 +2916,11 @@ body.no-scroll {
         padding: 16px 14px !important;
         border-radius: 18px !important;
         box-sizing: border-box !important;
+    }
+
+    .mid-month-stages-row {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
     }
 
     .company-modal-grid-2 {
@@ -4716,6 +4907,129 @@ body.no-scroll {
         align-items: center !important;
         justify-content: center !important;
     }
+
+    /* Mid-month Salary Adjustment Modal on Landscape Phone (Height <= 600px) */
+    .mid-month-overlay {
+        padding: 4px !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .mid-month-box {
+        width: min(660px, 96vw) !important;
+        max-width: 660px !important;
+        max-height: 96vh !important;
+        max-height: 96dvh !important;
+        padding: 6px 14px 8px 14px !important;
+        border-radius: 14px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+
+    .mid-month-header {
+        margin-bottom: 4px !important;
+        padding-bottom: 2px !important;
+    }
+
+    .mid-month-header h3 {
+        font-size: 0.88rem !important;
+    }
+
+    .mid-month-toggle-row {
+        margin-bottom: 4px !important;
+        padding: 3px 10px !important;
+        font-size: 0.74rem !important;
+        border-radius: 8px !important;
+    }
+
+    .mid-month-container {
+        gap: 4px !important;
+    }
+
+    .mid-month-salaries-row {
+        gap: 8px !important;
+    }
+
+    .mid-month-salaries-row .input-group {
+        margin-bottom: 0 !important;
+    }
+
+    .mid-month-salaries-row .input-group input {
+        height: 25px !important;
+        font-size: 0.82rem !important;
+        padding: 1px 6px !important;
+        border-radius: 8px !important;
+    }
+
+    .mid-month-salaries-row .input-group label {
+        font-size: 0.64rem !important;
+        margin-bottom: 1px !important;
+    }
+
+    .mid-month-stages-row {
+        gap: 8px !important;
+    }
+
+    .stage-card {
+        padding: 4px 8px !important;
+        border-radius: 9px !important;
+        gap: 3px !important;
+    }
+
+    .stage-card-title {
+        font-size: 0.69rem !important;
+        line-height: 1.2 !important;
+        margin-bottom: 1px !important;
+    }
+
+    .stage-card-input-row .input-group {
+        margin-bottom: 0 !important;
+    }
+
+    .stage-card-input-row .input-group input {
+        height: 23px !important;
+        font-size: 0.80rem !important;
+        padding: 1px 6px !important;
+        border-radius: 7px !important;
+    }
+
+    .stage-card-input-row .input-group label {
+        font-size: 0.58rem !important;
+        margin-bottom: 1px !important;
+    }
+
+    .stage-card-ot-row {
+        gap: 4px !important;
+    }
+
+    .stage-card-ot-row .input-group {
+        margin-bottom: 0 !important;
+    }
+
+    .stage-card-ot-row .input-group input {
+        height: 23px !important;
+        font-size: 0.78rem !important;
+        padding: 1px 4px !important;
+        border-radius: 7px !important;
+    }
+
+    .stage-card-ot-row .input-group label {
+        font-size: 0.56rem !important;
+        margin-bottom: 1px !important;
+    }
+
+    .mid-month-actions {
+        margin-top: 5px !important;
+    }
+
+    .mid-month-actions button {
+        height: 28px !important;
+        min-height: 28px !important;
+        max-width: 260px !important;
+        padding: 2px 16px !important;
+        font-size: 0.78rem !important;
+        border-radius: 8px !important;
+    }
 }
 
 /* Màn hình xoay ngang quá bé (chiều ngang <= 680px): Rút gọn tên còn 2 chữ để không bị tràn */
@@ -5035,7 +5349,8 @@ body.no-scroll {
     body.keyboard-open .modal-overlay,
     body.keyboard-open .history-detail-overlay,
     body.keyboard-open .company-modal-overlay,
-    body.keyboard-open .cloud-sync-overlay {
+    body.keyboard-open .cloud-sync-overlay,
+    body.keyboard-open .mid-month-overlay {
         align-items: flex-start !important;
         padding-top: 6px !important;
         padding-bottom: 260px !important;
@@ -5045,7 +5360,8 @@ body.no-scroll {
 
     body.keyboard-open .history-detail-box,
     body.keyboard-open .company-box-modal,
-    body.keyboard-open .cloud-sync-box {
+    body.keyboard-open .cloud-sync-box,
+    body.keyboard-open .mid-month-box {
         max-height: calc(100vh - 12px) !important;
         overflow-y: auto !important;
         margin-bottom: 200px !important;

@@ -1187,6 +1187,11 @@ if (btnCloseMidMonthModal) {
 if (btnSaveMidMonthModal) {
     btnSaveMidMonthModal.addEventListener('click', closeMidMonthSalaryModal);
 }
+if (midMonthSalaryModal) {
+    midMonthSalaryModal.addEventListener('click', (e) => {
+        if (e.target === midMonthSalaryModal) closeMidMonthSalaryModal();
+    });
+}
 
 // Edit OT 8h/12h Meal Allowance (Ô BÊN TRÁI)
 function openOtMeal12Modal(e) {
