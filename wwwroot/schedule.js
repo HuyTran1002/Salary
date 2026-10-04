@@ -108,7 +108,7 @@
         // 1. Render Header Rows (Hàng Ngày & Hàng Thứ)
         if (thead) {
             let rowDaysHtml = `<tr><th class="sticky-col">Ngày</th>`;
-            let rowLunarDaysHtml = `<tr><th class="sticky-col" style="color: #f38ba8; font-size: 0.85em;">Âm Lịch</th>`;
+            let rowLunarDaysHtml = `<tr><th class="sticky-col sticky-lunar-title">Âm Lịch</th>`;
             let rowDaysOfWeekHtml = `<tr><th class="sticky-col">Thứ</th>`;
 
             for (let d = 1; d <= daysInMonth; d++) {
@@ -182,7 +182,7 @@
                             "Quốc tế Thiếu nhi": "🧸 Quốc tế Thiếu nhi (01/06)\nNgày tết dành riêng cho trẻ em, nhắc nhở toàn nhân loại về quyền và sự bảo vệ trẻ em.",
                             "Ngày Báo chí VN": "📰 Ngày Báo chí Cách mạng VN (21/06)\nKỷ niệm ngày Bác Hồ sáng lập ra tờ báo Thanh Niên (1925), tiếng nói của cách mạng.",
                             "Ngày Gia đình VN": "👨‍👩‍👧‍👦 Ngày Gia đình Việt Nam (28/06)\nNgày tôn vinh, gìn giữ và phát huy những giá trị văn hóa truyền thống tốt đẹp của gia đình Việt.",
-                            "Thương binh Liệt sĩ": "🕯️ Thương binh Liệt sĩ (27/07)\nNgày đền ơn đáp nghĩa, tri ân sâu sắc những anh hùng, thương bệnh binh đã đổ máu vì độc lập tự do.",
+                            "Thương binh Liệt sĩ": "🕯️ Thương binh Liệt sĩ (27/07)\nNgày đền ơn đáp nghĩa, tri ấn sâu sắc những anh hùng, thương bệnh binh đã đổ máu vì độc lập tự do.",
                             "Cách mạng T8": "⭐ Cách mạng tháng Tám (19/08)\nKỷ niệm thành công của Cách mạng tháng Tám (1945) và Ngày truyền thống lực lượng Công an Nhân dân.",
                             "Quốc Khánh": "🇻🇳 Quốc khánh (02/09)\nNgày 02/09/1945 tại Quảng trường Ba Đình, Bác Hồ đọc Tuyên ngôn Độc lập khai sinh nước Việt Nam Dân chủ Cộng hòa.",
                             "Người cao tuổi": "👵 Quốc tế Người cao tuổi (01/10)\nNgày tôn vinh những đóng góp và nâng cao nhận thức bảo vệ, chăm sóc người cao tuổi.",
@@ -221,11 +221,13 @@
                 
                 let solarTitleAttr = solarHolidayTitle ? `title="${solarHolidayTitle}"` : "";
                 let solarStyle = solarHolidayTitle ? `color: #f9e2af; font-weight: bold; cursor: help;` : ``;
-                rowDaysHtml += `<th class="${todayClass}" style="${solarStyle}" ${solarTitleAttr}>${d < 10 ? '0' + d : d}${solarHolidayTitle ? '★' : ''}</th>`;
+                let solarStar = solarHolidayTitle ? `<span class="star-badge">★</span>` : '';
+                rowDaysHtml += `<th class="${todayClass}" style="${solarStyle}" ${solarTitleAttr}>${d < 10 ? '0' + d : d}${solarStar}</th>`;
                 
                 let lunarTitleAttr = lunarHolidayTitle ? `title="${lunarHolidayTitle}"` : "";
                 let lunarStyle = lunarHolidayTitle ? `color: #f9e2af; font-weight: bold; cursor: help;` : `color: #f38ba8; font-weight: normal;`;
-                rowLunarDaysHtml += `<th class="${todayClass}" style="font-size: 0.85em; ${lunarStyle}" ${lunarTitleAttr}>${lunarDayStr}${lunarHolidayTitle ? '★' : ''}</th>`;
+                let lunarStar = lunarHolidayTitle ? `<span class="star-badge">★</span>` : '';
+                rowLunarDaysHtml += `<th class="${todayClass}" style="${lunarStyle}" ${lunarTitleAttr}>${lunarDayStr}${lunarStar}</th>`;
             }
 
             rowDaysHtml += `</tr>`;
@@ -265,11 +267,9 @@
             tbody.appendChild(tr);
         });
 
-
-
-    // 3. Cập nhật thẻ tóm tắt Ca làm việc hiện tại
-    updateCurrentShiftSummary();
-}
+        // 3. Cập nhật thẻ tóm tắt Ca làm việc hiện tại
+        updateCurrentShiftSummary();
+    }
 
     // Helper lấy ca làm việc thực tế theo giờ mở app
     function getCurrentTimeShiftInfo() {
@@ -363,6 +363,25 @@ function updateCurrentShiftSummary() {
         }
     }
 
+    // Tự động xoay ngang 90 độ (.landscape-rotate) bên trong chế độ dọc điện thoại
+    function applyAutoRotateOnMobile(enable) {
+        const panel = document.getElementById('schedulePanelLeft');
+        if (!panel) return;
+
+        if (enable) {
+            // Khi mở lịch ca: nếu điện thoại đang ở chế độ dọc (portrait), tự động xoay 90 độ ngang để hiển thị đủ 31 ngày
+            const isPortraitPhone = window.innerWidth <= 900 && window.innerHeight >= window.innerWidth;
+            if (isPortraitPhone) {
+                panel.classList.add('landscape-rotate');
+            } else {
+                panel.classList.remove('landscape-rotate');
+            }
+        } else {
+            // Khi đóng lịch ca: tắt xoay ngang
+            panel.classList.remove('landscape-rotate');
+        }
+    }
+
     function toggleSchedulePanel(show) {
         const panel = document.getElementById('schedulePanelLeft');
         const icon = document.getElementById('scheduleArrowIcon');
@@ -372,6 +391,9 @@ function updateCurrentShiftSummary() {
         if (isScheduleOpen) {
             if (panel) panel.classList.add('open');
             if (icon) icon.textContent = '◀';
+
+            // Tự động xoay ngang trong chế độ dọc điện thoại
+            applyAutoRotateOnMobile(true);
 
             // Tự động đồng bộ Tháng / Năm hiện tại từ màn hình chính (nếu có)
             const mainMonthInput = document.getElementById('month');
@@ -388,32 +410,88 @@ function updateCurrentShiftSummary() {
 
             renderScheduleTable();
             startAutoRefreshTimer();
+            setTimeout(scrollToToday, 250);
         } else {
-            if (panel) panel.classList.remove('open');
+            if (panel) {
+                panel.classList.remove('open');
+            }
+            closeInPanelPicker();
+            applyAutoRotateOnMobile(false);
             if (icon) icon.textContent = '▶';
             stopAutoRefreshTimer();
         }
     }
 
-    // Tự động kiểm tra chỉ hiển thị nút Lịch bên trái khi ở màn hình Đăng Nhập (loginScreen)
-    function updateLeftBtnVisibility() {
-        const btnToggleLeft = document.getElementById('btnToggleSchedule');
-        const loginScreen = document.getElementById('loginScreen');
-        const isLoginActive = loginScreen && loginScreen.classList.contains('active');
-
-        if (btnToggleLeft) {
-            if (isLoginActive) {
-                btnToggleLeft.style.display = 'flex';
-            } else {
-                btnToggleLeft.style.display = 'none';
-                if (isScheduleOpen) toggleSchedulePanel(false);
-            }
+    function scrollToToday() {
+        const todayTh = document.querySelector('.schedule-table th.today-col, .schedule-table td.today-col');
+        const container = document.querySelector('.schedule-table-container');
+        if (todayTh && container) {
+            const left = todayTh.offsetLeft - (container.clientWidth / 2) + 20;
+            container.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
         }
     }
 
-    // Khởi tạo Event Listeners sau khi DOM load
-    document.addEventListener('DOMContentLoaded', () => {
+    // Lắng nghe xoay ngang/dọc vật lý hoặc thay đổi kích thước
+    window.addEventListener('resize', () => {
+        if (isScheduleOpen) {
+            const panel = document.getElementById('schedulePanelLeft');
+            if (window.innerWidth > window.innerHeight) {
+                // Đã là landscape thật -> bỏ CSS xoay 90 độ
+                if (panel) panel.classList.remove('landscape-rotate');
+            } else if (window.innerWidth <= 900) {
+                if (panel) panel.classList.add('landscape-rotate');
+            }
+        }
+    });
+
+    // Bảng chọn nội bộ (nằm trong panel nên xoay cùng panel, không bao giờ lòi ra ngoài)
+    function closeInPanelPicker() {
+        const old = document.getElementById('schedInPanelPicker');
+        if (old) old.remove();
+    }
+
+    function openInPanelPicker(sel, panel) {
+        closeInPanelPicker();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'schedInPanelPicker';
+        overlay.className = 'sched-picker-overlay';
+
+        const box = document.createElement('div');
+        box.className = 'sched-picker-box';
+
+        const grid = document.createElement('div');
+        grid.className = 'sched-picker-grid';
+        if (sel.options.length > 6) grid.classList.add('cols-4');
+
+        Array.from(sel.options).forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'sched-picker-item' + (opt.value === sel.value ? ' active' : '');
+            btn.textContent = opt.textContent;
+            btn.onclick = (ev) => {
+                ev.stopPropagation();
+                if (sel.value !== opt.value) {
+                    sel.value = opt.value;
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                closeInPanelPicker();
+            };
+            grid.appendChild(btn);
+        });
+
+        box.appendChild(grid);
+        overlay.appendChild(box);
+        overlay.addEventListener('click', (ev) => {
+            if (ev.target === overlay) closeInPanelPicker();
+        });
+        panel.appendChild(overlay);
+    }
+
+    // Khởi tạo Event Listeners
+    function initScheduleListeners() {
         const btnToggleLeft = document.getElementById('btnToggleSchedule');
+        const btnMainSchedule = document.getElementById('btnMainSchedule');
         const btnClose = document.getElementById('btnCloseSchedulePanel');
         const selTeam = document.getElementById('selShiftTeam');
         const selMonth = document.getElementById('selShiftMonth');
@@ -422,27 +500,50 @@ function updateCurrentShiftSummary() {
         const mainYear = document.getElementById('year');
 
         if (btnToggleLeft) {
-            btnToggleLeft.addEventListener('click', () => toggleSchedulePanel());
+            btnToggleLeft.onclick = () => toggleSchedulePanel();
+        }
+
+        if (btnMainSchedule) {
+            btnMainSchedule.onclick = () => toggleSchedulePanel(true);
         }
 
         if (btnClose) {
-            btnClose.addEventListener('click', () => toggleSchedulePanel(false));
+            btnClose.onclick = () => toggleSchedulePanel(false);
         }
 
         if (selTeam) {
             selTeam.value = selectedTeam;
-            selTeam.addEventListener('change', () => renderScheduleTable());
+            selTeam.onchange = () => renderScheduleTable();
         }
 
         if (selMonth) {
             selMonth.value = selectedMonth;
-            selMonth.addEventListener('change', () => renderScheduleTable());
+            selMonth.onchange = () => renderScheduleTable();
         }
 
         if (selYear) {
             selYear.value = selectedYear;
-            selYear.addEventListener('change', () => renderScheduleTable());
+            selYear.onchange = () => renderScheduleTable();
         }
+
+        // Khi panel đang xoay 90 độ, menu <select> gốc của hệ điều hành KHÔNG xoay theo
+        // -> bung ra ngoài màn hình. Thay bằng bảng chọn nội bộ nằm trong panel.
+        [selTeam, selMonth, selYear].forEach(sel => {
+            if (!sel) return;
+            const intercept = (e) => {
+                const panel = document.getElementById('schedulePanelLeft');
+                if (!panel || !panel.classList.contains('landscape-rotate')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                sel.blur();
+                openInPanelPicker(sel, panel);
+            };
+            sel.addEventListener('mousedown', intercept);
+            sel.addEventListener('touchstart', intercept, { passive: false });
+            sel.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') intercept(e);
+            });
+        });
 
         // Lắng nghe sự kiện đổi Tháng/Năm ở màn hình chính để tự động đồng bộ lịch
         if (mainMonth) {
@@ -462,15 +563,13 @@ function updateCurrentShiftSummary() {
                 }
             });
         }
+    }
 
-        // MutationObserver theo dõi khi chuyển sang màn hình loginScreen
-        const loginScreen = document.getElementById('loginScreen');
-        if (loginScreen) {
-            const observer = new MutationObserver(() => updateLeftBtnVisibility());
-            observer.observe(loginScreen, { attributes: true, attributeFilter: ['class'] });
-        }
-        updateLeftBtnVisibility();
-    });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initScheduleListeners);
+    } else {
+        initScheduleListeners();
+    }
 
     // Expose global helper
     window.toggleSchedulePanel = toggleSchedulePanel;

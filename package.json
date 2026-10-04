@@ -1,0 +1,29 @@
+{
+  "name": "salary",
+  "version": "4.0.4",
+  "description": "Salary Calculator - Ứng Dụng Tính Lương",
+  "main": "index.js",
+  "scripts": {
+    "serve": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HuyTran1002/Salary.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/HuyTran1002/Salary/issues"
+  },
+  "homepage": "https://github.com/HuyTran1002/Salary#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/screen-orientation": "^8.0.2"
+  }
+}

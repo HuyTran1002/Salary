@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Salary Calculator 3D</string>
+    <string name="title_activity_main">Salary Calculator 3D</string>
+    <string name="package_name">com.salary.calculator</string>
+    <string name="custom_url_scheme">com.salary.calculator</string>
+</resources>

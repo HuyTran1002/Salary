@@ -103,8 +103,16 @@ namespace SalaryCalculator
             // Navigate to the local index.html
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string htmlPath = Path.Combine(appDir, "wwwroot", "index.html");
-            
-            if (!File.Exists(htmlPath))
+
+            // Priority 1: Direct development source folder when running via 'dotnet run' or VS
+            string devProjectDir = Path.GetFullPath(Path.Combine(appDir, "..", "..", ".."));
+            string devHtmlPath = Path.Combine(devProjectDir, "wwwroot", "index.html");
+
+            if (File.Exists(devHtmlPath))
+            {
+                htmlPath = devHtmlPath;
+            }
+            else if (!File.Exists(htmlPath))
             {
                 // Standalone EXE fallback: Extract embedded wwwroot files to LocalAppData
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

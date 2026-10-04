@@ -1,0 +1,8 @@
+{
+  "appId": "com.salary.calculator",
+  "appName": "Salary Calculator 3D",
+  "webDir": "wwwroot",
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -434,13 +434,78 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
+// Disable automatic browser scroll restoration on screen transitions
+if ('scrollRestoration' in history) {
+    try {
+        history.scrollRestoration = 'manual';
+    } catch (e) {}
+}
+
 const switchScreen = (screenName) => {
-    Object.values(screens).forEach(s => s.classList.remove('active'));
-    setTimeout(() => {
-        Object.values(screens).forEach(s => s.classList.add('hidden'));
-        screens[screenName].classList.remove('hidden');
-        setTimeout(() => screens[screenName].classList.add('active'), 50);
-    }, 500); // Wait for transition
+    const isMobile = window.innerWidth <= 900;
+    
+    // Đảm bảo cuộn sạch lên đầu trang (top = 0) ở tất cả các cấp container
+    const resetScrollToTop = () => {
+        try {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        } catch (e) {
+            window.scrollTo(0, 0);
+        }
+        if (document.documentElement) document.documentElement.scrollTop = 0;
+        if (document.body) document.body.scrollTop = 0;
+        if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+        const target = screens[screenName];
+        if (target) {
+            target.scrollTop = 0;
+            if (typeof target.scrollIntoView === 'function') {
+                target.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+            }
+        }
+    };
+
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+
+    if (isMobile) {
+        // Trên điện thoại: Ẩn ngay lập tức các màn hình cũ, kích hoạt màn hình mới để triệt tiêu độ trễ và lệch layout
+        Object.values(screens).forEach(s => {
+            if (s) {
+                s.classList.remove('active');
+                s.classList.add('hidden');
+            }
+        });
+        if (screens[screenName]) {
+            screens[screenName].classList.remove('hidden');
+            screens[screenName].classList.add('active');
+        }
+        resetScrollToTop();
+        if (typeof fitMobileViewport === 'function') fitMobileViewport();
+        requestAnimationFrame(() => {
+            resetScrollToTop();
+            if (typeof fitMobileViewport === 'function') fitMobileViewport();
+            setTimeout(resetScrollToTop, 40);
+            setTimeout(resetScrollToTop, 120);
+            setTimeout(resetScrollToTop, 250);
+        });
+    } else {
+        // Trên PC: Giữ nguyên transition mượt mà 500ms không làm ảnh hưởng giao diện Desktop
+        Object.values(screens).forEach(s => {
+            if (s) s.classList.remove('active');
+        });
+        setTimeout(() => {
+            Object.values(screens).forEach(s => {
+                if (s) s.classList.add('hidden');
+            });
+            if (screens[screenName]) {
+                screens[screenName].classList.remove('hidden');
+                setTimeout(() => {
+                    screens[screenName].classList.add('active');
+                    resetScrollToTop();
+                }, 50);
+            }
+        }, 500);
+    }
 };
 
 function resetToDefaultTab() {
@@ -460,18 +525,54 @@ function resetToDefaultTab() {
             content.classList.remove('active');
         }
     });
+    const resultsPanel = document.getElementById('resultsPanel');
+    if (resultsPanel) resultsPanel.style.display = '';
+
+    if (typeof window.switchCalcSubtab === 'function') {
+        window.switchCalcSubtab('catGroup2');
+    }
 }
 
-// C# Interop wrapper
+// C# Interop wrapper & Mobile/Browser LocalBackend fallback
 const getBackend = () => {
-    if (window.chrome && window.chrome.webview && window.chrome.webview.hostObjects) {
+    if (window.chrome && window.chrome.webview && window.chrome.webview.hostObjects && window.chrome.webview.hostObjects.sync && window.chrome.webview.hostObjects.sync.backend) {
         return window.chrome.webview.hostObjects.sync.backend;
+    }
+    if (window.localBackend) {
+        return window.localBackend;
     }
     return null;
 };
+window.getBackend = getBackend;
+
+// Smart Short Name Formatter for compact screens
+function formatShortName(fullName) {
+    if (!fullName) return 'User';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length <= 1) return fullName;
+    if (parts.length === 2) return fullName;
+    // Tên dài từ 3 từ trở lên: Ưu tiên tên chính (bỏ họ và tên lót dài)
+    const lastTwo = parts.slice(-2).join(' ');
+    if (lastTwo.length <= 11) return lastTwo;
+    return parts[parts.length - 1];
+}
+
+function updateWelcomeUserDisplay(fullName) {
+    if (!welcomeText) return;
+    const rawName = fullName || 'User';
+    welcomeText.title = `Tài khoản: ${rawName} (Bấm để xem/sửa Profile)`;
+    const shortName = formatShortName(rawName);
+    welcomeText.innerHTML = `
+        <span class="user-greeting-prefix">Xin chào, </span><span class="user-name-full">${rawName}</span><span class="user-name-short">${shortName}</span> <span class="user-icon">👤</span>
+    `;
+}
+window.updateWelcomeUserDisplay = updateWelcomeUserDisplay;
 
 // Events
 loginBtn.addEventListener('click', async () => {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
     const username = usernameInput.value.trim();
     if (!username) {
         showError("Vui lòng nhập Username");
@@ -491,7 +592,7 @@ loginBtn.addEventListener('click', async () => {
                 currentUser = result.user;
                 window.currentUser = currentUser;
                 window.currentUsername = currentUser.Username;
-                if (welcomeText) welcomeText.textContent = `Xin chào, ${currentUser.FullName || currentUser.Username}`;
+                updateWelcomeUserDisplay(currentUser.FullName || currentUser.Username);
 
                 // Pre-fill default month & year based on payroll cutoff (21st to 20th next month)
                 const defaultPeriod = await getDefaultPayrollPeriod();
@@ -635,7 +736,7 @@ btnRegister.addEventListener('click', async () => {
     }
 });
 
-logoutBtn.addEventListener('click', () => {
+const handleLogout = () => {
     currentUser = null;
     usernameInput.value = '';
     resGross.textContent = '0 VNĐ';
@@ -685,7 +786,12 @@ logoutBtn.addEventListener('click', () => {
 
     resetToDefaultTab();
     switchScreen('login');
-});
+};
+
+if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+const btnLogoutProfile = document.getElementById('btnLogoutProfile');
+if (btnLogoutProfile) btnLogoutProfile.addEventListener('click', handleLogout);
+
 
 welcomeText.addEventListener('click', () => {
     if (!currentUser) return;
@@ -744,7 +850,7 @@ btnSaveProfile.addEventListener('click', async () => {
             if (result.success) {
                 // Update current user
                 currentUser = result.user;
-                welcomeText.innerHTML = `Xin chào, ${currentUser.FullName || currentUser.Username} ⚙️`;
+                updateWelcomeUserDisplay(currentUser.FullName || currentUser.Username);
 
                 // Refresh main inputs
                 inputs.basicSalary.value = formatCurrencyInput(currentUser.BasicSalary || 0);
@@ -1186,16 +1292,41 @@ if (lblOtDays8) {
     lblOtDays8.addEventListener('dblclick', openOtMeal8Modal);
 }
 
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Remove active class from all
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
+const allTabBtns = document.querySelectorAll('.tab-btn');
+const allTabContents = document.querySelectorAll('.tab-content');
 
-        // Add active class to clicked tab
-        btn.classList.add('active');
+allTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
         const targetId = btn.getAttribute('data-tab');
-        document.getElementById(targetId).classList.add('active');
+        if (!targetId) return;
+
+        // Synchronize all tab buttons (both desktop and mobile bottom bar)
+        allTabBtns.forEach(b => {
+            if (b.getAttribute('data-tab') === targetId) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+        allTabContents.forEach(c => c.classList.remove('active'));
+
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) targetEl.classList.add('active');
+
+        // Close mobile result sheet if switching away from calc tab
+        if (typeof window.toggleResultSheet === 'function') {
+            window.toggleResultSheet(false);
+        }
+
+        // On mobile: Hide resultsPanel if not on tab-calc
+        const resultsPanel = document.getElementById('resultsPanel');
+        if (resultsPanel) {
+            if (window.innerWidth <= 900) {
+                resultsPanel.style.display = (targetId === 'tab-calc') ? '' : 'none';
+            } else {
+                resultsPanel.style.display = '';
+            }
+        }
 
         // Load data if necessary
         if (targetId === 'tab-history') {
@@ -1341,9 +1472,9 @@ function showHistoryDetail(item) {
             }
 
             const makeItem = (label, value, isHighlight = false, color = 'var(--text-main)') => `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04); white-space: nowrap;">
-                    <span style="color:var(--text-muted); font-size: 0.8rem; margin-right: 6px; flex-shrink: 0;">${label}</span>
-                    <strong style="color: ${color}; font-size: 0.85rem; font-weight: ${isHighlight ? '700' : '600'}; display: flex; align-items: center; flex-wrap: nowrap;">${value}</strong>
+                <div class="history-detail-item">
+                    <span class="detail-label">${label}</span>
+                    <strong class="detail-value" style="color: ${color}; font-weight: ${isHighlight ? '700' : '600'};">${value}</strong>
                 </div>
             `;
 
@@ -1427,7 +1558,7 @@ function showHistoryDetail(item) {
 
             content.innerHTML = `
                 ${midMonthHtml}
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div class="history-detail-grid">
                     ${makeItem('Lương Cơ Bản', basicSalaryLabelDisplay)}
                     ${makeItem('Ngày công chuẩn', (d.workingDays || 0) + ' ngày')}
                     ${makeItem('Lương CB 1 ngày', dailyBasicSalaryLabelDisplay)}
@@ -1445,22 +1576,24 @@ function showHistoryDetail(item) {
                     ${makeItem('Tăng ca 3.0x', ot30Html)}
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                    <div>
-                        <div style="color:var(--text-muted); font-size: 0.76rem; margin-bottom: 2px;">Gross Thu Nhập</div>
-                        <strong style="color: #60a5fa; font-size: 0.95rem;">${formatCurrency(d.gross || 0)}</strong>
+                <div class="history-detail-summary">
+                    <div class="summary-stat-row">
+                        <div class="stat-col">
+                            <span class="stat-lbl">Gross Thu Nhập</span>
+                            <strong class="stat-val text-blue">${formatCurrency(d.gross || 0)}</strong>
+                        </div>
+                        <div class="stat-col">
+                            <span class="stat-lbl">Bảo Hiểm (BHXH)</span>
+                            <strong class="stat-val text-red">-${formatCurrency(d.insurance || 0)}</strong>
+                        </div>
+                        <div class="stat-col">
+                            <span class="stat-lbl">Thuế TNCN</span>
+                            <strong class="stat-val text-red">-${formatCurrency(d.tax || 0)}</strong>
+                        </div>
                     </div>
-                    <div>
-                        <div style="color:var(--text-muted); font-size: 0.76rem; margin-bottom: 2px;">Bảo Hiểm (BHXH)</div>
-                        <strong style="color: #f87171; font-size: 0.95rem;">-${formatCurrency(d.insurance || 0)}</strong>
-                    </div>
-                    <div>
-                        <div style="color:var(--text-muted); font-size: 0.76rem; margin-bottom: 2px;">Thuế TNCN</div>
-                        <strong style="color: #f87171; font-size: 0.95rem;">-${formatCurrency(d.tax || 0)}</strong>
-                    </div>
-                    <div style="border-left: 1px dashed rgba(255,255,255,0.2); padding-left: 8px;">
-                        <div style="color:var(--text-muted); font-size: 0.76rem; margin-bottom: 2px;">Thực Nhận (NET)</div>
-                        <strong class="glow-text-green" style="font-size: 1.1rem;">${formatCurrency(d.net || item.netSalary)}</strong>
+                    <div class="summary-net-row">
+                        <span class="net-lbl">Thực Nhận (NET)</span>
+                        <strong class="net-val glow-text-green">${formatCurrency(d.net || item.netSalary)}</strong>
                     </div>
                 </div>
             `;
@@ -1474,6 +1607,13 @@ function showHistoryDetail(item) {
     btnClose.onclick = () => {
         modal.style.display = 'none';
     };
+
+    const btnCloseTop = document.getElementById('btnCloseModalTop');
+    if (btnCloseTop) {
+        btnCloseTop.onclick = () => {
+            modal.style.display = 'none';
+        };
+    }
 
     modal.onclick = (e) => {
         if (e.target === modal) modal.style.display = 'none';
@@ -1535,10 +1675,10 @@ async function loadRanking() {
                 if (rowClass) tr.classList.add(rowClass);
 
                 tr.innerHTML = `
-                    <td style="text-align: center; vertical-align: middle;">${rankBadge}</td>
-                    <td style="font-weight: 700; color: #f8fafc; vertical-align: middle;">${item.name}</td>
-                    <td class="glow-text-green" style="font-weight: 800; vertical-align: middle;">${formatCurrency(item.netSalary)}</td>
-                    <td style="font-family: 'Caveat', 'Dancing Script', cursive; font-size: 1.32rem; font-weight: 700; color: #e2e8f0; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.3px;">${item.comment}</td>
+                    <td class="rank-col-badge">${rankBadge}</td>
+                    <td class="rank-col-name">${item.name}</td>
+                    <td class="rank-col-salary glow-text-green">${formatCurrency(item.netSalary)}</td>
+                    <td class="rank-col-comment">${item.comment || ''}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1551,119 +1691,41 @@ async function loadRanking() {
 }
 
 function initCompanyLogoModals() {
+    const badgeManpower = document.getElementById('badgeManpower') || document.querySelector('.logo-left');
+    const badgeIntel = document.getElementById('badgeIntel') || document.querySelector('.logo-right');
     const companyModal = document.getElementById('companyInfoModal');
-    const companyLogoIcon = document.getElementById('companyLogoIcon');
-    const companyModalName = document.getElementById('companyModalName');
-    const companyModalDesc = document.getElementById('companyModalDesc');
     const btnCloseCompanyModal = document.getElementById('btnCloseCompanyModal');
 
-    const logoManpower = document.querySelector('.logo-left');
-    const logoIntel = document.querySelector('.logo-right');
-
-    if (logoManpower && companyModal) {
-        logoManpower.addEventListener('click', () => {
-            companyModalName.textContent = 'ManpowerGroup Vietnam';
-            companyModalDesc.innerHTML = `
-                <div style="font-size:0.88rem; line-height:1.55; color:#cbd5e1;">
-                    <p style="margin:0 0 10px 0;"><strong>ManpowerGroup</strong> là tập đoàn giải pháp nhân sự toàn cầu hàng đầu thế giới với hơn 75 năm kinh nghiệm hoạt động tại 75+ quốc gia & vùng lãnh thổ.</p>
-                    
-                    <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:10px;">
-                        <strong style="color:var(--primary); display:block; margin-bottom:6px; font-size:0.88rem;">🎯 Chiến Lược Nhân Sự Trọng Tâm 2025 - 2026:</strong>
-                        <ul style="margin:0; padding-left:18px; font-size:0.83rem;">
-                            <li style="margin-bottom:3px;"><strong>Precision Hiring:</strong> Tuyển dụng chính xác nguồn nhân lực chất lượng cao theo nhu cầu doanh nghiệp.</li>
-                            <li style="margin-bottom:3px;"><strong>Workforce AI Transformation:</strong> Đào tạo nâng cao kỹ năng (upskilling) ứng dụng AI trong công việc.</li>
-                            <li><strong>Green Talent & ESG:</strong> Cung cấp giải pháp nhân sự xanh chuyển đổi bền vững.</li>
-                        </ul>
-                    </div>
-
-                    <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:10px;">
-                        <strong style="color:#fbbf24; display:block; margin-bottom:6px; font-size:0.88rem;">🤝 Các Đối Tác Chiến Lược Tiêu Biểu:</strong>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.83rem;">
-                            <div>• 🌐 <strong>Intel Products VN</strong></div>
-                            <div>• 📱 <strong>Samsung Electronics</strong></div>
-                            <div>• 🥤 <strong>Coca-Cola Beverages</strong></div>
-                            <div>• 🧴 <strong>Unilever Vietnam</strong></div>
-                            <div>• 💻 <strong>Microsoft Vietnam</strong></div>
-                            <div>• 📺 <strong>LG Electronics</strong></div>
-                            <div>• 🛒 <strong>Shopee & Lazada</strong></div>
-                            <div>• 🏦 <strong>Standard Chartered</strong></div>
-                        </div>
-                    </div>
-
-                    <div style="font-size:0.81rem; color:var(--text-muted);">
-                        ✨ <em>Chuyên cung cấp dịch vụ quản trị nhân sự, giải pháp khoán dịch vụ lao động (BPO) & tư vấn nhân tài chiến lược cho các tập đoàn đa quốc gia tại Việt Nam.</em>
-                    </div>
-                </div>
-            `;
-            companyLogoIcon.innerHTML = `
-                <svg width="42" height="42" viewBox="0 0 100 100" fill="none">
-                    <path d="M15 70 L15 30 C15 30, 25 20, 38 35 C50 50, 60 20, 72 35 C80 45, 85 55, 85 70" stroke="url(#mpGrad1_m)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M25 75 C35 65, 45 75, 55 60 C65 45, 75 60, 85 55" stroke="url(#mpGrad2_m)" stroke-width="8" stroke-linecap="round"/>
-                    <defs>
-                        <linearGradient id="mpGrad1_m" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#38bdf8"/>
-                            <stop offset="100%" stop-color="#6366f1"/>
-                        </linearGradient>
-                        <linearGradient id="mpGrad2_m" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#f43f5e"/>
-                            <stop offset="100%" stop-color="#fb923c"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-            `;
-            companyModal.classList.remove('hidden');
+    if (badgeManpower && !badgeManpower.hasAttribute('onclick')) {
+        badgeManpower.addEventListener('click', () => {
+            if (typeof window.openCompanyModal === 'function') {
+                window.openCompanyModal('manpower');
+            }
         });
     }
 
-    if (logoIntel && companyModal) {
-        logoIntel.addEventListener('click', () => {
-            companyModalName.textContent = 'Intel Corporation';
-            companyModalDesc.innerHTML = `
-                <div style="font-size:0.88rem; line-height:1.55; color:#cbd5e1;">
-                    <p style="margin:0 0 10px 0;"><strong>Intel Corporation</strong> là tập đoàn công nghệ vi xử lý & bán dẫn hàng đầu thế giới, tiên phong dẫn dắt kỷ nguyên AI PC, Data Center & công nghệ đúc chip (Foundry).</p>
-
-                    <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:10px;">
-                        <strong style="color:#38bdf8; display:block; margin-bottom:4px; font-size:0.88rem;">🔥 Sản Phẩm Nổi Bật & Flagship (2025 - 2026):</strong>
-                        <ul style="margin:0; padding-left:18px; font-size:0.83rem;">
-                            <li style="margin-bottom:3px;"><strong>Core Ultra 200S & 200V (Arrow/Lunar Lake):</strong> Chip AI PC thế hệ mới hiệu năng cao & tiết kiệm điện.</li>
-                            <li style="margin-bottom:3px;"><strong>Panther Lake (Core Ultra Series 3):</strong> Vi xử lý 2026 sản xuất trên tiến trình đột phá <strong>Intel 18A (1.8nm)</strong>.</li>
-                            <li style="margin-bottom:3px;"><strong>Xeon 6 (Granite Rapids / Sierra Forest):</strong> Chip máy chủ Data Center siêu mật độ nhân.</li>
-                            <li><strong>Gaudi 3 AI Accelerator:</strong> Chip tăng tốc huấn luyện & suy luận AI thế hệ mới.</li>
-                        </ul>
-                    </div>
-
-                    <div style="background:rgba(0,0,0,0.25); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
-                        <strong style="color:#6366f1; display:block; margin-bottom:4px; font-size:0.88rem;">🚀 Tiến Trình & Roadmap Tương Lai:</strong>
-                        <ul style="margin:0; padding-left:18px; font-size:0.83rem;">
-                            <li style="margin-bottom:3px;"><strong>Tiến trình Intel 18A:</strong> Công nghệ bóng bán dẫn RibbonFET & cấp nguồn mặt lưng PowerVia.</li>
-                            <li style="margin-bottom:3px;"><strong>Nova Lake Architecture:</strong> Kiến trúc vi xử lý PC thế hệ tiếp theo (Core Ultra 300).</li>
-                            <li><strong>Glass Substrates & Quantum:</strong> Đế chip bằng thủy tinh & nghiên cứu điện toán lượng tử.</li>
-                        </ul>
-                    </div>
-                </div>
-            `;
-            companyLogoIcon.innerHTML = `
-                <svg width="45" height="45" viewBox="0 0 120 120" fill="none">
-                    <ellipse cx="60" cy="60" rx="50" ry="32" stroke="url(#intelGrad_m)" stroke-width="7" transform="rotate(-15 60 60)" stroke-dasharray="240" stroke-dashoffset="20"/>
-                    <text x="60" y="68" font-family="'Inter', sans-serif" font-weight="900" font-size="28" fill="#38bdf8" text-anchor="middle" letter-spacing="-1">intel</text>
-                    <circle cx="95" cy="38" r="4" fill="#38bdf8"/>
-                    <defs>
-                        <linearGradient id="intelGrad_m" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#0068b5"/>
-                            <stop offset="100%" stop-color="#38bdf8"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-            `;
-            companyModal.classList.remove('hidden');
+    if (badgeIntel && !badgeIntel.hasAttribute('onclick')) {
+        badgeIntel.addEventListener('click', () => {
+            if (typeof window.openCompanyModal === 'function') {
+                window.openCompanyModal('intel');
+            }
         });
     }
 
-    if (btnCloseCompanyModal && companyModal) {
-        btnCloseCompanyModal.onclick = () => companyModal.classList.add('hidden');
-        companyModal.onclick = (e) => {
-            if (e.target === companyModal) companyModal.classList.add('hidden');
-        };
+    if (btnCloseCompanyModal && !btnCloseCompanyModal.hasAttribute('onclick')) {
+        btnCloseCompanyModal.addEventListener('click', () => {
+            if (typeof window.closeCompanyModal === 'function') {
+                window.closeCompanyModal();
+            }
+        });
+    }
+
+    if (companyModal) {
+        companyModal.addEventListener('click', (e) => {
+            if (e.target === companyModal && typeof window.closeCompanyModal === 'function') {
+                window.closeCompanyModal();
+            }
+        });
     }
 }
 
@@ -1684,4 +1746,93 @@ initCurrencyInputs();
 initNonNegativeInputs();
 initCompanyLogoModals();
 initTitleGradientAnimation();
+
+// =========================================================
+// Mobile Accordion & Floating Bottom Result Sheet Handlers
+// =========================================================
+window.toggleCategoryAccordion = function(groupId) {
+    if (window.innerWidth > 900) return; // Keep desktop UI fully expanded & unaffected
+    const group = document.getElementById(groupId);
+    if (!group) return;
+
+    const isCollapsed = group.classList.toggle('category-collapsed');
+    const badge = group.querySelector('.category-accordion-badge');
+    if (badge) {
+        badge.textContent = isCollapsed ? 'Mở rộng ▼' : 'Thu gọn ▲';
+    }
+};
+
+window.toggleResultSheet = function(force) {
+    if (window.innerWidth > 900) return; // Keep desktop UI unaffected
+    const panel = document.getElementById('resultsPanel');
+    const overlay = document.getElementById('mobileSheetOverlay');
+    const arrow = document.getElementById('sheetToggleArrow');
+    if (!panel) return;
+
+    const shouldExpand = force !== undefined ? force : !panel.classList.contains('sheet-expanded');
+    if (shouldExpand) {
+        panel.classList.add('sheet-expanded');
+        if (overlay) overlay.classList.add('active');
+        if (arrow) arrow.textContent = 'Thu gọn ▼';
+    } else {
+        panel.classList.remove('sheet-expanded');
+        if (overlay) overlay.classList.remove('active');
+        if (arrow) arrow.textContent = 'Chi tiết ▲';
+    }
+};
+
+// =========================================================
+// Mobile Calculation Subtabs Switcher (Chấm công / Lương / Trợ cấp)
+// =========================================================
+window.switchCalcSubtab = function(groupId) {
+    const subtabBtns = document.querySelectorAll('.calc-subtab-btn');
+    subtabBtns.forEach(btn => {
+        if (btn.getAttribute('data-subtab') === groupId) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    const groups = ['catGroup1', 'catGroup2', 'catGroup3'];
+    groups.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            if (id === groupId) {
+                el.classList.add('subtab-active');
+            } else {
+                el.classList.remove('subtab-active');
+            }
+        }
+    });
+    if (typeof fitMobileViewport === 'function') fitMobileViewport();
+};
+
+// =========================================================
+// Auto Viewport Fitting for Mobile: Tự động vừa khít mọi kích thước màn hình
+// =========================================================
+function fitMobileViewport() {
+    if (window.innerWidth > 900) return; // Tuyệt đối không can thiệp giao diện PC
+
+    try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    } catch (e) {
+        window.scrollTo(0, 0);
+    }
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+
+    const vh = window.innerHeight;
+    const mainScreen = document.getElementById('mainScreen');
+    if (!mainScreen || mainScreen.classList.contains('hidden')) return;
+
+    const stacked = document.querySelector('.inputs-panel-stacked');
+    if (stacked) {
+        stacked.style.paddingBottom = '0px';
+    }
+}
+window.fitMobileViewport = fitMobileViewport;
+window.addEventListener('resize', fitMobileViewport);
+window.addEventListener('orientationchange', fitMobileViewport);
+
 

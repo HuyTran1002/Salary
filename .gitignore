@@ -32,3 +32,18 @@ wwwroot/firebase-config.json
 *firebase-config*.js
 *credentials*.json
 
+# Node & Mobile
+node_modules/
+android/.gradle/
+android/app/build/
+android/build/
+*.apk
+*.aab
+*.jks
+*.keystore
+*.p12
+Release_v*/
+android/local.properties
+local.properties
+
+

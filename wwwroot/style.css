@@ -191,6 +191,22 @@ body {
     will-change: background-position !important;
 }
 
+.header-title-full {
+    display: inline !important;
+}
+
+.header-title-short {
+    display: none !important;
+}
+
+.lbl-full {
+    display: inline !important;
+}
+
+.lbl-short {
+    display: none !important;
+}
+
 .glow-text-green {
     font-size: 2rem;
     font-weight: 700;
@@ -483,14 +499,21 @@ body {
         inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* ═══ Compact Logout Button ═══ */
+/* ═══ User Info & Compact Logout Button ═══ */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
 .btn-logout-compact {
-    padding: 5px 14px !important;
-    font-size: 0.78rem !important;
+    padding: 3px 12px !important;
+    font-size: 0.75rem !important;
     font-weight: 500;
     border-radius: 50px !important;
     width: auto !important;
-    line-height: 1.4;
+    line-height: 1.3;
     letter-spacing: 0.2px;
     vertical-align: middle;
 }
@@ -784,27 +807,42 @@ body.no-scroll {
     border-radius: 20px;
     backdrop-filter: blur(8px);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    outline: none;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+}
+
+.company-logo-badge svg,
+.company-logo-badge span,
+.company-logo-badge path,
+.company-logo-badge ellipse,
+.company-logo-badge text,
+.company-logo-badge circle {
+    pointer-events: none;
 }
 
 .company-logo-badge.pulse-glow {
-    animation: floatBadge 3.5s ease-in-out infinite;
+    animation: floatBadge 3s ease-in-out infinite;
 }
 
 .company-logo-badge.pulse-glow-delay {
-    animation: floatBadge 3.5s ease-in-out infinite 1.75s;
+    animation: floatBadge 3s ease-in-out infinite 1.5s;
 }
 
 @keyframes floatBadge {
     0%, 100% {
-        transform: translateY(0);
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.12);
     }
     50% {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(56, 189, 248, 0.25);
-        border-color: rgba(56, 189, 248, 0.4);
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+        border-color: rgba(56, 189, 248, 0.45);
     }
 }
 
@@ -828,11 +866,18 @@ body.no-scroll {
     50% { opacity: 1; transform: scale(1.4); }
 }
 
-.company-logo-badge:hover {
-    transform: translateY(-4px) scale(1.06) !important;
-    border-color: #38bdf8;
-    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.4) !important;
-    background: rgba(30, 41, 59, 0.9);
+@media (hover: hover) {
+    .company-logo-badge:hover {
+        transform: translateY(-2px) scale(1.04) !important;
+        border-color: #38bdf8;
+        box-shadow: 0 8px 25px rgba(56, 189, 248, 0.4) !important;
+        background: rgba(30, 41, 59, 0.9);
+    }
+}
+
+.company-logo-badge:active {
+    transform: scale(0.96) !important;
+    background: rgba(30, 41, 59, 0.95);
 }
 
 .company-logo-badge .logo-text {
@@ -858,57 +903,228 @@ body.no-scroll {
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100vw;
+    width: 100dvw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(8px);
+    height: 100dvh;
+    background: rgba(10, 15, 29, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 999999 !important;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .company-modal-box {
     position: relative;
-    max-width: 460px;
-    width: 90%;
-    padding: 24px 28px;
-    background: rgba(30, 41, 59, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    max-width: 540px;
+    width: 100%;
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 22px 24px;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(56, 189, 248, 0.2);
+    box-sizing: border-box;
+}
+
+.company-modal-box::-webkit-scrollbar,
+.cloud-sync-modal-box::-webkit-scrollbar {
+    width: 5px;
+}
+.company-modal-box::-webkit-scrollbar-thumb,
+.cloud-sync-modal-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
 }
 
 .modal-close-btn {
     position: absolute;
     top: 14px;
-    right: 18px;
-    background: transparent;
-    border: none;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #94a3b8;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     cursor: pointer;
-    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 10;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: manipulation;
 }
 
-.modal-close-btn:hover {
-    color: #ef4444;
+.modal-close-btn:hover,
+.modal-close-btn:active {
+    color: #ffffff;
+    background: rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.6);
+    transform: scale(1.08);
 }
 
 .company-modal-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 12px;
+    padding-bottom: 10px;
+    padding-right: 36px; /* leave room for close button */
 }
 
-.company-modal-body p {
-    font-size: 0.92rem;
-    line-height: 1.6;
+.company-modal-content-wrap {
+    font-size: 0.88rem;
+    line-height: 1.55;
     color: #cbd5e1;
+}
+
+.company-intro-desc {
+    margin: 0 0 10px 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+.company-modal-grid-2 {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.company-info-card {
+    background: rgba(0, 0, 0, 0.28);
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-sizing: border-box;
+}
+
+.company-info-card .card-title {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+}
+
+.company-info-card ul {
     margin: 0;
+    padding-left: 18px;
+    font-size: 0.83rem;
+}
+
+.company-info-card ul li {
+    margin-bottom: 4px;
+    line-height: 1.45;
+}
+
+.company-info-card ul li:last-child {
+    margin-bottom: 0;
+}
+
+/* Strategy List & Badges */
+.company-strategy-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.strategy-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.81rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+}
+
+.strategy-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.strategy-desc {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Partner Chips Grid (Modern Glass Badges) */
+.partner-chips-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 8px;
+}
+
+.partner-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    min-height: 30px;
+}
+
+.partner-chip:hover {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.35);
+    transform: translateY(-1px);
+}
+
+.chip-ico {
+    flex-shrink: 0;
+    font-size: 0.92rem;
+    line-height: 1;
+}
+
+.chip-name {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.partner-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 0.83rem;
+}
+
+.company-footer-note {
+    font-size: 0.81rem;
+    color: #94a3b8;
+    line-height: 1.45;
 }
 
 .compact-inputs {
@@ -1005,6 +1221,41 @@ body.no-scroll {
     height: 50px;
     font-size: 1.1rem;
     margin-top: auto;
+}
+
+/* Base & PC Desktop rules: Accordions always fully expanded, mobile handles/badges hidden */
+.category-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-accordion-body {
+    display: block !important;
+}
+
+.category-accordion-badge,
+.mobile-sheet-handle,
+.mobile-sheet-toggle-btn,
+.mobile-sheet-overlay {
+    display: none !important;
+}
+
+.result-details-collapsible {
+    display: block !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+}
+
+.calc-subtabs-nav,
+.btn-toggle-calendar-view,
+.schedule-grid-container {
+    display: none !important;
+}
+
+.schedule-table-container {
+    display: block !important;
 }
 
 /* --- TABS & TABLES --- */
@@ -1307,3 +1558,3465 @@ body.no-scroll {
     0% { box-shadow: 0 0 10px rgba(255, 193, 7, 0.5); }
     100% { box-shadow: 0 0 24px rgba(255, 224, 130, 0.9); }
 }
+
+/* =========================================================
+   Cloud Sync Modal & Badge Styles
+   ========================================================= */
+.cloud-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+.cloud-badge.online {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.cloud-badge.offline {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.cloud-corner-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    touch-action: manipulation;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 20;
+}
+
+.cloud-corner-btn:hover {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: rgba(99, 102, 241, 0.6);
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+}
+
+.cloud-corner-btn:active {
+    transform: scale(0.95);
+}
+
+.cloud-sync-modal-box {
+    position: relative;
+    width: 94%;
+    max-width: 520px;
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 22px 24px;
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.97) 100%) !important;
+    border: 1px solid rgba(99, 102, 241, 0.45) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 25px 65px rgba(0, 0, 0, 0.85), 0 0 35px rgba(99, 102, 241, 0.25) !important;
+    box-sizing: border-box;
+}
+
+.cloud-sync-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+    padding-right: 36px;
+}
+
+.cloud-sync-content-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cloud-status-card {
+    background: rgba(0, 0, 0, 0.32);
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cloud-status-desc {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    padding-left: 2px;
+}
+
+.cloud-actions-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.cloud-actions-row button {
+    height: auto;
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 0.80rem;
+    font-weight: 600;
+    line-height: 1.25;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    word-break: normal;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.cloud-sync-col-config {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+}
+
+.cloud-config-title {
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+    color: var(--primary);
+}
+
+/* =========================================================
+   History Detail Modal (Desktop Default)
+   ========================================================= */
+.history-detail-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.history-detail-box {
+    max-width: 860px;
+    width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px;
+    box-sizing: border-box;
+}
+
+.modal-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.modal-header-row h3 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+.modal-close-icon {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.2s;
+}
+
+.modal-close-icon:hover {
+    color: #ef4444;
+}
+
+.modal-detail-scroll-area {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    padding-right: 4px;
+}
+
+.history-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.history-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    min-width: 0;
+}
+
+.detail-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-right: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    font-size: 0.86rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.history-detail-summary {
+    margin-top: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.summary-stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    text-align: center;
+}
+
+.stat-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-lbl {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.stat-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.text-blue { color: #60a5fa; }
+.text-red { color: #f87171; }
+
+.summary-net-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.net-lbl {
+    color: #a7f3d0;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.net-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.modal-actions-center {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.modal-actions-center #btnCloseModal {
+    width: auto !important;
+    min-width: 130px !important;
+    max-width: 180px !important;
+    height: 36px !important;
+    padding: 0 28px !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    border-radius: 20px !important;
+    margin: 0 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+/* User Greeting & Responsive Name Switching */
+.user-greeting-prefix {
+    display: inline;
+}
+.user-name-full {
+    display: inline;
+}
+.user-name-short {
+    display: none;
+}
+.user-icon {
+    margin-left: 2px;
+}
+
+/* =========================================================
+   Mobile Responsive Rules (Phones & Tablets <= 900px)
+   (Chỉ áp dụng cho điện thoại - KHÔNG ảnh hưởng giao diện PC)
+   ========================================================= */
+@media (max-width: 900px), (max-height: 600px), (hover: none) and (pointer: coarse) {
+    /* Ẩn thanh cuộn trên MỌI điện thoại (kể cả Android xoay ngang rộng > 900px), vẫn vuốt được bình thường */
+    ::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+        display: none !important;
+        background: transparent !important;
+    }
+    * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    html, body {
+        overflow-x: hidden !important;
+    }
+}
+
+@media (max-width: 900px) {
+    html, body {
+        width: 100% !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        perspective: none !important; /* Bỏ 3D perspective trên mobile */
+    }
+
+    body {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important; /* Không căn giữa - bắt đầu từ đỉnh */
+        align-items: stretch !important;        /* Co giãn đủ 100% chiều ngang */
+        background-color: var(--dark-bg) !important;
+        padding: 0 !important;
+    }
+
+    body.no-scroll {
+        overflow: hidden !important;
+    }
+
+    /* Màn hình trên Mobile: 100% full screen, không cuộn khung ngoài */
+    .screen {
+        display: none !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        transition: none !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .screen.hidden {
+        display: none !important;
+    }
+
+    .screen.active {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    /* Login Screen: Căn giữa màn hình điện thoại */
+    #loginScreen.active {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 16px !important;
+        width: 100% !important;
+        height: 100% !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        box-sizing: border-box !important;
+        z-index: 50 !important;
+    }
+
+    .glass-card.login-box {
+        width: 100% !important;
+        max-width: 360px !important;
+        padding: 20px 16px !important;
+        margin: auto !important;
+        box-sizing: border-box !important;
+        border-radius: 18px !important;
+    }
+}
+
+/* =========================================================
+   Mobile PORTRAIT Mode Only (Điện thoại cầm dọc)
+   ========================================================= */
+@media (max-width: 900px) and (orientation: portrait) {
+
+    /* Main Calculator Screen: Native Mobile App Frame */
+    #mainScreen.active {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        padding-top: max(env(safe-area-inset-top), var(--sim-safe-top, 46px)) !important;
+        padding-bottom: max(6px, env(safe-area-inset-bottom), var(--sim-safe-bottom, 12px)) !important;
+        box-sizing: border-box !important;
+        z-index: 20 !important;
+    }
+
+    /* Top App Bar trên Mobile - Bố trí dưới notch camera */
+    .glass-header.compact-header {
+        flex-shrink: 0 !important;
+        height: auto !important;
+        min-height: 44px !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 6px 12px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        box-sizing: border-box !important;
+        z-index: 1000 !important;
+        gap: 6px 0 !important;
+    }
+
+    .desktop-only-tabs {
+        display: none !important;
+    }
+
+    /* Hàng 1: Tiêu đề rộng rãi, không bị ép co ngắn */
+    .rainbow-neon-text {
+        order: 1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        text-align: left !important;
+        line-height: 1.2 !important;
+        margin: 0 0 2px 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Hàng 2: Tên người dùng bên trái, Nút Đăng xuất dạt sang bên phải */
+    .user-info {
+        order: 2 !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 1px 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .clickable-profile {
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        flex: 1 1 auto !important;
+    }
+
+    .btn-logout-compact {
+        margin-left: auto !important;
+        padding: 3px 10px !important;
+        font-size: 0.72rem !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Hàng 2: Thanh điều hướng 3 Tab chính (Tính Lương / Lịch Sử / Xếp Hạng) */
+    .tabs-nav {
+        order: 3 !important;
+        width: 100% !important;
+        display: flex !important;
+        gap: 6px !important;
+        background: rgba(0, 0, 0, 0.35) !important;
+        padding: 3px !important;
+        border-radius: 10px !important;
+        box-sizing: border-box !important;
+        margin-top: 4px !important;
+    }
+
+    .tabs-nav .tab-btn {
+        flex: 1 !important;
+        padding: 6px 0 !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        border-radius: 8px !important;
+        border: 1px solid transparent !important;
+        background: transparent !important;
+        color: #94a3b8 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .tabs-nav .tab-btn.active {
+        color: #ffffff !important;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.6) 0%, rgba(139, 92, 246, 0.6) 100%) !important;
+        border-color: rgba(99, 102, 241, 0.8) !important;
+        box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35) !important;
+    }
+
+    /* Tab Content: Khu vực nội dung ở giữa */
+    .tab-content {
+        display: none !important;
+    }
+
+    .tab-content.active {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        position: relative !important;
+        top: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 8px 10px 10px 10px !important;
+        box-sizing: border-box !important;
+        z-index: 10 !important;
+    }
+
+    /* Tab Lịch Sử & Xếp Hạng trên mobile portrait: Fill 100% chiều cao màn hình */
+    #tab-history.active,
+    #tab-ranking.active {
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 6px 10px 10px 10px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    #tab-history .full-height-panel,
+    #tab-ranking .full-height-panel {
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 12px 12px 10px 12px !important;
+        border-radius: 18px !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    #tab-history .section-title,
+    #tab-ranking .section-title {
+        flex: 0 0 auto !important;
+        font-size: 0.95rem !important;
+        margin: 0 0 8px 0 !important;
+        padding-bottom: 6px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #tab-history .table-container,
+    #tab-ranking .table-container {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        background: rgba(0, 0, 0, 0.22) !important;
+    }
+
+    /* Main Layout */
+    .main-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 8px !important;
+        height: auto !important;
+    }
+
+    /* Mobile Subtabs Switcher: Ẩn hoàn toàn vì cả 3 nhóm Lương, OT, Trợ cấp gộp chung trong 1 tab */
+    .calc-subtabs-nav {
+        display: none !important;
+    }
+
+    .inputs-panel-stacked {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Hiển thị đồng thời cả 3 nhóm (1. Lương & Ngày, 2. Chấm công & OT, 3. Trợ cấp & Khấu trừ) trong 1 tab */
+    .inputs-panel-stacked > .input-category {
+        display: block !important;
+        padding: 8px 10px !important;
+        border-radius: 12px !important;
+        background: rgba(30, 41, 59, 0.55) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Input Categories & Group Styling */
+    .input-category {
+        padding: 8px 10px !important;
+        border-radius: 12px !important;
+    }
+
+    .category-title {
+        font-size: 0.8rem !important;
+        margin-bottom: 6px !important;
+        font-weight: 700 !important;
+        color: #818cf8 !important;
+        padding-bottom: 3px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .sub-category {
+        background: rgba(15, 23, 42, 0.45) !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        margin-bottom: 0 !important;
+    }
+
+    .sub-category:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .sub-category-title {
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.3px !important;
+        color: #94a3b8 !important;
+        margin-bottom: 3px !important;
+        text-transform: uppercase !important;
+    }
+
+    .input-group {
+        min-width: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .input-group input {
+        font-size: 0.84rem !important;
+        font-weight: 600 !important;
+        padding: 4px 6px !important;
+        height: 32px !important;
+        box-sizing: border-box !important;
+        border-radius: 8px !important;
+        text-align: center !important;
+        background: rgba(0, 0, 0, 0.35) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+    }
+
+    .input-group label {
+        font-size: 0.66rem !important;
+        font-weight: 500 !important;
+        color: #94a3b8 !important;
+        margin-bottom: 2px !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+        max-width: 95% !important;
+    }
+
+    /* =========================================================
+       Nhóm 1: Thông tin & Thu nhập chính (Cân đối 100% trên Mobile)
+       ========================================================= */
+    #catGroup1 .cat1-grid,
+    #catGroup1 div[style*="grid-template-columns"] {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px 8px !important;
+    }
+    /* Hàng 1: Tháng (50%) | Năm (50%) */
+    #groupMonth,
+    #groupYear,
+    #catGroup1 .input-group:nth-child(1),
+    #catGroup1 .input-group:nth-child(2) {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    /* Hàng 2: Số ngày công chuẩn (100% full width, vừa vặn cho nút AUTO) */
+    #groupWorkingDays,
+    #catGroup1 .input-group:nth-child(3) {
+        grid-column: span 2 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    /* Hàng 3: Lương Cơ Bản (50%) | Tiền Cơm (50%) */
+    #groupBasicSalary,
+    #groupMealAllowance,
+    #catGroup1 .input-group:nth-child(4),
+    #catGroup1 .input-group:nth-child(5) {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    /* Hàng 4: Thưởng & PC Khác (100% full width cân đối đều 2 bên) */
+    #groupOtherBonus,
+    #catGroup1 .input-group:nth-child(6) {
+        grid-column: span 2 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+    }
+    #groupOtherBonus input,
+    #catGroup1 .input-group:nth-child(6) input {
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+    /* =========================================================
+       Nhóm 2: Chấm công & Tăng ca (OT)
+       ========================================================= */
+    #catGroup2 > div[style*="grid-template-columns"] {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 5px !important;
+    }
+
+    /* =========================================================
+       Nhóm 3: Các khoản Trợ cấp & Khấu trừ (Cân đối 100% trên Mobile)
+       ========================================================= */
+    #catGroup3 .cat3-wrapper {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+    /* Hàng 1 & 2: Tiền đi lại (50%) | Tiền nhà ở (50%); Tiền chuyên cần (50%) | Tiền Cert (50%) */
+    #catGroup3 .cat3-grid-top,
+    #catGroup3 div[style*="grid-template-columns: repeat(4, 1fr)"] {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px 8px !important;
+    }
+    #groupTravel,
+    #groupHousing,
+    #groupAttendance,
+    #groupCertificate,
+    #catGroup3 div[style*="grid-template-columns: repeat(4, 1fr)"] > .input-group {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Hàng 3 & 4: Thưởng Hiệu Suất (50%) | % Trích BHXH (50%) ; Giảm Trừ Gia Cảnh (100% full width span 2) */
+    #catGroup3 .cat3-grid-bottom,
+    #catGroup3 div[style*="grid-template-columns: repeat(3, 1fr)"] {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px 8px !important;
+    }
+    #groupPerformance,
+    #groupInsurance,
+    #catGroup3 div[style*="grid-template-columns: repeat(3, 1fr)"] > .input-group:nth-child(1),
+    #catGroup3 div[style*="grid-template-columns: repeat(3, 1fr)"] > .input-group:nth-child(2) {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    #groupTaxThreshold,
+    #catGroup3 div[style*="grid-template-columns: repeat(3, 1fr)"] > .input-group:nth-child(3) {
+        grid-column: span 2 !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    #groupTaxThreshold input,
+    #catGroup3 div[style*="grid-template-columns: repeat(3, 1fr)"] > .input-group:nth-child(3) input {
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+    /* Profile Screen trên Mobile Portrait: 2 cột cân đối, cuộn mượt, không tràn màn hình */
+    #profileScreen.active {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)) 12px !important;
+        z-index: 99999 !important;
+        background: rgba(10, 15, 29, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        position: fixed !important;
+        inset: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Profile & Register Screen trên Mobile: Modal 2 cột cân xứng tuyệt đẹp */
+    #profileScreen.active,
+    #registerScreen.active {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)) 12px !important;
+        z-index: 99999 !important;
+        background: rgba(10, 15, 29, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        position: fixed !important;
+        inset: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #profileScreen .glass-card,
+    #registerScreen .glass-card {
+        width: 100% !important;
+        max-width: 440px !important;
+        max-height: calc(100dvh - 36px) !important;
+        padding: 16px 14px 14px 14px !important;
+        border-radius: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin: auto !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    #profileScreen h2,
+    #registerScreen h2 {
+        font-size: 1.18rem !important;
+        margin: 0 0 2px 0 !important;
+        text-align: center !important;
+    }
+
+    #profileScreen .subtitle,
+    #registerScreen .subtitle {
+        font-size: 0.74rem !important;
+        margin: 0 0 10px 0 !important;
+        text-align: center !important;
+        color: var(--text-muted) !important;
+    }
+
+    #profileScreen .dense-grid-3,
+    #registerScreen .dense-grid-3 {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px 10px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 4px 2px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+    }
+
+    #profileScreen .dense-grid-3 .span-2,
+    #registerScreen .dense-grid-3 .span-2 {
+        grid-column: span 1 !important;
+    }
+
+    #profileScreen .dense-grid-3 .input-group:last-child,
+    #registerScreen .dense-grid-3 .input-group:last-child {
+        grid-column: span 2 !important;
+    }
+
+    #profileScreen .input-group input,
+    #registerScreen .input-group input {
+        height: 34px !important;
+        font-size: 0.84rem !important;
+        text-align: center !important;
+        padding: 2px 6px !important;
+        border-radius: 8px !important;
+    }
+
+    #profileScreen .input-group label,
+    #registerScreen .input-group label {
+        font-size: 0.62rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    #profileScreen .btn-row,
+    #registerScreen .btn-row {
+        margin-top: 10px !important;
+        display: flex !important;
+        gap: 10px !important;
+        width: 100% !important;
+        flex: 0 0 auto !important;
+    }
+
+    #profileScreen .btn-row button,
+    #registerScreen .btn-row button {
+        flex: 1 !important;
+        height: 38px !important;
+        font-size: 0.88rem !important;
+        border-radius: 10px !important;
+        margin: 0 !important;
+    }
+
+    /* Tự động hiển thị toàn bộ Results Panel vừa vặn khoảng trống trên Mobile */
+    .mobile-sheet-overlay,
+    .mobile-sheet-handle,
+    .mobile-sheet-toggle-btn {
+        display: none !important;
+    }
+
+    .results-panel {
+        position: relative !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        z-index: 10 !important;
+        padding: 0 !important;
+        margin-top: 6px !important;
+        pointer-events: auto !important;
+        flex-shrink: 0 !important;
+    }
+
+    #stickyResultCard {
+        pointer-events: auto !important;
+        background: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+        padding: 10px 12px !important;
+        margin: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        transition: none !important;
+        box-sizing: border-box !important;
+    }
+
+    #stickyResultCard .section-title {
+        display: none !important;
+    }
+
+    .result-details-collapsible {
+        display: block !important;
+        max-height: none !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+    }
+
+    .result-box.vertical-compact {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        margin: 0 !important;
+    }
+
+    .result-box.vertical-compact .result-item {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 6px 4px !important;
+        border-radius: 8px !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        min-height: 44px !important;
+        box-sizing: border-box !important;
+    }
+
+    .result-box.vertical-compact .result-item span {
+        font-size: 0.68rem !important;
+        color: #94a3b8 !important;
+        margin-bottom: 2px !important;
+        white-space: nowrap !important;
+        font-weight: 500 !important;
+    }
+
+    .result-box.vertical-compact .result-item strong {
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+    }
+
+    #weekendInfoBox {
+        grid-column: span 3 !important;
+        margin-top: 2px !important;
+        padding: 5px 8px !important;
+        font-size: 0.72rem !important;
+        font-weight: 500 !important;
+        color: #cbd5e1 !important;
+        border-radius: 8px !important;
+        background: rgba(0, 0, 0, 0.28) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        text-align: center !important;
+    }
+
+    /* Action Bar: Net on Left, Calculate Button on Right */
+    .result-action-bar {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-top: 2px !important;
+    }
+
+    .net-main-item {
+        flex: 1.3 !important;
+        cursor: default !important;
+        padding: 6px 10px !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: flex-start !important;
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%) !important;
+        border: 1px solid rgba(16, 185, 129, 0.5) !important;
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.2) !important;
+        height: 48px !important;
+        box-sizing: border-box !important;
+    }
+
+    .net-main-item span {
+        font-size: 0.68rem !important;
+        font-weight: 600 !important;
+        color: #a7f3d0 !important;
+        line-height: 1 !important;
+        margin-bottom: 2px !important;
+    }
+
+    .net-main-item strong {
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        color: #34d399 !important;
+        line-height: 1.1 !important;
+        text-shadow: 0 0 10px rgba(52, 211, 153, 0.4) !important;
+    }
+
+    .calc-btn-wrap {
+        flex: 1 !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        height: 48px !important;
+    }
+
+    #btnCalculate {
+        height: 48px !important;
+        width: 100% !important;
+        font-size: 1rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.5px !important;
+        margin: 0 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 18px rgba(99, 102, 241, 0.45) !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Modals on mobile portrait */
+    .modal-overlay .glass-card,
+    .modal-box,
+    .company-modal-box,
+    .cloud-sync-modal-box {
+        width: 94vw !important;
+        max-width: 440px !important;
+        max-height: 90vh !important;
+        max-height: 90dvh !important;
+        overflow-y: auto !important;
+        padding: 16px 14px !important;
+        border-radius: 18px !important;
+        box-sizing: border-box !important;
+    }
+
+    .company-modal-grid-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    .strategy-row {
+        font-size: 0.77rem !important;
+        gap: 6px !important;
+        line-height: 1.35 !important;
+    }
+
+    .strategy-badge {
+        font-size: 0.68rem !important;
+        padding: 2px 6px !important;
+    }
+
+    .partner-chips-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 5px 6px !important;
+    }
+
+    .partner-chip {
+        padding: 5px 6px !important;
+        font-size: 0.73rem !important;
+        min-height: 28px !important;
+        gap: 5px !important;
+    }
+
+    .chip-ico {
+        font-size: 0.85rem !important;
+    }
+
+    .cloud-actions-row button {
+        height: auto !important;
+        min-height: 38px !important;
+        padding: 6px 6px !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* History Detail Modal on Mobile (Chế độ dọc tối ưu hoàn toàn cho màn hình bé) */
+    .history-detail-overlay {
+        padding: 8px 6px !important;
+        box-sizing: border-box !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .history-detail-box {
+        width: 100% !important;
+        max-width: 360px !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+        padding: 10px 10px 8px 10px !important;
+        border-radius: 16px !important;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(99, 102, 241, 0.2) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    .modal-header-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 6px !important;
+        padding: 0 2px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .modal-header-row h3 {
+        font-size: 0.95rem !important;
+        margin: 0 !important;
+        font-weight: 700 !important;
+        color: #f1f5f9 !important;
+    }
+
+    .modal-close-icon {
+        font-size: 1.3rem !important;
+        line-height: 1 !important;
+        padding: 2px 4px !important;
+    }
+
+    .modal-detail-scroll-area {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding-right: 2px !important;
+        scrollbar-width: thin !important;
+    }
+
+    /* 2 cột cân xứng siêu gọn, nhãn ở trên - giá trị ở dưới, không tràn màn hình */
+    .history-detail-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 3px 5px !important;
+        padding: 5px 6px !important;
+        border-radius: 10px !important;
+        background: rgba(0, 0, 0, 0.35) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .history-detail-item {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        padding: 2px 5px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    .detail-label {
+        font-size: 0.63rem !important;
+        font-weight: 500 !important;
+        color: #94a3b8 !important;
+        margin-bottom: 1px !important;
+        line-height: 1.1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+
+    .detail-value {
+        font-size: 0.76rem !important;
+        font-weight: 700 !important;
+        line-height: 1.2 !important;
+        color: #ffffff !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .detail-value span {
+        font-size: 0.60rem !important;
+        padding: 1px 3px !important;
+        border-radius: 3px !important;
+    }
+
+    /* Summary Bar trên mobile: 3 chỉ số ở trên, Thực nhận NET nổi bật ở dưới */
+    .history-detail-summary {
+        margin-top: 5px !important;
+        padding: 6px 8px !important;
+        border-radius: 10px !important;
+        background: rgba(0, 0, 0, 0.45) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+    }
+
+    .summary-stat-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 4px !important;
+        text-align: center !important;
+    }
+
+    .stat-lbl {
+        font-size: 0.61rem !important;
+        color: #94a3b8 !important;
+        margin-bottom: 1px !important;
+        white-space: nowrap !important;
+    }
+
+    .stat-val {
+        font-size: 0.74rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+    }
+
+    .summary-net-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-top: 4px !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .net-lbl {
+        font-size: 0.72rem !important;
+        font-weight: 600 !important;
+        color: #a7f3d0 !important;
+    }
+
+    .net-val {
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        color: #34d399 !important;
+        text-shadow: 0 0 10px rgba(52, 211, 153, 0.4) !important;
+    }
+
+    .modal-actions-center {
+        margin-top: 5px !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    .modal-actions-center #btnCloseModal {
+        width: auto !important;
+        min-width: 90px !important;
+        padding: 3px 20px !important;
+        font-size: 0.80rem !important;
+        height: 28px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Tables on mobile */
+    .table-container {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin-top: 8px !important;
+        border-radius: 12px !important;
+        background: rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .glass-table {
+        width: 100% !important;
+        min-width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+    }
+
+    /* Tab Lịch Sử: 3 cột vừa khít màn hình, tối ưu khoảng cách dữ liệu */
+    #tab-history .glass-table th,
+    #tab-history .glass-table td {
+        padding: 8px 6px !important;
+        vertical-align: middle !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+
+    #tab-history .glass-table th:nth-child(1),
+    #tab-history .glass-table td:nth-child(1) {
+        width: 36% !important;
+        text-align: left !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        color: #f1f5f9 !important;
+    }
+
+    #tab-history .glass-table th:nth-child(2),
+    #tab-history .glass-table td:nth-child(2) {
+        width: 44% !important;
+        text-align: right !important;
+        font-size: 0.92rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+    }
+
+    #tab-history .glass-table th:nth-child(3),
+    #tab-history .glass-table td:nth-child(3) {
+        width: 20% !important;
+        text-align: center !important;
+    }
+
+    #tab-history .btn-delete-history {
+        padding: 3px 6px !important;
+        font-size: 0.7rem !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Tab Xếp Hạng trên Mobile Portrait: Cân đối lại độ rộng, dịch chữ vào trong để không bị cắt mép */
+    #tab-ranking .glass-table th,
+    #tab-ranking .glass-table td {
+        padding: 9px 6px !important;
+        vertical-align: middle !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+
+    #tab-ranking .glass-table th,
+    #tab-history .glass-table th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 5 !important;
+        background: #182234 !important;
+        font-size: 0.72rem !important;
+        letter-spacing: 0.1px !important;
+    }
+
+    /* Cột 1: Hạng (~14%) */
+    #tab-ranking .glass-table th:nth-child(1),
+    #tab-ranking .glass-table td:nth-child(1) {
+        width: 14% !important;
+        min-width: 44px !important;
+        text-align: center !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+
+    /* Cột 2: Tên Nhân Viên (~41%) */
+    #tab-ranking .glass-table th:nth-child(2),
+    #tab-ranking .glass-table td:nth-child(2) {
+        width: 41% !important;
+        text-align: left !important;
+        font-size: 0.86rem !important;
+        font-weight: 700 !important;
+        color: #f8fafc !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        padding-left: 6px !important;
+    }
+
+    /* Cột 3: Lương Thực Nhận (~45%) - dịch lùi vào trong, chừa lề phải 16px */
+    #tab-ranking .glass-table th:nth-child(3),
+    #tab-ranking .glass-table td:nth-child(3) {
+        width: 45% !important;
+        text-align: right !important;
+        white-space: nowrap !important;
+        padding-right: 16px !important;
+    }
+
+    #tab-ranking .glass-table th:nth-child(3) {
+        font-size: 0.72rem !important;
+    }
+
+    #tab-ranking .glass-table td:nth-child(3) {
+        font-size: 0.88rem !important;
+        font-weight: 800 !important;
+    }
+
+    /* Cột 4: Nhận Xét -> Ẩn trên điện thoại dọc để bảng thoáng, không bị co kéo */
+    #tab-ranking .glass-table th:nth-child(4),
+    #tab-ranking .glass-table td:nth-child(4) {
+        display: none !important;
+    }
+
+    #tab-ranking .rank-badge {
+        padding: 3px 8px !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        border-radius: 14px !important;
+    }
+
+    /* Schedule Panel on Mobile */
+    .schedule-panel-left {
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+}
+
+/* =========================================================
+   Mobile LANDSCAPE Mode (Điện thoại & Tablet xoay ngang)
+   Thiết kế giống PC (2 cột song song Left - Right), tối ưu khoảng cách & kích thước
+   ========================================================= */
+@media (orientation: landscape) and (max-width: 1100px) {
+
+    /* Main Container trên chế độ ngang: Né notch/camera bên hông 88px */
+    #mainScreen,
+    #mainScreen.active,
+    .screen#mainScreen {
+        padding-top: max(4px, env(safe-area-inset-top), var(--sim-safe-top, 0px)) !important;
+        padding-bottom: max(6px, env(safe-area-inset-bottom), var(--sim-safe-bottom, 0px)) !important;
+        padding-left: max(12px, env(safe-area-inset-left), var(--sim-safe-left, 0px)) !important;
+        padding-right: max(12px, env(safe-area-inset-right), var(--sim-safe-right, 0px)) !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Top Header: Gộp 1 hàng ngang siêu gọn (36px - 38px) */
+    .glass-header.compact-header {
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 8px !important;
+        margin: 0 !important;
+        gap: 6px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .rainbow-neon-text {
+        order: 1 !important;
+        flex: 0 0 auto !important;
+        font-size: 0.82rem !important;
+        letter-spacing: 0.2px !important;
+        white-space: nowrap !important;
+        max-width: none !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+    }
+
+    .rainbow-neon-text .header-title-full {
+        display: none !important;
+    }
+
+    .rainbow-neon-text .header-title-short {
+        display: inline !important;
+    }
+
+    .tabs-nav {
+        order: 2 !important;
+        width: auto !important;
+        flex: 0 0 auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 2px !important;
+        display: inline-flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 3px !important;
+        border-radius: 999px !important;
+    }
+
+    .tabs-nav .tab-btn {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        padding: 3px 8px !important;
+        font-size: 0.70rem !important;
+        font-weight: 600 !important;
+        line-height: 1.1 !important;
+        height: 25px !important;
+        border-radius: 999px !important;
+        box-sizing: border-box !important;
+    }
+
+    .user-info {
+        order: 3 !important;
+        width: auto !important;
+        flex: 0 0 auto !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-left: auto !important;
+    }
+
+    .clickable-profile {
+        font-size: 0.74rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: clamp(160px, 30vw, 260px) !important;
+        flex-shrink: 1 !important;
+        line-height: 1.2 !important;
+    }
+
+    .btn-logout-compact {
+        flex: 0 0 auto !important;
+        flex-shrink: 0 !important;
+        min-width: max-content !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        padding: 2px 9px !important;
+        font-size: 0.68rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        height: 25px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        border-radius: 50px !important;
+    }
+
+    /* Tab Content khu vực chính */
+    .tab-content.active {
+        height: calc(100% - 38px) !important;
+        max-height: calc(100% - 38px) !important;
+        padding: 4px 6px !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* BỐ CỤC CHÍNH GIỐNG PC: 2 CỘT SONG SONG (Trái: Inputs, Phải: Kết Quả & Nút Tính Lương) */
+    .main-layout {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* CỘT TRÁI (Inputs Panel): Cuộn mượt, hiển thị đồng bộ lưới 3 cột đều đẹp trên cả 3 panel */
+    .inputs-panel-stacked {
+        flex: 1.9 !important;
+        width: auto !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 7px !important;
+        padding-right: 6px !important;
+        box-sizing: border-box !important;
+    }
+
+    .inputs-panel-stacked > .input-category {
+        padding: 7px 10px !important;
+        border-radius: 12px !important;
+    }
+
+    .category-title {
+        font-size: 0.78rem !important;
+        margin-bottom: 5px !important;
+        padding-bottom: 3px !important;
+    }
+
+    /* =========================================================
+       Nhóm 1 (Lương & Ngày): 3 cột đều nhau x 2 hàng cân đối tuyệt đối
+       Row 1: Tháng | Năm | Số ngày công chuẩn (kèm AUTO switch)
+       Row 2: Lương Cơ Bản ⚙️ | Tiền Cơm | Thưởng & PC Khác (VND)
+       ========================================================= */
+    #catGroup1 .cat1-grid,
+    #catGroup1 .category-content-body > div,
+    #catGroup1 div[style*="grid-template-columns"] {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 5px 8px !important;
+    }
+
+    #catGroup1 .input-group,
+    #catGroup1 #groupMonth,
+    #catGroup1 #groupYear,
+    #catGroup1 #groupWorkingDays,
+    #catGroup1 #groupBasicSalary,
+    #catGroup1 #groupMealAllowance,
+    #catGroup1 #groupOtherBonus {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+    }
+
+    #catGroup1 .input-group input,
+    #groupOtherBonus input {
+        height: 28px !important;
+        font-size: 0.78rem !important;
+        padding: 2px 6px !important;
+        text-align: center !important;
+    }
+
+    #catGroup1 .input-group label {
+        font-size: 0.62rem !important;
+        margin-bottom: 2px !important;
+        white-space: nowrap !important;
+    }
+
+    #groupWorkingDays .working-days-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    #groupWorkingDays .switch-toggle {
+        width: 28px !important;
+        height: 14px !important;
+    }
+
+    #groupWorkingDays .mode-badge {
+        font-size: 0.58rem !important;
+        padding: 1px 3px !important;
+    }
+
+    /* =========================================================
+       Nhóm 2 (Chấm công & OT): 3 cột song song như PC
+       Col 1: Ngày nghỉ (Phép AL, SL/NP)
+       Col 2: Giờ tăng ca (1.5x, 2.0x, 3.0x)
+       Col 3: Số ngày tăng ca (8h/12h ⚙️, +4h ⚙️)
+       ========================================================= */
+    #catGroup2 > div[style*="grid-template-columns"],
+    #catGroup2 .category-content-body > div {
+        display: grid !important;
+        grid-template-columns: 2fr 3fr 2fr !important;
+        gap: 6px !important;
+    }
+
+    #catGroup2 .sub-category {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        padding: 4px 4px !important;
+        height: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    #catGroup2 .sub-category > div {
+        gap: 3px !important;
+        width: 100% !important;
+    }
+
+    #catGroup2 .sub-category-title {
+        font-size: 0.62rem !important;
+        margin-bottom: 3px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    #catGroup2 .sub-category .input-group {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        min-width: 0 !important;
+        flex: 1 1 0 !important;
+    }
+
+    #catGroup2 .sub-category .input-group input {
+        height: 28px !important;
+        font-size: 0.76rem !important;
+        text-align: center !important;
+        padding: 2px 2px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        -moz-appearance: textfield !important;
+    }
+
+    #catGroup2 .sub-category .input-group input::-webkit-inner-spin-button,
+    #catGroup2 .sub-category .input-group input::-webkit-outer-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+    }
+
+    #catGroup2 .sub-category .input-group label {
+        font-size: 0.60rem !important;
+        margin-bottom: 2px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    /* =========================================================
+       Nhóm 3 (Trợ cấp & Khấu trừ): Đồng bộ lưới 3 cột hoàn hảo như Nhóm 1 và Nhóm 2
+       Row 1: Tiền đi lại | Tiền nhà ở | Tiền chuyên cần
+       Row 2: Tiền Cert | Thưởng Hiệu Suất ⚙️ | % Trích BHXH
+       Row 3: Giảm Trừ Gia Cảnh (VND) (span 3 cột full width)
+       ========================================================= */
+    #catGroup3 .cat3-wrapper {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 5px 8px !important;
+    }
+
+    #catGroup3 .cat3-grid-top,
+    #catGroup3 .cat3-grid-bottom {
+        display: contents !important;
+    }
+
+    #catGroup3 .input-group,
+    #catGroup3 #groupTravel,
+    #catGroup3 #groupHousing,
+    #catGroup3 #groupAttendance,
+    #catGroup3 #groupCertificate,
+    #catGroup3 #groupPerformance,
+    #catGroup3 #groupInsurance {
+        grid-column: span 1 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+    }
+
+    #catGroup3 #groupTaxThreshold {
+        grid-column: span 3 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+    }
+
+    #catGroup3 .input-group input {
+        height: 28px !important;
+        font-size: 0.78rem !important;
+        text-align: center !important;
+        padding: 2px 4px !important;
+    }
+
+    #catGroup3 .input-group label {
+        font-size: 0.62rem !important;
+        margin-bottom: 2px !important;
+        white-space: nowrap !important;
+    }
+
+    /* =========================================================
+       CỘT PHẢI (Results Panel): Hiển thị cố định bên cạnh, xem ngay kết quả
+       Không cuộn thanh lăn dọc, bố trí 3 ô kết quả cùng 1 hàng
+       ========================================================= */
+    .results-panel {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 250px !important;
+        max-width: 320px !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        margin: 0 !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+    }
+
+    #stickyResultCard {
+        height: auto !important;
+        max-height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        padding: 6px 10px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+        gap: 4px !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #stickyResultCard .section-title {
+        display: block !important;
+        font-size: 0.74rem !important;
+        font-weight: 700 !important;
+        color: var(--primary) !important;
+        margin: 0 0 2px 0 !important;
+        text-align: center !important;
+    }
+
+    /* Bảng chi tiết kết quả dạng 3 cột đều trong card phải (Gross | BHXH | TNCN) */
+    .result-box.vertical-compact,
+    #resultDetailsCollapsible .result-box {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 4px !important;
+        margin: 0 !important;
+    }
+
+    .result-box.vertical-compact .result-item {
+        padding: 2px 4px !important;
+        min-height: 36px !important;
+        border-radius: 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .result-box.vertical-compact .result-item span {
+        font-size: 0.58rem !important;
+        margin-bottom: 2px !important;
+        white-space: nowrap !important;
+        color: var(--text-muted) !important;
+    }
+
+    .result-box.vertical-compact .result-item strong {
+        font-size: 0.72rem !important;
+        white-space: nowrap !important;
+    }
+
+    #weekendInfoBox {
+        grid-column: span 3 !important;
+        font-size: 0.62rem !important;
+        padding: 2px 6px !important;
+        margin: 1px 0 !important;
+        text-align: center !important;
+    }
+
+    /* Cột Net Thực Nhận & Nút Tính Lương ở đáy cột phải */
+    .result-action-bar {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        margin-top: 4px !important;
+        width: 100% !important;
+    }
+
+    .net-main-item {
+        height: 36px !important;
+        padding: 2px 8px !important;
+        width: 100% !important;
+        flex: none !important;
+        box-sizing: border-box !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .net-main-item span {
+        font-size: 0.62rem !important;
+    }
+
+    .net-main-item strong {
+        font-size: 1.05rem !important;
+    }
+
+    .calc-btn-wrap {
+        height: 38px !important;
+        width: 100% !important;
+        flex: none !important;
+        margin: 0 !important;
+    }
+
+    #btnCalculate {
+        height: 38px !important;
+        font-size: 0.92rem !important;
+        width: 100% !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+    }
+
+    /* Chi Tiết Lương Modal trên Chế độ Ngang: Rộng rãi như PC */
+    .history-detail-overlay {
+        padding: 8px !important;
+    }
+
+    .history-detail-box {
+        width: 92% !important;
+        max-width: 740px !important;
+        max-height: 94vh !important;
+        padding: 10px 16px !important;
+        border-radius: 14px !important;
+    }
+
+    .modal-header-row {
+        margin-bottom: 6px !important;
+    }
+
+    .modal-header-row h3 {
+        font-size: 0.98rem !important;
+    }
+
+    .modal-detail-scroll-area {
+        max-height: calc(94vh - 100px) !important;
+        overflow-y: auto !important;
+    }
+
+    .history-detail-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 4px 8px !important;
+        padding: 6px 10px !important;
+    }
+
+    .history-detail-item {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 3px 8px !important;
+        min-height: 30px !important;
+    }
+
+    .detail-label {
+        font-size: 0.72rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    .detail-value {
+        font-size: 0.8rem !important;
+    }
+
+    .history-detail-summary {
+        margin-top: 6px !important;
+        padding: 6px 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+    }
+
+    .summary-stat-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 8px !important;
+        flex: 1 !important;
+    }
+
+    .summary-net-row {
+        border-top: none !important;
+        border-left: 1px dashed rgba(255, 255, 255, 0.2) !important;
+        padding-top: 0 !important;
+        padding-left: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+    }
+
+    .net-lbl {
+        font-size: 0.72rem !important;
+    }
+
+    .net-val {
+        font-size: 1.15rem !important;
+    }
+
+    .modal-actions-center {
+        margin-top: 6px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .modal-actions-center #btnCloseModal {
+        width: auto !important;
+        min-width: 110px !important;
+        max-width: 150px !important;
+        padding: 4px 24px !important;
+        height: 30px !important;
+        font-size: 0.80rem !important;
+        border-radius: 16px !important;
+        margin: 0 auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+    }
+}
+
+/* =========================================================
+   PHONE LANDSCAPE – FILL SCREEN LAYOUT (v4.3.2)
+   Áp dụng cho MỌI điện thoại nằm ngang (chiều cao <= 600px),
+   kể cả máy Android rộng > 900px. Bố cục cân đối, lấp đầy màn hình,
+   không cuộn cả trang.
+   ========================================================= */
+@media (orientation: landscape) and (max-height: 600px) {
+
+    /* --- Khoá khung app vừa khít màn hình --- */
+    html, body {
+        width: 100% !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: fixed !important;
+        inset: 0 !important;
+    }
+
+    #mainScreen.active {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 6px !important;
+        padding:
+            max(6px, env(safe-area-inset-top), var(--sim-safe-top, 0px))
+            max(10px, env(safe-area-inset-right), var(--sim-safe-right, 0px))
+            max(6px, env(safe-area-inset-bottom), var(--sim-safe-bottom, 0px))
+            max(10px, env(safe-area-inset-left), var(--sim-safe-left, 0px)) !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+    }
+
+    /* --- Header 1 hàng: Tiêu đề | Tabs | User --- */
+    #mainScreen .glass-header.compact-header {
+        flex: 0 0 38px !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        padding: 0 8px !important;
+        margin: 0 !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(15, 23, 42, 0.55) !important;
+        box-sizing: border-box !important;
+    }
+
+    #mainScreen .rainbow-neon-text {
+        flex: 0 0 auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        font-size: 0.82rem !important;
+        letter-spacing: 0.2px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    #mainScreen .rainbow-neon-text .header-title-full {
+        display: none !important;
+    }
+
+    #mainScreen .rainbow-neon-text .header-title-short {
+        display: inline !important;
+    }
+
+    #mainScreen .tabs-nav {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        display: inline-flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 3px !important;
+        padding: 2px !important;
+        margin: 0 !important;
+        border-radius: 999px !important;
+        background: rgba(15, 23, 42, 0.45) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #mainScreen .tabs-nav .tab-btn {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        padding: 3px 8px !important;
+        font-size: 0.70rem !important;
+        font-weight: 600 !important;
+        line-height: 1.1 !important;
+        height: 25px !important;
+        border-radius: 999px !important;
+        box-sizing: border-box !important;
+    }
+
+    #mainScreen .user-info {
+        flex: 0 0 auto !important;
+        min-width: 0 !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+        width: auto !important;
+        margin-left: auto !important;
+    }
+
+    #mainScreen .clickable-profile {
+        font-size: 0.74rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: clamp(160px, 30vw, 260px) !important;
+        flex-shrink: 1 !important;
+        line-height: 1.2 !important;
+    }
+
+    #mainScreen .user-greeting-prefix {
+        display: none !important;
+    }
+
+    #mainScreen .user-name-full {
+        display: inline !important;
+        font-weight: 600 !important;
+        color: #a5b4fc !important;
+    }
+
+    #mainScreen .user-name-short {
+        display: none !important;
+    }
+
+    #mainScreen .btn-logout-compact {
+        flex: 0 0 auto !important;
+        flex-shrink: 0 !important;
+        min-width: max-content !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        padding: 2px 9px !important;
+        font-size: 0.68rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        height: 25px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        border-radius: 50px !important;
+    }
+
+    /* --- Vùng nội dung tab chiếm toàn bộ phần còn lại --- */
+    #mainScreen .tab-content.active {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        animation: none !important;
+    }
+
+    /* --- Bảng Xếp Hạng & Lịch Sử trên Điện Thoại Nằm Ngang --- */
+    #tab-ranking.active,
+    #tab-history.active {
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #mainScreen #tab-ranking .full-height-panel,
+    #mainScreen #tab-history .full-height-panel {
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 6px 12px 6px 12px !important;
+        border-radius: 12px !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    #tab-ranking .section-title,
+    #tab-history .section-title {
+        flex: 0 0 auto !important;
+        font-size: 0.82rem !important;
+        margin: 0 0 4px 0 !important;
+        padding-bottom: 3px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    #tab-ranking .table-container,
+    #tab-history .table-container {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin: 0 !important;
+        border-radius: 8px !important;
+        background: rgba(0, 0, 0, 0.22) !important;
+    }
+
+    /* Chiều cao từng hàng siêu gọn gàng để thấy 7-8 hàng cùng lúc */
+    #tab-ranking .glass-table th,
+    #tab-ranking .glass-table td {
+        padding: 3px 6px !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        vertical-align: middle !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    #tab-ranking .glass-table th {
+        font-size: 0.72rem !important;
+        height: 26px !important;
+        min-height: 26px !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 5 !important;
+        background: #162032 !important;
+    }
+
+    /* 4 Cột hiển thị đầy đủ, cân đối trên màn hình ngang */
+    /* Cột 1: Hạng (~10%) */
+    #tab-ranking .glass-table th:nth-child(1),
+    #tab-ranking .glass-table td:nth-child(1) {
+        width: 10% !important;
+        min-width: 58px !important;
+        text-align: center !important;
+    }
+
+    #tab-ranking .rank-badge {
+        padding: 1px 6px !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        line-height: 1.2 !important;
+        border-radius: 12px !important;
+    }
+
+    /* Cột 2: Tên Nhân Viên (~24%) */
+    #tab-ranking .glass-table th:nth-child(2),
+    #tab-ranking .glass-table td:nth-child(2) {
+        width: 24% !important;
+        text-align: left !important;
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        color: #f8fafc !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Cột 3: Lương Thực Nhận (~22%) */
+    #tab-ranking .glass-table th:nth-child(3),
+    #tab-ranking .glass-table td:nth-child(3) {
+        width: 22% !important;
+        text-align: right !important;
+        font-size: 0.85rem !important;
+        font-weight: 800 !important;
+        white-space: nowrap !important;
+    }
+
+    /* Cột 4: Nhận Xét (~44%) - hiển thị đẹp, thanh lịch, vừa khít */
+    #tab-ranking .glass-table th:nth-child(4),
+    #tab-ranking .glass-table td:nth-child(4),
+    #tab-ranking .rank-col-comment {
+        display: table-cell !important;
+        width: 44% !important;
+        text-align: left !important;
+        padding-left: 12px !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.75rem !important;
+        font-style: italic !important;
+        color: #cbd5e1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        letter-spacing: 0.1px !important;
+    }
+
+    /* Top 1/2/3 Rows viền nhấn mảnh, tinh tế */
+    #tab-ranking .rank-row-top1 { border-left: 3px solid #ffc107 !important; }
+    #tab-ranking .rank-row-top2 { border-left: 3px solid #e2e8f0 !important; }
+    #tab-ranking .rank-row-top3 { border-left: 3px solid #ea580c !important; }
+
+    /* Tab Lịch Sử trên màn hình ngang */
+    #tab-history .glass-table th,
+    #tab-history .glass-table td {
+        padding: 3px 8px !important;
+        height: 31px !important;
+        vertical-align: middle !important;
+    }
+
+    #tab-history .glass-table th {
+        font-size: 0.72rem !important;
+        height: 26px !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 5 !important;
+        background: #162032 !important;
+    }
+
+    #tab-history .btn-delete-history {
+        padding: 2px 6px !important;
+        font-size: 0.68rem !important;
+    }
+
+    .calc-subtabs-nav {
+        display: none !important;
+    }
+
+    /* --- 2 cột: Nhập liệu (trái) | Kết quả (phải) --- */
+    #tab-calc .main-layout {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) clamp(210px, 28%, 250px) !important;
+        gap: 6px !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #tab-calc .lbl-full {
+        display: none !important;
+    }
+
+    #tab-calc .lbl-short {
+        display: inline !important;
+    }
+
+    /* Cột trái: 3 nhóm co giãn vừa vặn chiều cao, hiển thị 100% các ô */
+    #tab-calc .inputs-panel-stacked {
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    #tab-calc .inputs-panel-stacked > .input-category {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        padding: 3px 8px 4px !important;
+        margin: 0 !important;
+        border-radius: 10px !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+    }
+
+    #tab-calc #catGroup2 { flex-grow: 0.75 !important; }
+
+    #tab-calc .category-title {
+        flex: 0 0 auto !important;
+        font-size: 0.68rem !important;
+        margin: 0 0 2px 0 !important;
+        padding-bottom: 2px !important;
+        line-height: 1.1 !important;
+    }
+
+    #tab-calc .category-content-body {
+        flex: 1 1 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+    }
+
+    /* Nhãn + ô nhập chuẩn hoá */
+    #tab-calc .input-group {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        margin: 0 !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    #tab-calc .input-group label:not(.switch-toggle) {
+        font-size: 0.56rem !important;
+        margin: 0 0 1px 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        position: static !important;
+        transform: none !important;
+    }
+
+    /* Nút gạt AUTO: giữ khung riêng, nhỏ gọn nằm cạnh nhãn */
+    #tab-calc #groupWorkingDays .switch-toggle {
+        position: relative !important;
+        display: inline-block !important;
+        flex: 0 0 auto !important;
+        width: 28px !important;
+        height: 15px !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+
+    #tab-calc #groupWorkingDays .working-days-toggle-container {
+        display: flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        flex: 0 0 auto !important;
+    }
+
+    #tab-calc #groupWorkingDays .working-days-header label:not(.switch-toggle) {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    #tab-calc #groupWorkingDays .mode-badge {
+        font-size: 0.50rem !important;
+        padding: 1px 3px !important;
+        line-height: 1.1 !important;
+    }
+
+    #tab-calc .input-group input:not([type="checkbox"]) {
+        height: 24px !important;
+        min-height: 24px !important;
+        padding: 1px 4px !important;
+        font-size: 0.76rem !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Nhóm 1: 3 cột x 2 hàng */
+    #tab-calc #catGroup1 .cat1-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        align-content: space-evenly !important;
+        gap: 3px 6px !important;
+        margin: 0 !important;
+        margin-top: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    #groupWorkingDays .working-days-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 1px !important;
+    }
+
+    #groupWorkingDays .working-days-header label {
+        margin: 0 !important;
+    }
+
+    /* Nhóm 2: 3 khối con song song (tỷ lệ 2fr : 3fr : 2fr cân đối hoàn hảo) */
+    #tab-calc #catGroup2 > div:not(.category-title) {
+        display: grid !important;
+        grid-template-columns: 2fr 3fr 2fr !important;
+        gap: 4px !important;
+        flex: 1 1 auto !important;
+        align-items: stretch !important;
+    }
+
+    #tab-calc #catGroup2 .sub-category {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        padding: 2px 3px !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+    }
+
+    #tab-calc #catGroup2 .sub-category-title {
+        font-size: 0.56rem !important;
+        margin: 0 0 2px 0 !important;
+        line-height: 1 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    #tab-calc #catGroup2 .sub-category > div {
+        gap: 2px !important;
+        width: 100% !important;
+    }
+
+    #tab-calc #catGroup2 .input-group {
+        min-width: 0 !important;
+        flex: 1 1 0 !important;
+    }
+
+    #tab-calc #catGroup2 .input-group input {
+        height: 24px !important;
+        min-height: 24px !important;
+        padding: 1px 2px !important;
+        font-size: 0.74rem !important;
+        text-align: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        -moz-appearance: textfield !important;
+    }
+
+    #tab-calc #catGroup2 .input-group input::-webkit-inner-spin-button,
+    #tab-calc #catGroup2 .input-group input::-webkit-outer-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+    }
+
+    #tab-calc #catGroup2 .input-group label {
+        text-align: center !important;
+        font-size: 0.54rem !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+    }
+
+    /* Nhóm 3: 4 cột x 2 hàng (Giảm trừ gia cảnh chiếm 2 cột) */
+    #tab-calc #catGroup3 .cat3-wrapper {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        align-content: space-evenly !important;
+        gap: 3px 6px !important;
+        margin: 0 !important;
+        margin-top: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    #tab-calc #catGroup3 .cat3-grid-top,
+    #tab-calc #catGroup3 .cat3-grid-bottom {
+        display: contents !important;
+    }
+
+    #tab-calc #catGroup3 .input-group {
+        grid-column: span 1 !important;
+    }
+
+    #tab-calc #catGroup3 #groupTaxThreshold {
+        grid-column: span 2 !important;
+    }
+
+    /* --- Cột phải: Kết quả cao full, Net + nút ở đáy --- */
+    #tab-calc .results-panel {
+        position: relative !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        transform: none !important;
+        bottom: auto !important;
+    }
+
+    #tab-calc #stickyResultCard {
+        position: relative !important;
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        padding: 5px 8px !important;
+        margin: 0 !important;
+        border-radius: 10px !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        transform: none !important;
+    }
+
+    #tab-calc .result-details-collapsible {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    #tab-calc #stickyResultCard .section-title {
+        font-size: 0.68rem !important;
+        margin: 0 0 2px 0 !important;
+        letter-spacing: 0.3px !important;
+    }
+
+    /* 3 dòng kết quả xếp dọc, giãn đều lấp chiều cao */
+    #tab-calc .result-box.vertical-compact {
+        flex: 1 1 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-evenly !important;
+        gap: 3px !important;
+        margin: 0 !important;
+    }
+
+    #tab-calc .result-box.vertical-compact .result-item {
+        flex: 1 1 0 !important;
+        max-height: 25px !important;
+        min-height: 22px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 1px 8px !important;
+        border-radius: 6px !important;
+        text-align: left !important;
+    }
+
+    #tab-calc .result-box.vertical-compact .result-item span {
+        font-size: 0.60rem !important;
+        margin: 0 !important;
+    }
+
+    #tab-calc .result-box.vertical-compact .result-item strong {
+        font-size: 0.74rem !important;
+        white-space: nowrap !important;
+    }
+
+    #tab-calc #weekendInfoBox {
+        flex: 0 0 auto !important;
+        margin: 0 !important;
+        padding: 2px 5px !important;
+        font-size: 0.58rem !important;
+        line-height: 1.2 !important;
+    }
+
+    #tab-calc .result-action-bar {
+        flex: 0 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    #tab-calc .net-main-item {
+        height: 38px !important;
+        padding: 1px 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+    }
+
+    #tab-calc .net-main-item > div {
+        align-items: center !important;
+    }
+
+    #tab-calc .net-main-item span {
+        font-size: 0.56rem !important;
+    }
+
+    #tab-calc .net-main-item strong {
+        font-size: 1.02rem !important;
+        line-height: 1.1 !important;
+    }
+
+    #tab-calc .calc-btn-wrap {
+        flex: 0 0 auto !important;
+        height: 34px !important;
+        margin: 0 !important;
+    }
+
+    #tab-calc #btnCalculate {
+        height: 34px !important;
+        font-size: 0.86rem !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+    }
+
+    /* Ẩn các thành phần bottom-sheet chỉ dành cho chế độ dọc */
+    .mobile-sheet-handle,
+    .mobile-sheet-toggle-btn,
+    .mobile-sheet-overlay {
+        display: none !important;
+    }
+
+    /* --- Profile & Register Screen trên Điện Thoại Nằm Ngang: 4 Cột x 3 Hàng vừa khít màn hình --- */
+    #profileScreen.active,
+    #registerScreen.active {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: max(4px, env(safe-area-inset-top), var(--sim-safe-top, 0px))
+                 max(16px, env(safe-area-inset-right), var(--sim-safe-right, 0px))
+                 max(4px, env(safe-area-inset-bottom), var(--sim-safe-bottom, 0px))
+                 max(16px, env(safe-area-inset-left), var(--sim-safe-left, 0px)) !important;
+        z-index: 99999 !important;
+        background: rgba(10, 15, 29, 0.88) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        position: fixed !important;
+        inset: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #profileScreen .glass-card,
+    #registerScreen .glass-card {
+        width: 95% !important;
+        max-width: 680px !important;
+        max-height: calc(100dvh - 8px) !important;
+        padding: 6px 14px 8px 14px !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+        margin: auto !important;
+        overflow: hidden !important;
+    }
+
+    #profileScreen h2,
+    #registerScreen h2 {
+        font-size: 0.92rem !important;
+        margin: 0 0 3px 0 !important;
+        text-align: center !important;
+        line-height: 1.2 !important;
+    }
+
+    #profileScreen .subtitle,
+    #registerScreen .subtitle {
+        display: none !important;
+    }
+
+    #profileScreen .dense-grid-3,
+    #registerScreen .dense-grid-3 {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px 8px !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        padding: 2px !important;
+    }
+
+    #profileScreen .dense-grid-3 .span-2,
+    #registerScreen .dense-grid-3 .span-2 {
+        grid-column: span 2 !important;
+    }
+
+    #profileScreen .dense-grid-3 .input-group:last-child,
+    #registerScreen .dense-grid-3 .input-group:last-child {
+        grid-column: span 1 !important;
+    }
+
+    #profileScreen .input-group input,
+    #registerScreen .input-group input {
+        height: 25px !important;
+        font-size: 0.78rem !important;
+        text-align: center !important;
+        padding: 1px 4px !important;
+        border-radius: 6px !important;
+    }
+
+    #profileScreen .input-group label,
+    #registerScreen .input-group label {
+        font-size: 0.56rem !important;
+        margin-bottom: 1px !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+    }
+
+    #profileScreen .btn-row,
+    #registerScreen .btn-row {
+        margin-top: 6px !important;
+        display: flex !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        flex: 0 0 auto !important;
+    }
+
+    #profileScreen .btn-row button,
+    #registerScreen .btn-row button {
+        height: 30px !important;
+        padding: 2px 24px !important;
+        font-size: 0.80rem !important;
+        border-radius: 8px !important;
+        width: auto !important;
+        min-width: 100px !important;
+        margin: 0 !important;
+    }
+
+    /* =========================================================
+       Company & Cloud Modals on Landscape Phone (Height <= 600px)
+       Tối ưu chiều ngang rộng rãi, chia 2 cột cân xứng, không bị tràn màn hình
+       ========================================================= */
+    .company-modal-overlay {
+        padding: 6px !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .company-modal-box {
+        width: min(740px, 96vw) !important;
+        max-width: 740px !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+        padding: 10px 16px 12px 16px !important;
+        border-radius: 16px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+
+    .company-modal-header {
+        margin-bottom: 6px !important;
+        padding-bottom: 6px !important;
+        gap: 8px !important;
+    }
+
+    .company-modal-header h3 {
+        font-size: 1.05rem !important;
+    }
+
+    .company-intro-desc {
+        font-size: 0.82rem !important;
+        margin-bottom: 6px !important;
+        line-height: 1.4 !important;
+    }
+
+    /* Hiển thị 2 card song song dạng 2 cột trong chế độ ngang */
+    .company-modal-grid-2 {
+        display: grid !important;
+        grid-template-columns: 1.05fr 1fr !important;
+        gap: 8px !important;
+        margin-bottom: 6px !important;
+        align-items: stretch !important;
+    }
+
+    .company-info-card {
+        padding: 6px 10px !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .company-info-card .card-title {
+        font-size: 0.78rem !important;
+        margin-bottom: 5px !important;
+    }
+
+    .company-strategy-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 5px !important;
+    }
+
+    .strategy-row {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+        font-size: 0.71rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .strategy-badge {
+        font-size: 0.65rem !important;
+        padding: 1px 5px !important;
+        border-radius: 5px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .partner-chips-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px 6px !important;
+    }
+
+    .partner-chip {
+        padding: 3px 6px !important;
+        font-size: 0.71rem !important;
+        min-height: 26px !important;
+        gap: 5px !important;
+        border-radius: 6px !important;
+    }
+
+    .chip-ico {
+        font-size: 0.82rem !important;
+    }
+
+    .chip-name {
+        font-size: 0.71rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .company-info-card ul {
+        padding-left: 14px !important;
+        font-size: 0.73rem !important;
+    }
+
+    .company-info-card ul li {
+        margin-bottom: 2px !important;
+        line-height: 1.35 !important;
+    }
+
+    .partner-grid-2col {
+        gap: 3px 6px !important;
+        font-size: 0.74rem !important;
+    }
+
+    .company-footer-note {
+        font-size: 0.72rem !important;
+        line-height: 1.3 !important;
+    }
+
+    /* Cloud Sync Modal on Landscape */
+    .cloud-sync-modal-box {
+        width: min(700px, 96vw) !important;
+        max-width: 700px !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+        padding: 10px 16px 12px 16px !important;
+        border-radius: 16px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+
+    .cloud-sync-modal-header {
+        margin-bottom: 6px !important;
+        padding-bottom: 6px !important;
+    }
+
+    .cloud-sync-modal-header h3 {
+        font-size: 1.02rem !important;
+    }
+
+    .cloud-sync-content-grid {
+        display: grid !important;
+        grid-template-columns: 1.05fr 1fr !important;
+        gap: 14px !important;
+        align-items: stretch !important;
+    }
+
+    .cloud-sync-col-status {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .cloud-sync-col-config {
+        border-top: none !important;
+        border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding-top: 0 !important;
+        padding-left: 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    .cloud-status-card {
+        padding: 6px 10px !important;
+        margin-bottom: 4px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .cloud-status-desc {
+        font-size: 0.74rem !important;
+        margin-bottom: 6px !important;
+        line-height: 1.3 !important;
+    }
+
+    .cloud-actions-row {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        margin-top: 4px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .cloud-actions-row button {
+        height: auto !important;
+        min-height: 38px !important;
+        padding: 5px 6px !important;
+        font-size: 0.74rem !important;
+        font-weight: 600 !important;
+        line-height: 1.25 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        border-radius: 9px !important;
+        box-sizing: border-box !important;
+    }
+
+    .cloud-config-title {
+        font-size: 0.82rem !important;
+        margin-bottom: 5px !important;
+    }
+
+    .cloud-sync-col-config .input-group {
+        margin-bottom: 5px !important;
+    }
+
+    .cloud-sync-col-config .input-group input {
+        height: 27px !important;
+        font-size: 0.78rem !important;
+        padding: 2px 8px !important;
+    }
+
+    .cloud-sync-col-config .input-group label {
+        font-size: 0.62rem !important;
+    }
+
+    .cloud-sync-col-config button#btnSaveFirebaseConfig {
+        height: 34px !important;
+        min-height: 34px !important;
+        font-size: 0.82rem !important;
+        padding: 0 14px !important;
+        margin-top: 4px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
+
+/* Màn hình xoay ngang quá bé (chiều ngang <= 680px): Rút gọn tên còn 2 chữ để không bị tràn */
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 680px) {
+    #mainScreen .clickable-profile {
+        max-width: 125px !important;
+    }
+    #mainScreen .user-name-full {
+        display: none !important;
+    }
+    #mainScreen .user-name-short {
+        display: inline !important;
+        font-weight: 600 !important;
+        color: #a5b4fc !important;
+    }
+}
+
+/* =========================================================
+   3D Glassmorphism Toast Notifications (Replaces Native Alert)
+   ========================================================= */
+#toastContainer {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    pointer-events: none;
+    width: 100%;
+    max-width: 480px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.custom-toast {
+    pointer-events: auto;
+    width: 100%;
+    padding: 13px 18px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #f8fafc;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    animation: toastSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.custom-toast.hide {
+    animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.custom-toast-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.24) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.55);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(16, 185, 129, 0.35);
+}
+
+.custom-toast-error {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.24) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.55);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(239, 68, 68, 0.35);
+}
+
+.custom-toast-info {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.24) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.55);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(99, 102, 241, 0.35);
+}
+
+.toast-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.custom-toast-success .toast-icon {
+    background: rgba(16, 185, 129, 0.25);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+.custom-toast-error .toast-icon {
+    background: rgba(239, 68, 68, 0.25);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+}
+
+.custom-toast-info .toast-icon {
+    background: rgba(99, 102, 241, 0.25);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.45);
+}
+
+.toast-msg {
+    flex: 1;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.toast-close {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 4px;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    color: #ffffff;
+}
+
+@keyframes toastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastSlideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.95);
+    }
+}
+
+/* =========================================================
+   Custom 3D Glassmorphic Alert Modal (Replaces Native Alert Popup)
+   ========================================================= */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 15, 29, 0.76);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease-out;
+}
+
+.custom-alert-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.custom-alert-card {
+    position: relative;
+    width: 90%;
+    max-width: 390px;
+    padding: 26px 24px 22px 24px;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 22px;
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 35px rgba(99, 102, 241, 0.15);
+    text-align: center;
+    transform: scale(0.88) translateY(14px);
+    transition: transform 0.26s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.custom-alert-overlay.show .custom-alert-card {
+    transform: scale(1) translateY(0);
+}
+
+.custom-alert-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.custom-alert-close:hover {
+    color: #f43f5e;
+    background: rgba(244, 63, 94, 0.12);
+}
+
+.custom-alert-icon-wrap {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.custom-alert-icon {
+    font-size: 1.85rem;
+    line-height: 1;
+}
+
+/* Success theme */
+.custom-alert-card.type-success {
+    border-color: rgba(16, 185, 129, 0.45);
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 35px rgba(16, 185, 129, 0.25);
+}
+.custom-alert-card.type-success .custom-alert-icon-wrap {
+    background: rgba(16, 185, 129, 0.18);
+    border: 2px solid rgba(16, 185, 129, 0.55);
+    color: #10b981;
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.4);
+}
+.custom-alert-card.type-success .custom-alert-title {
+    color: #34d399;
+    text-shadow: 0 0 16px rgba(52, 211, 153, 0.35);
+}
+
+/* Error theme */
+.custom-alert-card.type-error {
+    border-color: rgba(239, 68, 68, 0.45);
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 35px rgba(239, 68, 68, 0.25);
+}
+.custom-alert-card.type-error .custom-alert-icon-wrap {
+    background: rgba(239, 68, 68, 0.18);
+    border: 2px solid rgba(239, 68, 68, 0.55);
+    color: #ef4444;
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.4);
+}
+.custom-alert-card.type-error .custom-alert-title {
+    color: #f87171;
+    text-shadow: 0 0 16px rgba(248, 113, 113, 0.35);
+}
+
+/* Info theme */
+.custom-alert-card.type-info {
+    border-color: rgba(99, 102, 241, 0.45);
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 35px rgba(99, 102, 241, 0.25);
+}
+.custom-alert-card.type-info .custom-alert-icon-wrap {
+    background: rgba(99, 102, 241, 0.18);
+    border: 2px solid rgba(99, 102, 241, 0.55);
+    color: #818cf8;
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.4);
+}
+.custom-alert-card.type-info .custom-alert-title {
+    color: #a5b4fc;
+    text-shadow: 0 0 16px rgba(165, 180, 252, 0.35);
+}
+
+.custom-alert-title {
+    font-size: 1.22rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.01em;
+}
+
+.custom-alert-message {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    line-height: 1.55;
+    margin: 0 0 22px 0;
+    word-break: break-word;
+}
+
+.custom-alert-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.custom-alert-btn {
+    min-width: 130px;
+    padding: 10px 28px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+

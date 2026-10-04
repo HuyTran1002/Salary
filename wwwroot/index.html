@@ -3,10 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Calculator 3D</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="schedule.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="stylesheet" href="style.css?v=4.5.5">
+    <link rel="stylesheet" href="schedule.css?v=4.5.5">
     <link
         href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -21,11 +20,13 @@
 
     <!-- Login Screen -->
     <div id="loginScreen" class="screen active">
-        <div class="glass-card 3d-hover login-box">
+        <div class="glass-card 3d-hover login-box" style="position: relative;">
             <div class="card-content">
                 <!-- Header chứa 2 logo đối tác thu nhỏ cực kỳ tinh tế -->
                 <div class="login-partner-header">
-                    <div class="company-logo-badge logo-left pulse-glow" title="Click để xem chi tiết ManpowerGroup">
+                    <button type="button" id="badgeManpower" class="company-logo-badge logo-left pulse-glow"
+                        onclick="openCompanyModal('manpower')"
+                        title="Click để xem chi tiết ManpowerGroup">
                         <svg width="22" height="22" viewBox="0 0 100 100" fill="none">
                             <path d="M15 70 L15 30 C15 30, 25 20, 38 35 C50 50, 60 20, 72 35 C80 45, 85 55, 85 70"
                                 stroke="url(#mpGrad1)" stroke-width="12" stroke-linecap="round"
@@ -44,13 +45,14 @@
                             </defs>
                         </svg>
                         <span class="logo-text">ManpowerGroup</span>
-                    </div>
+                    </button>
 
                     <div class="partner-badge-connector">
                         <span class="pulse-dot"></span>
                     </div>
 
-                    <div class="company-logo-badge logo-right pulse-glow-delay"
+                    <button type="button" id="badgeIntel" class="company-logo-badge logo-right pulse-glow-delay"
+                        onclick="openCompanyModal('intel')"
                         title="Click để xem chi tiết Intel Corporation">
                         <svg width="22" height="22" viewBox="0 0 120 120" fill="none">
                             <ellipse cx="60" cy="60" rx="50" ry="32" stroke="url(#intelGrad)" stroke-width="7"
@@ -66,7 +68,7 @@
                             </defs>
                         </svg>
                         <span class="logo-text">Intel Corp</span>
-                    </div>
+                    </button>
                 </div>
 
                 <h1 class="glow-text" style="margin-top: 6px;">Salary System</h1>
@@ -78,22 +80,184 @@
                 <button id="btnLogin" class="btn-primary btn-3d">Đăng Nhập</button>
                 <p id="loginError" class="error-msg hidden"></p>
             </div>
+            <!-- Small floating cloud icon button in bottom right corner -->
+            <button type="button" id="btnOpenCloudSyncLogin" class="cloud-corner-btn" onclick="openCloudSyncModal()" title="Cài đặt Đồng bộ Cloud">☁️</button>
         </div>
     </div>
 
     <!-- Company Info Modal -->
-    <div id="companyInfoModal" class="company-modal-overlay hidden">
+    <div id="companyInfoModal" class="company-modal-overlay hidden" onclick="if(event.target === this) closeCompanyModal()">
         <div class="glass-card company-modal-box">
-            <button id="btnCloseCompanyModal" class="modal-close-btn">&times;</button>
+            <button id="btnCloseCompanyModal" class="modal-close-btn" onclick="closeCompanyModal()">&times;</button>
             <div class="company-modal-header">
                 <div id="companyLogoIcon" class="modal-logo-icon"></div>
                 <h3 id="companyModalName" class="glow-text" style="margin: 0; font-size: 1.25rem;"></h3>
             </div>
             <div class="company-modal-body">
-                <p id="companyModalDesc"></p>
+                <div id="companyModalDesc"></div>
             </div>
         </div>
     </div>
+
+    <script>
+        function openCompanyModal(type) {
+            const modal = document.getElementById('companyInfoModal');
+            const icon = document.getElementById('companyLogoIcon');
+            const name = document.getElementById('companyModalName');
+            const desc = document.getElementById('companyModalDesc');
+            if (!modal) return;
+
+            if (type === 'manpower') {
+                if (name) name.textContent = 'ManpowerGroup Vietnam';
+                if (icon) {
+                    icon.innerHTML = `
+                        <svg width="42" height="42" viewBox="0 0 100 100" fill="none">
+                            <path d="M15 70 L15 30 C15 30, 25 20, 38 35 C50 50, 60 20, 72 35 C80 45, 85 55, 85 70" stroke="url(#mpGrad1_m)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M25 75 C35 65, 45 75, 55 60 C65 45, 75 60, 85 55" stroke="url(#mpGrad2_m)" stroke-width="8" stroke-linecap="round"/>
+                            <defs>
+                                <linearGradient id="mpGrad1_m" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#38bdf8"/>
+                                    <stop offset="100%" stop-color="#6366f1"/>
+                                </linearGradient>
+                                <linearGradient id="mpGrad2_m" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f43f5e"/>
+                                    <stop offset="100%" stop-color="#fb923c"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    `;
+                }
+                if (desc) {
+                    desc.innerHTML = `
+                        <div class="company-modal-content-wrap">
+                            <p class="company-intro-desc"><strong>ManpowerGroup</strong> là tập đoàn giải pháp nhân sự toàn cầu hàng đầu thế giới với hơn 75 năm kinh nghiệm hoạt động tại 75+ quốc gia & vùng lãnh thổ.</p>
+                            
+                            <div class="company-modal-grid-2">
+                                <div class="company-info-card">
+                                    <strong class="card-title text-primary">🎯 Chiến Lược Nhân Sự Trọng Tâm 2025 - 2026:</strong>
+                                    <div class="company-strategy-list">
+                                        <div class="strategy-row">
+                                            <span class="strategy-badge">Precision Hiring</span>
+                                            <span class="strategy-desc">Tuyển dụng chính xác nguồn nhân lực chất lượng cao theo nhu cầu doanh nghiệp.</span>
+                                        </div>
+                                        <div class="strategy-row">
+                                            <span class="strategy-badge">Workforce AI</span>
+                                            <span class="strategy-desc">Đào tạo nâng cao kỹ năng (upskilling) ứng dụng AI trong công việc.</span>
+                                        </div>
+                                        <div class="strategy-row">
+                                            <span class="strategy-badge">Green Talent</span>
+                                            <span class="strategy-desc">Cung cấp giải pháp nhân sự xanh chuyển đổi bền vững (ESG).</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="company-info-card">
+                                    <strong class="card-title text-warning">🤝 Các Đối Tác Chiến Lược Tiêu Biểu:</strong>
+                                    <div class="partner-chips-grid">
+                                        <div class="partner-chip"><span class="chip-ico">🌐</span><span class="chip-name">Intel Products VN</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">📱</span><span class="chip-name">Samsung Electronics</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">🥤</span><span class="chip-name">Coca-Cola Beverages</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">🧴</span><span class="chip-name">Unilever Vietnam</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">💻</span><span class="chip-name">Microsoft Vietnam</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">📺</span><span class="chip-name">LG Electronics</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">🛒</span><span class="chip-name">Shopee & Lazada</span></div>
+                                        <div class="partner-chip"><span class="chip-ico">🏦</span><span class="chip-name">Standard Chartered</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="company-footer-note">
+                                ✨ <em>Chuyên cung cấp dịch vụ quản trị nhân sự, giải pháp khoán dịch vụ lao động (BPO) & tư vấn nhân tài chiến lược cho các tập đoàn đa quốc gia tại Việt Nam.</em>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else if (type === 'intel') {
+                if (name) name.textContent = 'Intel Corporation';
+                if (icon) {
+                    icon.innerHTML = `
+                        <svg width="45" height="45" viewBox="0 0 120 120" fill="none">
+                            <ellipse cx="60" cy="60" rx="50" ry="32" stroke="url(#intelGrad_m)" stroke-width="7" transform="rotate(-15 60 60)" stroke-dasharray="240" stroke-dashoffset="20"/>
+                            <text x="60" y="68" font-family="'Inter', sans-serif" font-weight="900" font-size="28" fill="#38bdf8" text-anchor="middle" letter-spacing="-1">intel</text>
+                            <circle cx="95" cy="38" r="4" fill="#38bdf8"/>
+                            <defs>
+                                <linearGradient id="intelGrad_m" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#0068b5"/>
+                                    <stop offset="100%" stop-color="#38bdf8"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    `;
+                }
+                if (desc) {
+                    desc.innerHTML = `
+                        <div class="company-modal-content-wrap">
+                            <p class="company-intro-desc"><strong>Intel Corporation</strong> là tập đoàn công nghệ vi xử lý & bán dẫn hàng đầu thế giới, tiên phong dẫn dắt kỷ nguyên AI PC, Data Center & công nghệ đúc chip (Foundry).</p>
+
+                            <div class="company-modal-grid-2">
+                                <div class="company-info-card">
+                                    <strong class="card-title text-cyan">🔥 Sản Phẩm Nổi Bật & Flagship (2025 - 2026):</strong>
+                                    <ul>
+                                        <li><strong>Core Ultra 200S & 200V:</strong> Chip AI PC thế hệ mới hiệu năng cao & tiết kiệm điện.</li>
+                                        <li><strong>Panther Lake (Core Ultra Series 3):</strong> Tiến trình đột phá <strong>Intel 18A (1.8nm)</strong>.</li>
+                                        <li><strong>Xeon 6 (Granite Rapids):</strong> Chip máy chủ Data Center siêu mật độ nhân.</li>
+                                        <li><strong>Gaudi 3 AI Accelerator:</strong> Chip tăng tốc huấn luyện & suy luận AI.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="company-info-card">
+                                    <strong class="card-title text-primary">🚀 Tiến Trình & Roadmap Tương Lai:</strong>
+                                    <ul>
+                                        <li><strong>Tiến trình Intel 18A:</strong> Bóng bán dẫn RibbonFET & cấp nguồn mặt lưng PowerVia.</li>
+                                        <li><strong>Nova Lake Architecture:</strong> Kiến trúc vi xử lý PC thế hệ tiếp theo (Core Ultra 300).</li>
+                                        <li><strong>Glass Substrates & Quantum:</strong> Đế chip bằng thủy tinh & nghiên cứu máy tính lượng tử.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+
+        function closeCompanyModal() {
+            const modal = document.getElementById('companyInfoModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        }
+
+        function openCloudSyncModal() {
+            const modal = document.getElementById('cloudSyncModal');
+            if (!modal) return;
+            try {
+                const inputProj = document.getElementById('cfgFirebaseProjectId');
+                const inputKey = document.getElementById('cfgFirebaseApiKey');
+                const saved = localStorage.getItem('salary_firebase_config');
+                const cfg = saved ? JSON.parse(saved) : (window.FIREBASE_CONFIG || {});
+                if (inputProj) inputProj.value = cfg.projectId || '';
+                if (inputKey) inputKey.value = cfg.apiKey || '';
+            } catch(e) {}
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+
+        function closeCloudSyncModal() {
+            const modal = document.getElementById('cloudSyncModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        }
+
+        window.openCompanyModal = openCompanyModal;
+        window.closeCompanyModal = closeCompanyModal;
+        window.openCloudSyncModal = openCloudSyncModal;
+        window.closeCloudSyncModal = closeCloudSyncModal;
+    </script>
 
     <!-- Register Screen -->
     <div id="registerScreen" class="screen hidden">
@@ -178,63 +342,78 @@
     <!-- Main Calculator Screen -->
     <div id="mainScreen" class="screen hidden">
         <header class="glass-header compact-header">
-            <h2 class="rainbow-neon-text" data-text="Bảng Tính Lương Chi Tiết">Bảng Tính Lương Chi Tiết</h2>
+            <h2 class="rainbow-neon-text" data-text="Bảng Tính Lương Chi Tiết">
+                <span class="header-title-full">Bảng Tính Lương Chi Tiết</span>
+                <span class="header-title-short">Bảng Tính Lương</span>
+            </h2>
 
             <div class="tabs-nav">
                 <button class="tab-btn active" data-tab="tab-calc">Tính Lương</button>
                 <button class="tab-btn" data-tab="tab-history">Lịch Sử</button>
                 <button class="tab-btn" data-tab="tab-ranking">Xếp Hạng</button>
+                <button type="button" id="btnMainSchedule" class="tab-btn btn-schedule-header" onclick="if(window.toggleSchedulePanel)window.toggleSchedulePanel(true)" title="Mở Lịch Làm Việc & Lịch Ca 2026">📅 Lịch Ca</button>
             </div>
 
             <div class="user-info">
-                <span id="welcomeText" class="clickable-profile" title="Sửa Profile">Xin chào, User ⚙️</span>
+                <span id="welcomeText" class="clickable-profile" title="Sửa Profile">
+                    <span class="user-greeting-prefix">Xin chào, </span><span class="user-name-full">User</span><span class="user-name-short">User</span> <span class="user-icon">👤</span>
+                </span>
                 <button id="btnLogout" class="btn-outline btn-3d btn-logout-compact">Đăng xuất</button>
             </div>
         </header>
 
         <div id="tab-calc" class="tab-content active">
+            <!-- Mobile Subtabs Navigation: Chuyển đổi giữa 3 nhóm nhập liệu (Chỉ hiện trên điện thoại) -->
+            <div class="calc-subtabs-nav" id="calcSubtabsNav">
+                <button type="button" class="calc-subtab-btn active" data-subtab="catGroup2" onclick="switchCalcSubtab('catGroup2')">⏱️ Chấm Công & OT</button>
+                <button type="button" class="calc-subtab-btn" data-subtab="catGroup1" onclick="switchCalcSubtab('catGroup1')">💵 Lương & Ngày</button>
+                <button type="button" class="calc-subtab-btn" data-subtab="catGroup3" onclick="switchCalcSubtab('catGroup3')">🎁 Trợ Cấp & Thuế</button>
+            </div>
+
             <div class="main-layout" style="display: flex; gap: 20px; align-items: stretch;">
                 <!-- Left Column: 3 Input Groups Stacked Vertically -->
                 <div class="inputs-panel-stacked" style="flex: 2.8; display: flex; flex-direction: column; gap: 12px;">
                     <!-- Group 1: Thông tin & Thu nhập chính (Hàng 1: Tháng, Năm, Ngày công; Hàng 2: Lương, Phụ cấp) -->
-                    <div class="glass-card 3d-hover input-category"
+                    <div id="catGroup1" class="glass-card 3d-hover input-category"
                         style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
                         <h4 class="category-title"
                             style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
                             1. Thông tin & Thu nhập chính</h4>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px;">
-                            <div class="input-group"><input type="number" id="month" required><label>Tháng</label></div>
-                            <div class="input-group"><input type="number" id="year" min="2000"
-                                    required><label>Năm</label></div>
-                            <div class="input-group">
-                                <input type="number" id="workingDays" min="0" required readonly class="auto-mode">
-                                <div class="working-days-header"
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                                    <label style="margin: 0; padding: 0;">Số ngày công chuẩn</label>
-                                    <div class="working-days-toggle-container"
-                                        style="display: flex; align-items: center; gap: 5px;"
-                                        title="Gạt sang trái: AUTO (Tự tính) | Gạt sang phải: MANUAL (Nhập tay)">
-                                        <label class="switch-toggle">
-                                            <input type="checkbox" id="workingDaysModeToggle">
-                                            <span class="switch-slider"></span>
-                                        </label>
-                                        <span id="workingDaysModeBadge" class="mode-badge mode-auto">AUTO</span>
+                        <div class="category-content-body">
+                            <div class="cat1-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; margin-top: 10px;">
+                                <div class="input-group" id="groupMonth"><input type="number" id="month" required><label>Tháng</label></div>
+                                <div class="input-group" id="groupYear"><input type="number" id="year" min="2000"
+                                        required><label>Năm</label></div>
+                                <div class="input-group" id="groupWorkingDays">
+                                    <input type="number" id="workingDays" min="0" required readonly class="auto-mode">
+                                    <div class="working-days-header"
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                        <label style="margin: 0; padding: 0;"><span class="lbl-full">Số ngày công chuẩn</span><span class="lbl-short">Công chuẩn</span></label>
+                                        <div class="working-days-toggle-container"
+                                            style="display: flex; align-items: center; gap: 5px;"
+                                            title="Gạt sang trái: AUTO (Tự tính) | Gạt sang phải: MANUAL (Nhập tay)">
+                                            <label class="switch-toggle">
+                                                <input type="checkbox" id="workingDaysModeToggle">
+                                                <span class="switch-slider"></span>
+                                            </label>
+                                            <span id="workingDaysModeBadge" class="mode-badge mode-auto">AUTO</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="input-group" id="groupBasicSalary"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="basicSalary" required><label id="lblBasicSalary" style="cursor: pointer;"
+                                        title="Nhấp vào chữ này để cài đặt đan xen 2 mức lương từ ngày 01">Lương Cơ Bản
+                                        ⚙️</label></div>
+                                <div class="input-group" id="groupMealAllowance"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="mealAllowance" required><label>Tiền Cơm</label></div>
+                                <div class="input-group" id="groupOtherBonus"><input type="text" inputmode="numeric" class="currency-input"
+                                        id="otherBonus" required><label>Thưởng & PC Khác (VND)</label></div>
                             </div>
-                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                    id="basicSalary" required><label id="lblBasicSalary" style="cursor: pointer;"
-                                    title="Nhấp vào chữ này để cài đặt đan xen 2 mức lương từ ngày 01">Lương Cơ Bản
-                                    ⚙️</label></div>
-                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                    id="mealAllowance" required><label>Tiền Cơm</label></div>
-                            <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                    id="otherBonus" required><label>Thưởng & PC Khác (VND)</label></div>
                         </div>
                     </div>
 
                     <!-- Group 2: Chấm công & Tăng ca (OT) (Chia làm 3 group nhỏ ở 3 cột) -->
-                    <div class="glass-card 3d-hover input-category"
+                    <div id="catGroup2" class="glass-card 3d-hover input-category subtab-active"
                         style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
                         <h4 class="category-title"
                             style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
@@ -286,80 +465,99 @@
                     </div>
 
                     <!-- Group 3: Các khoản Trợ cấp & Khấu trừ (Chia 2 hàng cân đối) -->
-                    <div class="glass-card 3d-hover input-category"
+                    <div id="catGroup3" class="glass-card 3d-hover input-category"
                         style="padding: 12px 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
                         <h4 class="category-title"
                             style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
                             3. Các khoản Trợ cấp & Khấu trừ</h4>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="travelAllowance" required><label>Tiền đi lại</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="housingAllowance" required><label>Tiền nhà ở</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="attendanceIncentive" required><label>Tiền chuyên cần</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="certificateBonus" required><label>Tiền Cert</label></div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="performanceBonus" required><label id="lblPerformanceBonus"
-                                        style="cursor: pointer;"
-                                        title="Nhấp vào bánh răng để cấu hình tiền trừ thưởng hiệu suất">Thưởng Hiệu
-                                        Suất ⚙️</label></div>
-                                <div class="input-group"><input type="number" id="insurancePercent" step="any" min="0"
-                                        required><label>% Trích BHXH</label></div>
-                                <div class="input-group"><input type="text" inputmode="numeric" class="currency-input"
-                                        id="taxThreshold" required><label>Giảm Trừ Gia Cảnh (VND)</label></div>
+                        <div class="category-content-body">
+                            <div class="cat3-wrapper" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                <div class="cat3-grid-top" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                                    <div class="input-group" id="groupTravel"><input type="text" inputmode="numeric" class="currency-input"
+                                            id="travelAllowance" required><label>Tiền đi lại</label></div>
+                                    <div class="input-group" id="groupHousing"><input type="text" inputmode="numeric" class="currency-input"
+                                            id="housingAllowance" required><label>Tiền nhà ở</label></div>
+                                    <div class="input-group" id="groupAttendance"><input type="text" inputmode="numeric" class="currency-input"
+                                            id="attendanceIncentive" required><label>Tiền chuyên cần</label></div>
+                                    <div class="input-group" id="groupCertificate"><input type="text" inputmode="numeric" class="currency-input"
+                                            id="certificateBonus" required><label>Tiền Cert</label></div>
+                                </div>
+                                <div class="cat3-grid-bottom" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                    <div class="input-group" id="groupPerformance"><input type="text" inputmode="numeric" class="currency-input"
+                                            id="performanceBonus" required><label id="lblPerformanceBonus"
+                                            style="cursor: pointer;"
+                                            title="Nhấp vào bánh răng để cấu hình tiền trừ thưởng hiệu suất">Thưởng Hiệu
+                                            Suất ⚙️</label></div>
+                                    <div class="input-group" id="groupInsurance"><input type="number" id="insurancePercent" step="any" min="0"
+                                            required><label>% Trích BHXH</label></div>
+                                    <div class="input-group" id="groupTaxThreshold"><input type="text" inputmode="numeric" class="currency-input"
+                                            id="taxThreshold" required><label>Giảm Trừ Gia Cảnh (VND)</label></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Right Column: Results Panel & Calculate Button -->
-                <div class="results-panel" style="flex: 1; min-width: 250px;">
-                    <div class="glass-card 3d-hover sticky-result"
+                <div class="results-panel" id="resultsPanel" style="flex: 1; min-width: 250px;">
+                    <div class="mobile-sheet-overlay" id="mobileSheetOverlay" onclick="toggleResultSheet(false)"></div>
+                    <div class="glass-card 3d-hover sticky-result" id="stickyResultCard"
                         style="padding: 16px; background: rgba(30, 41, 59, 0.5); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; height: 100%;">
-                        <h3 class="section-title"
-                            style="margin: 0 0 12px 0; text-align: center; font-size: 1.05rem; color: var(--primary);">
-                            KẾT QUẢ TÍNH LƯƠNG</h3>
+                        
+                        <!-- Drag handle on mobile -->
+                        <div class="mobile-sheet-handle" onclick="toggleResultSheet()">
+                            <span class="sheet-drag-pill"></span>
+                        </div>
 
-                        <div class="result-box vertical-compact"
-                            style="display: flex; flex-direction: column; gap: 8px;">
-                            <div class="result-item"
-                                style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
-                                <span style="color: var(--text-muted); font-size: 0.82rem;">Tổng Gross:</span>
-                                <strong id="resGross" style="font-size: 0.95rem; color: #60a5fa;">0 VNĐ</strong>
-                            </div>
-                            <div class="result-item warning"
-                                style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
-                                <span style="color: var(--text-muted); font-size: 0.82rem;">Trừ BHXH:</span>
-                                <strong id="resInsurance" style="color: #ef4444; font-size: 0.95rem;">0 VNĐ</strong>
-                            </div>
-                            <div class="result-item warning"
-                                style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
-                                <span style="color: var(--text-muted); font-size: 0.82rem;">Trừ Thuế TNCN:</span>
-                                <strong id="resTax" style="color: #ef4444; font-size: 0.95rem;">0 VNĐ</strong>
-                            </div>
-                            <div class="result-item highlight"
-                                style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.88rem; font-weight: 600;">Net Thực Nhận:</span>
-                                <strong id="resNet" class="glow-text-green" style="font-size: 1.15rem;">0 VNĐ</strong>
-                            </div>
-                            <div id="weekendInfoBox"
-                                style="margin-top: 6px; background: rgba(0, 0, 0, 0.25); padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.78rem; text-align: center;">
-                                <div id="lblWeekendCount"
-                                    style="color: var(--text-muted); width: 100%; text-align: center;">T7 & CN: 0 Thứ 7,
-                                    0 Chủ Nhật</div>
+                        <!-- Chi tiết kết quả (Thu gọn trên mobile, mở khi chạm) -->
+                        <div class="result-details-collapsible" id="resultDetailsCollapsible">
+                            <h3 class="section-title"
+                                style="margin: 0 0 12px 0; text-align: center; font-size: 1.05rem; color: var(--primary);">
+                                KẾT QUẢ TÍNH LƯƠNG</h3>
+
+                            <div class="result-box vertical-compact"
+                                style="display: flex; flex-direction: column; gap: 8px;">
+                                <div class="result-item"
+                                    style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+                                    <span style="color: var(--text-muted); font-size: 0.82rem;">Tổng Gross:</span>
+                                    <strong id="resGross" style="font-size: 0.95rem; color: #60a5fa;">0 VNĐ</strong>
+                                </div>
+                                <div class="result-item warning"
+                                    style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+                                    <span style="color: var(--text-muted); font-size: 0.82rem;">Trừ BHXH:</span>
+                                    <strong id="resInsurance" style="color: #ef4444; font-size: 0.95rem;">0 VNĐ</strong>
+                                </div>
+                                <div class="result-item warning"
+                                    style="background: rgba(0,0,0,0.25); padding: 9px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+                                    <span style="color: var(--text-muted); font-size: 0.82rem;">Trừ Thuế TNCN:</span>
+                                    <strong id="resTax" style="color: #ef4444; font-size: 0.95rem;">0 VNĐ</strong>
+                                </div>
+                                <div id="weekendInfoBox"
+                                    style="margin-top: 6px; background: rgba(0, 0, 0, 0.25); padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.78rem; text-align: center;">
+                                    <div id="lblWeekendCount"
+                                        style="color: var(--text-muted); width: 100%; text-align: center;">T7 & CN: 0 Thứ 7,
+                                        0 Chủ Nhật</div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Container căn giữa Nút TÍNH LƯƠNG trong khoảng trống còn lại -->
-                        <div
-                            style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
-                            <button id="btnCalculate" class="btn-primary btn-3d"
-                                style="height: 46px; font-size: 1.05rem; width: 100%;">TÍNH LƯƠNG</button>
+                        <!-- Hàng Net Thực Nhận & Nút Tính Lương -->
+                        <div class="result-action-bar">
+                            <div class="result-item highlight net-main-item" onclick="toggleResultSheet()"
+                                style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span style="font-size: 0.76rem; font-weight: 600; color: #a7f3d0;">Net Thực Nhận:</span>
+                                    <strong id="resNet" class="glow-text-green" style="font-size: 1.15rem;">0 VNĐ</strong>
+                                </div>
+                                <span class="mobile-sheet-toggle-btn" id="sheetToggleArrow">Chi tiết ▲</span>
+                            </div>
+
+                            <!-- Container căn giữa Nút TÍNH LƯƠNG trong khoảng trống còn lại -->
+                            <div class="calc-btn-wrap"
+                                style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                                <button id="btnCalculate" class="btn-primary btn-3d"
+                                    style="height: 46px; font-size: 1.05rem; width: 100%;">TÍNH LƯƠNG</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -517,36 +715,33 @@
     </div>
 
     <!-- History Detail Modal -->
-    <div id="historyDetailModal"
-        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
-        <div class="glass-card" style="max-width: 900px; width: 95%; padding: 18px 24px;">
-            <h3 class="glow-text" id="modalPeriodTitle"
-                style="font-size: 1.3rem; margin-bottom: 12px; text-align: center;">Chi Tiết Tính Lương</h3>
-            <div id="modalDetailContent" style="font-size: 0.88rem; line-height: 1.5;">
+    <div id="historyDetailModal" class="history-detail-overlay">
+        <div class="glass-card history-detail-box">
+            <div class="modal-header-row">
+                <h3 class="glow-text" id="modalPeriodTitle">Chi Tiết Tính Lương</h3>
+                <button type="button" class="modal-close-icon" id="btnCloseModalTop" title="Đóng">&times;</button>
+            </div>
+            <div id="modalDetailContent" class="modal-detail-scroll-area">
                 <!-- Content injected via JS -->
             </div>
-            <div style="margin-top: 14px; text-align: center;">
-                <button id="btnCloseModal" class="btn-3d btn-ghost"
-                    style="width: auto; padding: 6px 28px; font-size: 0.85rem;">Đóng</button>
+            <div class="modal-actions-center">
+                <button id="btnCloseModal" class="btn-3d btn-ghost">Đóng</button>
             </div>
         </div>
     </div>
 
     </div>
 
-    <!-- Nút Mũi Tên Bật Lịch Làm Việc Bên Trái (Left Toggle) -->
-    <button id="btnToggleSchedule" class="schedule-toggle-btn" title="Mở Lịch Làm Việc Số 2026">
-        <span>📅 Lịch Ca</span> <span id="scheduleArrowIcon">▶</span>
-    </button>
-
     <!-- Khung Panel Lịch Làm Việc Số (Left Drawer) -->
     <div id="schedulePanelLeft" class="schedule-panel-left">
         <div class="schedule-panel-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h3 id="schedulePanelTitle" style="margin: 0;">📅 LỊCH LÀM VIỆC SỐ 2026</h3>
                 <span id="currentWwBadge" style="background: #cba6f7; color: #1e1e2e; padding: 2px 6px; font-size: 0.75rem; border-radius: 4px; font-weight: bold;" title="Tuần làm việc hiện tại (Chuẩn Intel)">WW--.-</span>
             </div>
-            <button id="btnCloseSchedulePanel" class="btn-close">&times;</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="btnCloseSchedulePanel" class="btn-close" onclick="if(window.toggleSchedulePanel)window.toggleSchedulePanel(false)">&times;</button>
+            </div>
         </div>
         <div class="schedule-panel-body">
             <!-- Thanh Bộ Lọc Shift & Tháng -->
@@ -602,7 +797,7 @@
             </div>
 
             <!-- Bảng Ma Trận Lịch Ca -->
-            <div class="schedule-table-container">
+            <div class="schedule-table-container" id="scheduleTableContainer">
                 <table class="schedule-table">
                     <thead>
                         <tr>
@@ -644,9 +839,54 @@
         </div>
     </div>
 
-    <script src="lunar.js"></script>
-    <script src="app.js"></script>
-    <script src="schedule.js"></script>
+    <!-- Cloud Sync Modal -->
+    <div id="cloudSyncModal" class="company-modal-overlay hidden" onclick="if(event.target === this) closeCloudSyncModal()">
+        <div class="glass-card cloud-sync-modal-box">
+            <button id="btnCloseCloudSync" class="modal-close-btn" onclick="closeCloudSyncModal()" type="button">&times;</button>
+            <div class="cloud-sync-modal-header">
+                <h3 class="glow-text" style="margin: 0; font-size: 1.15rem;">☁️ Cài Đặt Đồng Bộ Cloud</h3>
+            </div>
+            
+            <div class="cloud-sync-content-grid">
+                <div class="cloud-sync-col-status">
+                    <div class="cloud-status-card">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Trạng thái kết nối:</span>
+                        <span id="cloudSyncStatusBadge" class="cloud-badge offline">⚪ Offline</span>
+                    </div>
+                    <p id="cloudSyncStatusDesc" class="cloud-status-desc">Chưa cấu hình Firebase</p>
+
+                    <div class="cloud-actions-row">
+                        <button id="btnCloudSyncPush" class="btn-primary btn-3d">⬆️ Sao lưu lên Cloud</button>
+                        <button id="btnCloudSyncPull" class="btn-outline btn-3d">⬇️ Tải về máy này</button>
+                    </div>
+                </div>
+
+                <div class="cloud-sync-col-config">
+                    <h4 class="cloud-config-title">⚙️ Cấu hình Firebase Project:</h4>
+                    <div class="input-group" style="margin-bottom: 8px;">
+                        <input type="text" id="cfgFirebaseProjectId" placeholder="VD: salary-project-123">
+                        <label>Project ID</label>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 8px;">
+                        <input type="text" id="cfgFirebaseApiKey" placeholder="AIzaSy...">
+                        <label>API Key</label>
+                    </div>
+                    <button id="btnSaveFirebaseConfig" class="btn-3d btn-primary" style="width: 100%; margin-top: 4px;">Lưu Cấu Hình</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="bridge-adapter.js?v=4.5.5"></script>
+    <script src="toast.js?v=4.5.5"></script>
+    <script src="cloud-sync.js?v=4.5.5"></script>
+    <script src="lunar.js?v=4.5.5"></script>
+    <script src="app.js?v=4.5.5"></script>
+    <script src="schedule.js?v=4.5.5"></script>
 </body>
 
 </html>

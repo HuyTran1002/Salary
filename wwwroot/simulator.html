@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giả Lập Giao Diện Điện Thoại - Salary Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.08) 0px, transparent 60%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Top Toolbar */
+        .simulator-header {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(236, 72, 153, 0.3));
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 16px var(--primary-glow);
+        }
+
+        .brand-text h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-select, .ctrl-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f1f5f9;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            outline: none;
+        }
+
+        .ctrl-select:hover, .ctrl-btn:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 14px var(--primary-glow);
+            background: rgba(51, 65, 85, 0.9);
+        }
+
+        .ctrl-btn.active {
+            background: var(--primary);
+            border-color: #818cf8;
+            box-shadow: 0 0 16px var(--primary-glow);
+        }
+
+        .dimension-badge {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        /* Simulator Stage */
+        .simulator-stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            position: relative;
+            overflow: auto;
+        }
+
+        /* Smartphone Frame Mockup */
+        .phone-wrapper {
+            position: relative;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: center center;
+        }
+
+        .phone-frame {
+            position: relative;
+            background: #1e2430;
+            border-radius: 54px;
+            box-shadow: 
+                0 0 0 4px #2b3345,
+                0 0 0 7px #0f172a,
+                0 30px 90px -15px rgba(0, 0, 0, 0.9),
+                0 0 60px rgba(99, 102, 241, 0.25);
+            padding: 12px;
+            box-sizing: content-box;
+            transition: all 0.35s ease;
+            position: relative;
+        }
+
+        /* Side buttons mockup */
+        .phone-frame::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 110px;
+            width: 4px;
+            height: 48px;
+            background: #334155;
+            border-radius: 3px 0 0 3px;
+            box-shadow: 0 70px 0 #334155, 0 130px 0 #334155;
+        }
+
+        .phone-frame::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 150px;
+            width: 4px;
+            height: 75px;
+            background: #334155;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .screen-container {
+            position: relative;
+            background: #000;
+            border-radius: 42px;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Dynamic Island (iPhone 14 Pro+) - kích thước chuẩn 126 x 37 @ top 11px */
+        .dynamic-island {
+            position: absolute;
+            top: 11px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 126px;
+            height: 37px;
+            background: #000000;
+            border-radius: 20px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 12px;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .island-lens {
+            width: 11px;
+            height: 11px;
+            background: #111827;
+            border-radius: 50%;
+            border: 1px solid #1f2937;
+            box-shadow: inset 0 0 4px #000, 0 0 2px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Punch-hole camera (Android) - lỗ tròn 12px */
+        .dynamic-island.punch {
+            width: 12px;
+            height: 12px;
+            padding: 0;
+            top: 12px;
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+        }
+        .dynamic-island.punch .island-lens { display: none; }
+
+        /* Không có tai thỏ (iPhone SE, iPad) */
+        .dynamic-island.none { display: none; }
+
+        /* Home Indicator (iOS) / Gesture bar (Android) - luôn nằm ngang ở cạnh dưới */
+        .home-bar {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.55);
+            border-radius: 10px;
+            z-index: 50;
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+        .home-bar.android {
+            width: 108px;
+            height: 4px;
+            bottom: 6px;
+        }
+        .home-bar.none { display: none; }
+
+        /* App Iframe */
+        .app-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #0b0f19;
+        }
+
+        /* Bottom Floating Hints */
+        .simulator-footer-hint {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-glass);
+            border-radius: 30px;
+            padding: 8px 16px 8px 20px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 90;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .simulator-footer-hint:hover {
+            background: rgba(15, 23, 42, 0.98);
+        }
+
+        .simulator-footer-hint strong {
+            color: #38bdf8;
+        }
+
+        .btn-close-hint {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #94a3b8;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-close-hint:hover {
+            color: #ffffff;
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        @media (max-height: 780px) {
+            .simulator-footer-hint {
+                display: none !important;
+            }
+        }
+
+        /* Chế độ ngang: camera nằm sát cạnh TRÁI (giữa theo chiều dọc),
+           home bar vẫn nằm NGANG ở cạnh dưới như iPhone/Android thật */
+        .phone-wrapper.landscape .phone-frame {
+            border-radius: 46px;
+        }
+        .phone-wrapper.landscape .dynamic-island {
+            top: 50%;
+            left: 29.5px; /* 11px lề + 37/2 */
+            transform: translate(-50%, -50%) rotate(90deg);
+        }
+        .phone-wrapper.landscape .dynamic-island.punch {
+            left: 18px; /* 12px lề + 12/2 */
+            transform: translate(-50%, -50%);
+        }
+        .phone-wrapper.landscape .home-bar {
+            bottom: 8px;
+            left: 50%;
+            right: auto;
+            width: 210px;
+            transform: translateX(-50%);
+        }
+        .phone-wrapper.landscape .home-bar.android {
+            width: 108px;
+            bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Toolbar -->
+    <header class="simulator-header">
+        <div class="header-brand">
+            <div class="brand-icon">📱</div>
+            <div class="brand-text">
+                <h1>Giả Lập Giao Diện Điện Thoại</h1>
+                <p>Salary Calculator • Mobile Preview</p>
+            </div>
+        </div>
+
+        <div class="controls-group">
+            <!-- Device Preset Selector -->
+            <select id="deviceSelect" class="ctrl-select" title="Chọn loại thiết bị điện thoại">
+                <option value="393,852,iPhone 15 Pro">📱 iPhone 15 Pro (393 × 852)</option>
+                <option value="412,915,Galaxy S24 Ultra">📱 Samsung Galaxy S24 (412 × 915)</option>
+                <option value="412,892,Pixel 8 Pro">📱 Google Pixel 8 (412 × 892)</option>
+                <option value="375,667,iPhone SE">📱 iPhone SE / Màn hình nhỏ (375 × 667)</option>
+                <option value="768,1024,iPad Mini">📱 iPad Mini (768 × 1024)</option>
+            </select>
+
+            <!-- Orientation Toggle -->
+            <button id="btnRotate" class="ctrl-btn" title="Xoay dọc / ngang">
+                🔄 <span>Xoay Ngang</span>
+            </button>
+
+            <!-- Zoom / Scale Selector -->
+            <select id="scaleSelect" class="ctrl-select" title="Thu phóng kích thước">
+                <option value="1">Zoom: 100%</option>
+                <option value="0.9">Zoom: 90%</option>
+                <option value="0.8">Zoom: 80%</option>
+                <option value="0.75">Zoom: 75%</option>
+                <option value="auto" selected>Zoom: Vừa màn hình (Fit)</option>
+            </select>
+
+            <!-- Dimension Badge -->
+            <div id="dimensionBadge" class="dimension-badge">393 × 852 px</div>
+
+            <!-- Reload Iframe -->
+            <button id="btnReload" class="ctrl-btn" title="Tải lại ứng dụng">
+                🔃 <span>Tải lại</span>
+            </button>
+
+            <!-- Open in New Tab -->
+            <a href="index.html" target="_blank" class="ctrl-btn" style="text-decoration: none; color: #38bdf8;" title="Mở trang web trực tiếp tab mới (Có thể bấm F12 để bật Device Toolbar)">
+                ↗️ <span>Mở Full Web</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Simulator Stage -->
+    <main class="simulator-stage" id="simulatorStage">
+        <div class="phone-wrapper" id="phoneWrapper">
+            <div class="phone-frame" id="phoneFrame">
+                <div class="screen-container" id="screenContainer">
+                    <!-- Dynamic Island Notch -->
+                    <div class="dynamic-island" id="dynamicIsland">
+                        <div class="island-lens"></div>
+                    </div>
+
+                    <!-- Web App Iframe -->
+                    <iframe id="appIframe" class="app-iframe" src="index.html?v=4.5.5" title="Salary Calculator App"></iframe>
+
+                    <!-- Home Bar Indicator -->
+                    <div class="home-bar" id="homeBar"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Tooltips / Hints -->
+    <div class="simulator-footer-hint" id="simulatorFooterHint">
+        <span>💡 <strong>Mẹo:</strong> Bạn có thể dùng chuột thao tác bấm, vuốt, chạm, tính lương y hệt trên điện thoại thật!</span>
+        <span style="color: rgba(255,255,255,0.2);">|</span>
+        <span>Hoặc mở <strong>F12 ➜ Ctrl+Shift+M</strong> để chuyển trình duyệt sang Mobile mode.</span>
+        <button type="button" class="btn-close-hint" onclick="document.getElementById('simulatorFooterHint').style.display='none'" title="Đóng gợi ý">&times;</button>
+    </div>
+
+    <script>
+        const deviceSelect = document.getElementById('deviceSelect');
+        const btnRotate = document.getElementById('btnRotate');
+        const scaleSelect = document.getElementById('scaleSelect');
+        const btnReload = document.getElementById('btnReload');
+        const dimensionBadge = document.getElementById('dimensionBadge');
+        const phoneWrapper = document.getElementById('phoneWrapper');
+        const screenContainer = document.getElementById('screenContainer');
+        const appIframe = document.getElementById('appIframe');
+        const stage = document.getElementById('simulatorStage');
+
+        let isLandscape = false;
+        let currentWidth = 393;
+        let currentHeight = 852;
+
+        const dynamicIsland = document.getElementById('dynamicIsland');
+        const homeBar = document.getElementById('homeBar');
+
+        /* Cấu hình phần cứng + Safe-Area chuẩn của từng máy (đơn vị CSS px)
+           portrait:  [top, right, bottom, left]
+           landscape: [top, right, bottom, left] */
+        const DEVICE_PROFILES = {
+            'iPhone 15 Pro':    { notch: 'island', home: 'ios',     portrait: [59, 0, 34, 0], landscape: [0, 10, 21, 48] },
+            'Galaxy S24 Ultra': { notch: 'punch',  home: 'android', portrait: [36, 0, 16, 0], landscape: [0, 8, 16, 30] },
+            'Pixel 8 Pro':      { notch: 'punch',  home: 'android', portrait: [40, 0, 16, 0], landscape: [0, 8, 16, 30] },
+            'iPhone SE':        { notch: 'none',   home: 'none',    portrait: [0, 0, 0, 0],   landscape: [0, 8, 0, 8] },
+            'iPad Mini':        { notch: 'none',   home: 'ios',     portrait: [24, 0, 20, 0], landscape: [24, 12, 20, 12] }
+        };
+        let currentProfile = DEVICE_PROFILES['iPhone 15 Pro'];
+
+        function applyDeviceChrome() {
+            dynamicIsland.classList.remove('punch', 'none');
+            if (currentProfile.notch === 'punch') dynamicIsland.classList.add('punch');
+            if (currentProfile.notch === 'none') dynamicIsland.classList.add('none');
+
+            homeBar.classList.remove('android', 'none');
+            if (currentProfile.home === 'android') homeBar.classList.add('android');
+            if (currentProfile.home === 'none') homeBar.classList.add('none');
+        }
+
+        /* Truyền safe-area thật vào app (iframe không có env() như máy thật) */
+        function injectSafeArea() {
+            try {
+                const doc = appIframe.contentDocument;
+                if (!doc || !doc.documentElement) return;
+                const [t, r, b, l] = isLandscape ? currentProfile.landscape : currentProfile.portrait;
+                const root = doc.documentElement.style;
+                root.setProperty('--sim-safe-top', t + 'px');
+                root.setProperty('--sim-safe-right', r + 'px');
+                root.setProperty('--sim-safe-bottom', b + 'px');
+                root.setProperty('--sim-safe-left', l + 'px');
+            } catch (e) {}
+        }
+
+        function updateDevice() {
+            const [w, h, name] = deviceSelect.value.split(',');
+            currentWidth = parseInt(w, 10);
+            currentHeight = parseInt(h, 10);
+            currentProfile = DEVICE_PROFILES[name] || DEVICE_PROFILES['iPhone 15 Pro'];
+
+            const displayWidth = isLandscape ? currentHeight : currentWidth;
+            const displayHeight = isLandscape ? currentWidth : currentHeight;
+
+            screenContainer.style.width = displayWidth + 'px';
+            screenContainer.style.height = displayHeight + 'px';
+            dimensionBadge.textContent = `${displayWidth} × ${displayHeight} px`;
+
+            if (isLandscape) {
+                phoneWrapper.classList.add('landscape');
+                btnRotate.classList.add('active');
+                btnRotate.querySelector('span').textContent = "Xoay Dọc";
+            } else {
+                phoneWrapper.classList.remove('landscape');
+                btnRotate.classList.remove('active');
+                btnRotate.querySelector('span').textContent = "Xoay Ngang";
+            }
+
+            applyDeviceChrome();
+            injectSafeArea();
+            applyScale();
+        }
+
+        function applyScale() {
+            const val = scaleSelect.value;
+            if (val === 'auto') {
+                const stageW = stage.clientWidth - 80;
+                const stageH = stage.clientHeight - 80;
+                const frameW = screenContainer.offsetWidth + 30;
+                const frameH = screenContainer.offsetHeight + 30;
+
+                const scaleX = stageW / frameW;
+                const scaleY = stageH / frameH;
+                const bestScale = Math.min(1, Math.min(scaleX, scaleY));
+                phoneWrapper.style.transform = `scale(${Math.max(0.45, bestScale.toFixed(2))})`;
+            } else {
+                phoneWrapper.style.transform = `scale(${val})`;
+            }
+            if (stage) {
+                stage.scrollTop = 0;
+                stage.scrollLeft = 0;
+            }
+        }
+
+        deviceSelect.addEventListener('change', updateDevice);
+
+        btnRotate.addEventListener('click', () => {
+            isLandscape = !isLandscape;
+            updateDevice();
+        });
+
+        scaleSelect.addEventListener('change', applyScale);
+
+        btnReload.addEventListener('click', () => {
+            appIframe.src = 'index.html?t=' + Date.now();
+        });
+
+        appIframe.addEventListener('load', () => {
+            injectSafeArea();
+            try {
+                if (appIframe.contentWindow) {
+                    appIframe.contentWindow.scrollTo(0, 0);
+                    if (appIframe.contentDocument) {
+                        if (appIframe.contentDocument.documentElement) appIframe.contentDocument.documentElement.scrollTop = 0;
+                        if (appIframe.contentDocument.body) appIframe.contentDocument.body.scrollTop = 0;
+                    }
+                }
+            } catch (e) {}
+        });
+
+        window.addEventListener('resize', () => {
+            if (scaleSelect.value === 'auto') {
+                applyScale();
+            }
+        });
+
+        // Initial setup
+        updateDevice();
+    </script>
+</body>
+</html>
