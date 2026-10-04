@@ -1,6 +1,6 @@
 {
   "name": "salary",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "description": "Salary Calculator - Ứng Dụng Tính Lương",
   "main": "index.js",
   "scripts": {
