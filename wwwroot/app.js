@@ -1865,16 +1865,21 @@ function fitMobileViewport() {
     if (window.innerWidth > 900) return; // Tuyệt đối không can thiệp giao diện PC
     if (document.body.classList.contains('keyboard-open')) return; // Không can thiệp vị trí cuộn khi đang mở bàn phím
     if (midMonthSalaryModal && midMonthSalaryModal.style.display === 'flex') return; // Không can thiệp khi đang mở modal 2 mức lương
+    
+    // Nếu có bất kỳ modal nào đang mở, không can thiệp cuộn của modal
+    const anyModal = document.querySelector('#historyDetailModal, #companyModal, #cloudSyncModal, #customGearModal');
+    if (anyModal && anyModal.style.display === 'flex') return;
 
-    try {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    } catch (e) {
-        window.scrollTo(0, 0);
+    if (window.scrollY !== 0 || window.scrollX !== 0) {
+        try {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        } catch (e) {
+            window.scrollTo(0, 0);
+        }
     }
-    if (document.documentElement) document.documentElement.scrollTop = 0;
-    if (document.body) document.body.scrollTop = 0;
+    if (document.documentElement && document.documentElement.scrollTop !== 0) document.documentElement.scrollTop = 0;
+    if (document.body && document.body.scrollTop !== 0) document.body.scrollTop = 0;
 
-    const vh = window.innerHeight;
     const mainScreen = document.getElementById('mainScreen');
     if (!mainScreen || mainScreen.classList.contains('hidden')) return;
 
@@ -1907,9 +1912,32 @@ async function lockLandscapeOnMobile() {
 window.addEventListener('load', lockLandscapeOnMobile);
 document.addEventListener('deviceready', lockLandscapeOnMobile, false);
 
-// Smart Keyboard Handler on Mobile: Tự động cuộn êm dịu ô đang nhập vào tầm mắt
+// Smart Keyboard Handler on Mobile: Cuộn êm ái, chống chớp giật & ưu tiên 100% cử chỉ vuốt tay
 (function initMobileKeyboardHandler() {
     let focusTimer = null;
+    let isUserSwiping = false;
+    let swipeTimer = null;
+
+    // Khi người dùng đang chạm/vuốt màn hình: TUYỆT ĐỐI không cho bất kỳ mã JS nào can thiệp cuộn!
+    window.addEventListener('touchstart', () => {
+        isUserSwiping = true;
+        clearTimeout(swipeTimer);
+        clearTimeout(focusTimer);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', () => {
+        isUserSwiping = true;
+        clearTimeout(swipeTimer);
+        clearTimeout(focusTimer);
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        clearTimeout(swipeTimer);
+        swipeTimer = setTimeout(() => {
+            isUserSwiping = false;
+        }, 300);
+    }, { passive: true });
+
     document.addEventListener('focusin', (e) => {
         const el = e.target;
         if (!el || !['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return;
@@ -1918,38 +1946,40 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         document.body.classList.add('keyboard-open');
         clearTimeout(focusTimer);
 
-        // NẾU LÀ Ô TRONG MODAL 2 MỨC LƯƠNG: Cuộn nhẹ nhàng trong mid-month overlay, TUYỆT ĐỐI không gọi window.scrollIntoView làm giật nháy!
+        // Nếu người dùng đang vuốt tay cuộn trang, không ngắt quãng cử chỉ của họ
+        if (isUserSwiping) return;
+
+        // Xử lý ô nhập trong modal 2 mức lương
         const midMonthOverlay = el.closest('#midMonthSalaryModal');
         if (midMonthOverlay) {
             focusTimer = setTimeout(() => {
+                if (isUserSwiping) return;
                 try {
                     const elRect = el.getBoundingClientRect();
-                    if (elRect.top > 120 || elRect.top < 30) {
-                        midMonthOverlay.scrollTop += (elRect.top - 50);
+                    // Chỉ cuộn nếu ô thực sự bị khuất mép dưới hoặc trên
+                    if (elRect.bottom > (window.innerHeight - 30) || elRect.top < 30) {
+                        el.scrollIntoView({ behavior: 'auto', block: 'nearest' });
                     }
                 } catch (err) {}
-            }, 80);
+            }, 100);
             return;
         }
 
+        // Ô trong màn hình chính hoặc modal khác
         focusTimer = setTimeout(() => {
+            if (isUserSwiping) return;
             try {
-                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } catch (err) {
-                el.scrollIntoView(false);
-            }
-        }, 120);
+                const elRect = el.getBoundingClientRect();
+                if (elRect.bottom > (window.innerHeight - 30) || elRect.top < 30) {
+                    el.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+                }
+            } catch (err) {}
+        }, 100);
     });
 
     function exitKeyboardMode() {
         document.body.classList.remove('keyboard-open');
-        const panel = document.querySelector('#tab-calc .inputs-panel-stacked');
-        if (panel && (!midMonthSalaryModal || midMonthSalaryModal.style.display !== 'flex')) {
-            panel.scrollTop = 0;
-        }
-        if (midMonthSalaryModal && midMonthSalaryModal.style.display === 'flex') {
-            midMonthSalaryModal.scrollTop = 0;
-        }
+        // TUYỆT ĐỐI KHÔNG reset scrollTop = 0 ở đây để tránh giật màn hình khi người dùng chuyển ô hoặc kéo vuốt
     }
 
     document.addEventListener('focusout', (e) => {
@@ -1959,7 +1989,7 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
             if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
                 exitKeyboardMode();
             }
-        }, 250);
+        }, 200);
     });
 
     window.addEventListener('resize', () => {

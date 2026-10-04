@@ -1140,9 +1140,9 @@ body.no-scroll {
     width: 100dvw;
     height: 100vh;
     height: 100dvh;
-    background: rgba(10, 15, 29, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(10, 15, 29, 0.94);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     display: none;
     align-items: center;
     justify-content: center;
@@ -1159,6 +1159,8 @@ body.no-scroll {
     max-height: 90dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
     padding: 20px 24px;
     background: linear-gradient(145deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
     border: 1px solid rgba(255, 255, 255, 0.18);
@@ -1167,6 +1169,18 @@ body.no-scroll {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    transform: none !important;
+    transform-style: flat !important;
+    perspective: none !important;
+    -webkit-transform: none !important;
+    -webkit-perspective: none !important;
+    transition: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.mid-month-box * {
+    transform-style: flat !important;
 }
 
 .mid-month-box::-webkit-scrollbar {
@@ -1907,9 +1921,9 @@ body.no-scroll {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(10, 15, 29, 0.94);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     display: none;
     justify-content: center;
     align-items: center;
@@ -1924,6 +1938,18 @@ body.no-scroll {
     flex-direction: column;
     padding: 14px 22px;
     box-sizing: border-box;
+    transform: none !important;
+    transform-style: flat !important;
+    perspective: none !important;
+    -webkit-transform: none !important;
+    -webkit-perspective: none !important;
+    transition: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.history-detail-box * {
+    transform-style: flat !important;
 }
 
 .modal-header-row {
@@ -5304,13 +5330,15 @@ body.no-scroll {
         justify-content: center !important;
     }
 
-    /* Mid-month Salary Adjustment Modal on Landscape Phone (Height <= 600px) */
+    /* Mid-month Salary Adjustment Modal on Landscape Phone: 1 vùng cuộn ổn định duy nhất, không hoán đổi container */
     .mid-month-overlay {
-        padding: 4px !important;
+        padding: 6px 6px 180px 6px !important;
         align-items: center !important;
-        justify-content: center !important;
-        overflow: hidden !important;
+        justify-content: flex-start !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
         overscroll-behavior: contain !important;
+        touch-action: pan-y !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
         background: rgba(10, 15, 29, 0.96) !important;
@@ -5319,30 +5347,38 @@ body.no-scroll {
     .mid-month-box {
         width: min(680px, 98vw) !important;
         max-width: 680px !important;
-        max-height: 98vh !important;
-        max-height: 98dvh !important;
+        max-height: none !important;
+        height: auto !important;
         padding: 5px 12px 10px 12px !important;
         border-radius: 12px !important;
         box-sizing: border-box !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        overscroll-behavior: contain !important;
-        touch-action: pan-y !important;
-        margin: 0 !important;
-    }
-
-    /* Triệt tiêu hoàn toàn 3D translateZ gây mất ô trên Android WebView */
-    .mid-month-box,
-    .mid-month-box .input-group,
-    .mid-month-box .stage-card,
-    .mid-month-box input,
-    .mid-month-box label {
+        overflow: visible !important;
+        margin: auto !important;
         transform: none !important;
         perspective: none !important;
         -webkit-transform: none !important;
         -webkit-perspective: none !important;
+        transform-style: flat !important;
+        transition: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* Triệt tiêu hoàn toàn 3D translateZ gây mất ô & chớp giật trên Android WebView & Chromium */
+    .mid-month-box,
+    .mid-month-box *,
+    .history-detail-box,
+    .history-detail-box *,
+    #tab-calc .inputs-panel-stacked,
+    #tab-calc .inputs-panel-stacked * {
+        transform: none !important;
+        perspective: none !important;
+        -webkit-transform: none !important;
+        -webkit-perspective: none !important;
+        transform-style: flat !important;
         backface-visibility: visible !important;
         -webkit-backface-visibility: visible !important;
+        transition: none !important;
     }
 
     .mid-month-header {
@@ -5840,11 +5876,11 @@ body.no-scroll {
         min-height: auto !important;
     }
 
-    /* 3. Tối ưu bảng điền số 2 mức lương khi mở bàn phím: Cho phép cuộn trôi toàn bộ lên trên bàn phím */
+    /* 3. Bảng điền số 2 mức lương: Đồng nhất layout hoàn toàn, không đổi cấu trúc hay padding khi mở/đóng bàn phím */
     body.keyboard-open .mid-month-overlay {
-        align-items: flex-start !important;
-        justify-content: center !important;
-        padding: 4px 4px 220px 4px !important;
+        padding: 6px 6px 180px 6px !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
         overscroll-behavior: contain !important;
@@ -5858,7 +5894,7 @@ body.no-scroll {
         max-height: none !important;
         height: auto !important;
         overflow: visible !important;
-        margin: 0 auto !important;
+        margin: auto !important;
         padding-bottom: 8px !important;
     }
 
