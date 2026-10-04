@@ -1193,6 +1193,18 @@ body.no-scroll {
     font-weight: 700;
 }
 
+.mid-month-box .modal-close-btn {
+    position: static;
+    width: 28px;
+    height: 28px;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .mid-month-toggle-row {
     display: flex;
     align-items: center;
@@ -4927,16 +4939,31 @@ body.no-scroll {
     }
 
     .mid-month-header {
-        margin-bottom: 4px !important;
-        padding-bottom: 2px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        margin-bottom: 8px !important;
+        padding-bottom: 4px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
     }
 
     .mid-month-header h3 {
         font-size: 0.88rem !important;
+        margin: 0 !important;
+    }
+
+    .mid-month-box .modal-close-btn {
+        position: static !important;
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 1.15rem !important;
+        margin: 0 0 0 auto !important;
+        flex-shrink: 0 !important;
     }
 
     .mid-month-toggle-row {
-        margin-bottom: 4px !important;
+        margin-top: 2px !important;
+        margin-bottom: 5px !important;
         padding: 3px 10px !important;
         font-size: 0.74rem !important;
         border-radius: 8px !important;
