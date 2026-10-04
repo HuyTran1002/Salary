@@ -1813,6 +1813,7 @@ window.switchCalcSubtab = function(groupId) {
 // =========================================================
 function fitMobileViewport() {
     if (window.innerWidth > 900) return; // Tuyệt đối không can thiệp giao diện PC
+    if (document.body.classList.contains('keyboard-open')) return; // Không can thiệp vị trí cuộn khi đang mở bàn phím
 
     try {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -1827,7 +1828,7 @@ function fitMobileViewport() {
     if (!mainScreen || mainScreen.classList.contains('hidden')) return;
 
     const stacked = document.querySelector('.inputs-panel-stacked');
-    if (stacked) {
+    if (stacked && !document.body.classList.contains('keyboard-open')) {
         stacked.style.paddingBottom = '0px';
     }
 }
@@ -1855,7 +1856,7 @@ async function lockLandscapeOnMobile() {
 window.addEventListener('load', lockLandscapeOnMobile);
 document.addEventListener('deviceready', lockLandscapeOnMobile, false);
 
-// Smart Keyboard Handler on Mobile: Tự động cuộn trường đang nhập lên giữa màn hình khi mở bàn phím
+// Smart Keyboard Handler on Mobile: Tự động cuộn êm dịu ô đang nhập vào tầm mắt
 (function initMobileKeyboardHandler() {
     let focusTimer = null;
     document.addEventListener('focusin', (e) => {
@@ -1867,11 +1868,11 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         clearTimeout(focusTimer);
         focusTimer = setTimeout(() => {
             try {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch (err) {
                 el.scrollIntoView(false);
             }
-        }, 280);
+        }, 120);
     });
 
     function exitKeyboardMode() {
@@ -1889,7 +1890,7 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
             if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
                 exitKeyboardMode();
             }
-        }, 150);
+        }, 120);
     });
 
     window.addEventListener('resize', () => {
