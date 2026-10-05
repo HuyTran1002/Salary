@@ -6142,7 +6142,7 @@ body.no-scroll {
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        padding: 5px 8px !important;
+        padding: 4px 6px !important;
         gap: 3px !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
@@ -6153,34 +6153,31 @@ body.no-scroll {
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
+        justify-content: flex-start !important;
+        overflow: visible !important;
         margin: 0 !important;
         gap: 2px !important;
     }
 
+    /* Ẩn tiêu đề tĩnh KẾT QUẢ TÍNH LƯƠNG khi mở bàn phím để nhường trọn vẹn 18px cho 3 dòng số liệu, chống che khuất dòng Thuế TNCN */
     body.keyboard-open #tab-calc #stickyResultCard .section-title {
-        font-size: 0.68rem !important;
-        margin: 0 0 2px 0 !important;
-        line-height: 1.1 !important;
-        text-align: center !important;
-        flex: 0 0 auto !important;
+        display: none !important;
     }
 
-    /* Giữ nguyên các hàng dọc độc lập, cố định chiều cao 23px - TUYỆT ĐỐI không flex-shrink để không bị dính chùm hay đè chữ */
+    /* 3 dòng kết quả xếp dọc độc lập, cố định 21px/dòng - hiển thị đầy đủ, không bị đè che */
     body.keyboard-open #tab-calc .result-box.vertical-compact {
         display: flex !important;
         flex-direction: column !important;
-        gap: 3px !important;
+        gap: 2px !important;
         width: 100% !important;
         margin: 0 !important;
         flex: 0 0 auto !important;
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item {
-        flex: 0 0 23px !important;
-        height: 23px !important;
-        min-height: 23px !important;
+        flex: 0 0 21px !important;
+        height: 21px !important;
+        min-height: 21px !important;
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
@@ -6192,14 +6189,14 @@ body.no-scroll {
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item span {
-        font-size: 0.60rem !important;
+        font-size: 0.58rem !important;
         line-height: 1 !important;
         margin: 0 !important;
         white-space: nowrap !important;
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item strong {
-        font-size: 0.78rem !important;
+        font-size: 0.76rem !important;
         line-height: 1 !important;
         white-space: nowrap !important;
     }
@@ -6219,9 +6216,9 @@ body.no-scroll {
     }
 
     body.keyboard-open #tab-calc .net-main-item {
-        height: 30px !important;
-        min-height: 30px !important;
-        padding: 1px 8px !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        padding: 0 8px !important;
         border-radius: 7px !important;
         display: flex !important;
         align-items: center !important;
@@ -6230,27 +6227,27 @@ body.no-scroll {
     }
 
     body.keyboard-open #tab-calc .net-main-item span {
-        font-size: 0.58rem !important;
+        font-size: 0.56rem !important;
         line-height: 1 !important;
     }
 
     body.keyboard-open #tab-calc .net-main-item strong {
-        font-size: 0.95rem !important;
+        font-size: 0.92rem !important;
         line-height: 1.1 !important;
     }
 
     /* Nút Tính Lương hiển thị cố định ở đáy, rõ ràng, không bị dồn */
     body.keyboard-open #tab-calc .calc-btn-wrap {
         display: flex !important;
-        flex: 0 0 30px !important;
-        height: 30px !important;
+        flex: 0 0 28px !important;
+        height: 28px !important;
         margin: 0 !important;
     }
 
     body.keyboard-open #tab-calc #btnCalculate {
-        height: 30px !important;
-        min-height: 30px !important;
-        font-size: 0.82rem !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        font-size: 0.80rem !important;
         font-weight: 700 !important;
         border-radius: 7px !important;
         margin: 0 !important;
