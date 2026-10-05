@@ -356,6 +356,288 @@
             width: 108px;
             bottom: 6px;
         }
+
+        /* Virtual Keyboard Styles */
+        .screen-container {
+            --sim-kb-height: 275px;
+        }
+        .phone-wrapper.landscape .screen-container {
+            --sim-kb-height: 145px;
+        }
+
+        .app-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #0b0f19;
+            transition: height 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .screen-container.keyboard-active .app-iframe {
+            height: calc(100% - var(--sim-kb-height)) !important;
+        }
+
+        .sim-keyboard {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--sim-kb-height);
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            z-index: 60;
+            transform: translateY(100%);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            box-sizing: border-box;
+            padding: 4px 6px 6px 6px;
+            gap: 3px;
+        }
+
+        .screen-container.keyboard-active .sim-keyboard {
+            transform: translateY(0);
+        }
+
+        .screen-container.keyboard-active .home-bar {
+            display: none !important;
+        }
+
+        /* Keyboard Accessory Bar */
+        .kb-accessory-bar {
+            flex: 0 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 8px;
+        }
+
+        .phone-wrapper.landscape .kb-accessory-bar {
+            flex: 0 0 24px;
+            padding: 0 2px;
+        }
+
+        .kb-field-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .kb-field-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            padding: 2px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .phone-wrapper.landscape .kb-field-badge {
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            max-width: 180px;
+        }
+
+        .kb-nav-arrows {
+            display: flex;
+            gap: 2px;
+        }
+
+        .kb-nav-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            width: 24px;
+            height: 22px;
+            border-radius: 5px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .phone-wrapper.landscape .kb-nav-btn {
+            height: 18px;
+            width: 22px;
+            font-size: 0.60rem;
+        }
+
+        .kb-nav-btn:hover {
+            background: rgba(99, 102, 241, 0.4);
+            color: #fff;
+            border-color: #818cf8;
+        }
+
+        .kb-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kb-action-btn {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s ease;
+        }
+
+        .phone-wrapper.landscape .kb-action-btn {
+            padding: 2px 8px;
+            font-size: 0.66rem;
+        }
+
+        .kb-mode-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .kb-mode-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .kb-done-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+        }
+
+        .kb-done-btn:hover {
+            filter: brightness(1.15);
+        }
+
+        /* Keypad Layouts */
+        .kb-layout {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 2px 0;
+            box-sizing: border-box;
+        }
+
+        .phone-wrapper.landscape .kb-layout {
+            gap: 3px;
+        }
+
+        .kb-layout.hidden {
+            display: none !important;
+        }
+
+        .kb-row {
+            flex: 1 1 0;
+            display: flex;
+            gap: 4px;
+            align-items: stretch;
+        }
+
+        .phone-wrapper.landscape .kb-row {
+            gap: 3px;
+        }
+
+        /* Individual Keys */
+        .kb-key {
+            flex: 1 1 0;
+            min-width: 0;
+            background: rgba(51, 65, 85, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 1.15rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transition: transform 0.06s ease, background 0.1s ease;
+            outline: none;
+        }
+
+        .phone-wrapper.landscape .kb-key {
+            font-size: 0.86rem;
+            border-radius: 5px;
+        }
+
+        .kb-key:hover {
+            background: rgba(71, 85, 105, 0.95);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .kb-key:active {
+            transform: scale(0.93);
+            background: rgba(99, 102, 241, 0.55);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+        }
+
+        .kb-key-action {
+            background: rgba(30, 41, 59, 0.95);
+            font-size: 0.90rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .phone-wrapper.landscape .kb-key-action {
+            font-size: 0.74rem;
+        }
+
+        .kb-key-accent {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.45);
+            color: #a5b4fc;
+            font-weight: 700;
+        }
+
+        .kb-key-calc {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(168, 85, 247, 0.9));
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.88rem;
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+        }
+
+        .phone-wrapper.landscape .kb-key-calc {
+            font-size: 0.74rem;
+        }
+
+        .kb-key-calc:hover {
+            filter: brightness(1.15);
+        }
+
+        .kb-key-space {
+            flex: 3.5 1 0;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .phone-wrapper.landscape .kb-key-space {
+            font-size: 0.72rem;
+        }
+
+        .kb-key-shift-active {
+            background: rgba(99, 102, 241, 0.7) !important;
+            color: #fff !important;
+            border-color: #a5b4fc !important;
+        }
     </style>
 </head>
 <body>
@@ -383,6 +665,11 @@
             <!-- Orientation Toggle -->
             <button id="btnRotate" class="ctrl-btn" title="Xoay dọc / ngang">
                 🔄 <span>Xoay Ngang</span>
+            </button>
+
+            <!-- Virtual Keyboard Toggle -->
+            <button id="btnToggleKeyboard" class="ctrl-btn" title="Bật / Tắt Bàn Phím Ảo (Giả lập mở bàn phím để test bố cục)">
+                ⌨️ <span>Bàn Phím Ảo</span>
             </button>
 
             <!-- Zoom / Scale Selector -->
@@ -420,7 +707,108 @@
                     </div>
 
                     <!-- Web App Iframe -->
-                    <iframe id="appIframe" class="app-iframe" src="index.html?v=4.5.5" title="Salary Calculator App"></iframe>
+                    <iframe id="appIframe" class="app-iframe" src="index.html?v=4.5.6" title="Salary Calculator App"></iframe>
+
+                    <!-- Virtual Keyboard Mockup -->
+                    <div class="sim-keyboard" id="simKeyboard">
+                        <div class="kb-accessory-bar">
+                            <div class="kb-field-info">
+                                <span class="kb-field-badge" id="kbFieldBadge">Ô nhập</span>
+                                <div class="kb-nav-arrows">
+                                    <button type="button" class="kb-nav-btn" id="kbBtnPrev" data-action="prev" title="Ô trước">▲</button>
+                                    <button type="button" class="kb-nav-btn" id="kbBtnNext" data-action="next" title="Ô tiếp theo">▼</button>
+                                </div>
+                            </div>
+                            <div class="kb-actions">
+                                <button type="button" class="kb-action-btn kb-mode-btn" id="kbBtnMode" data-action="switch-mode">ABC</button>
+                                <button type="button" class="kb-action-btn kb-done-btn" id="kbBtnDone" data-action="done">Ẩn ▼</button>
+                            </div>
+                        </div>
+
+                        <!-- Numeric Keypad View (Default) -->
+                        <div class="kb-layout kb-numeric" id="kbNumeric">
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key="1">1</button>
+                                <button type="button" class="kb-key" data-key="2">2</button>
+                                <button type="button" class="kb-key" data-key="3">3</button>
+                                <button type="button" class="kb-key kb-key-action" data-action="backspace">⌫</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key="4">4</button>
+                                <button type="button" class="kb-key" data-key="5">5</button>
+                                <button type="button" class="kb-key" data-key="6">6</button>
+                                <button type="button" class="kb-key kb-key-action" data-action="clear">C</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key="7">7</button>
+                                <button type="button" class="kb-key" data-key="8">8</button>
+                                <button type="button" class="kb-key" data-key="9">9</button>
+                                <button type="button" class="kb-key kb-key-action" data-action="next">Tab ➔</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key=".">.</button>
+                                <button type="button" class="kb-key" data-key="0">0</button>
+                                <button type="button" class="kb-key kb-key-accent" data-key="000">000</button>
+                                <button type="button" class="kb-key kb-key-calc" data-action="calculate">⚡ Tính</button>
+                            </div>
+                        </div>
+
+                        <!-- QWERTY Keypad View (Text) -->
+                        <div class="kb-layout kb-qwerty hidden" id="kbQwerty">
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key="1">1</button>
+                                <button type="button" class="kb-key" data-key="2">2</button>
+                                <button type="button" class="kb-key" data-key="3">3</button>
+                                <button type="button" class="kb-key" data-key="4">4</button>
+                                <button type="button" class="kb-key" data-key="5">5</button>
+                                <button type="button" class="kb-key" data-key="6">6</button>
+                                <button type="button" class="kb-key" data-key="7">7</button>
+                                <button type="button" class="kb-key" data-key="8">8</button>
+                                <button type="button" class="kb-key" data-key="9">9</button>
+                                <button type="button" class="kb-key" data-key="0">0</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key="q">q</button>
+                                <button type="button" class="kb-key" data-key="w">w</button>
+                                <button type="button" class="kb-key" data-key="e">e</button>
+                                <button type="button" class="kb-key" data-key="r">r</button>
+                                <button type="button" class="kb-key" data-key="t">t</button>
+                                <button type="button" class="kb-key" data-key="y">y</button>
+                                <button type="button" class="kb-key" data-key="u">u</button>
+                                <button type="button" class="kb-key" data-key="i">i</button>
+                                <button type="button" class="kb-key" data-key="o">o</button>
+                                <button type="button" class="kb-key" data-key="p">p</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key" data-key="a">a</button>
+                                <button type="button" class="kb-key" data-key="s">s</button>
+                                <button type="button" class="kb-key" data-key="d">d</button>
+                                <button type="button" class="kb-key" data-key="f">f</button>
+                                <button type="button" class="kb-key" data-key="g">g</button>
+                                <button type="button" class="kb-key" data-key="h">h</button>
+                                <button type="button" class="kb-key" data-key="j">j</button>
+                                <button type="button" class="kb-key" data-key="k">k</button>
+                                <button type="button" class="kb-key" data-key="l">l</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key kb-key-action" id="kbBtnShift" data-action="shift">⇧</button>
+                                <button type="button" class="kb-key" data-key="z">z</button>
+                                <button type="button" class="kb-key" data-key="x">x</button>
+                                <button type="button" class="kb-key" data-key="c">c</button>
+                                <button type="button" class="kb-key" data-key="v">v</button>
+                                <button type="button" class="kb-key" data-key="b">b</button>
+                                <button type="button" class="kb-key" data-key="n">n</button>
+                                <button type="button" class="kb-key" data-key="m">m</button>
+                                <button type="button" class="kb-key kb-key-action" data-action="backspace">⌫</button>
+                            </div>
+                            <div class="kb-row">
+                                <button type="button" class="kb-key kb-key-action" data-action="switch-num">123</button>
+                                <button type="button" class="kb-key kb-key-space" data-key=" ">Space</button>
+                                <button type="button" class="kb-key" data-key=".">.</button>
+                                <button type="button" class="kb-key kb-key-calc" data-action="calculate">⚡ Tính</button>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Home Bar Indicator -->
                     <div class="home-bar" id="homeBar"></div>
@@ -553,8 +941,305 @@
             appIframe.src = 'index.html?t=' + Date.now();
         });
 
+        /* --- Virtual Keyboard Controller --- */
+        const btnToggleKeyboard = document.getElementById('btnToggleKeyboard');
+        const simKeyboard = document.getElementById('simKeyboard');
+        const kbFieldBadge = document.getElementById('kbFieldBadge');
+        const kbBtnMode = document.getElementById('kbBtnMode');
+        const kbBtnDone = document.getElementById('kbBtnDone');
+        const kbNumeric = document.getElementById('kbNumeric');
+        const kbQwerty = document.getElementById('kbQwerty');
+        const kbBtnShift = document.getElementById('kbBtnShift');
+
+        let currentActiveInput = null;
+        let isShiftActive = false;
+        let activeKeyboardMode = 'numeric'; // 'numeric' or 'qwerty'
+        let isInteractingKeyboard = false;
+
+        function setKeyboardMode(mode) {
+            activeKeyboardMode = mode;
+            if (mode === 'numeric') {
+                kbNumeric.classList.remove('hidden');
+                kbQwerty.classList.add('hidden');
+                kbBtnMode.textContent = 'ABC';
+            } else {
+                kbNumeric.classList.add('hidden');
+                kbQwerty.classList.remove('hidden');
+                kbBtnMode.textContent = '123';
+            }
+        }
+
+        function toggleKeyboardMode() {
+            setKeyboardMode(activeKeyboardMode === 'numeric' ? 'qwerty' : 'numeric');
+        }
+
+        function updateShiftState() {
+            if (kbBtnShift) {
+                if (isShiftActive) kbBtnShift.classList.add('kb-key-shift-active');
+                else kbBtnShift.classList.remove('kb-key-shift-active');
+            }
+            const letterKeys = kbQwerty.querySelectorAll('.kb-key:not(.kb-key-action):not(.kb-key-space)');
+            letterKeys.forEach(k => {
+                const char = k.getAttribute('data-key');
+                if (char && char.length === 1 && /[a-zA-Z]/.test(char)) {
+                    k.textContent = isShiftActive ? char.toUpperCase() : char.toLowerCase();
+                }
+            });
+        }
+
+        function openKeyboard(input) {
+            currentActiveInput = input;
+            screenContainer.classList.add('keyboard-active');
+            btnToggleKeyboard.classList.add('active');
+
+            try {
+                const doc = appIframe.contentDocument;
+                if (doc && doc.body) {
+                    doc.body.classList.add('keyboard-open');
+                }
+            } catch (e) {}
+
+            if (input) {
+                let labelText = '';
+                const parentGroup = input.closest('.input-group');
+                if (parentGroup) {
+                    const lbl = parentGroup.querySelector('label');
+                    if (lbl) labelText = lbl.textContent.replace(/⚙️/g, '').trim();
+                }
+                if (!labelText) {
+                    labelText = input.getAttribute('placeholder') || input.id || 'Ô nhập';
+                }
+                kbFieldBadge.textContent = labelText;
+
+                const isNumeric = input.getAttribute('inputmode') === 'numeric' ||
+                                  input.type === 'number' ||
+                                  input.classList.contains('currency-input') ||
+                                  !['usernameInput', 'regUsername', 'regFullName', 'profFullName', 'cfgFirebaseProjectId', 'cfgFirebaseApiKey'].includes(input.id);
+
+                setKeyboardMode(isNumeric ? 'numeric' : 'qwerty');
+            } else {
+                kbFieldBadge.textContent = 'Bàn Phím Ảo';
+            }
+        }
+
+        function closeKeyboard() {
+            screenContainer.classList.remove('keyboard-active');
+            btnToggleKeyboard.classList.remove('active');
+
+            try {
+                const doc = appIframe.contentDocument;
+                if (doc && doc.body) {
+                    doc.body.classList.remove('keyboard-open');
+                }
+                if (currentActiveInput) {
+                    currentActiveInput.blur();
+                }
+            } catch (e) {}
+            currentActiveInput = null;
+        }
+
+        btnToggleKeyboard.addEventListener('click', () => {
+            if (screenContainer.classList.contains('keyboard-active')) {
+                closeKeyboard();
+            } else {
+                try {
+                    const doc = appIframe.contentDocument;
+                    const input = doc ? doc.querySelector('#tab-calc input:not([readonly])') : null;
+                    if (input) {
+                        input.focus();
+                        openKeyboard(input);
+                    } else {
+                        openKeyboard(null);
+                    }
+                } catch(e) {
+                    openKeyboard(null);
+                }
+            }
+        });
+
+        // Prevent losing focus in iframe when clicking keys
+        simKeyboard.addEventListener('pointerdown', (e) => {
+            isInteractingKeyboard = true;
+            e.preventDefault();
+        });
+        simKeyboard.addEventListener('mousedown', (e) => {
+            isInteractingKeyboard = true;
+            e.preventDefault();
+        });
+
+        function getTargetInput() {
+            if (currentActiveInput && currentActiveInput.isConnected) return currentActiveInput;
+            try {
+                const doc = appIframe.contentDocument;
+                if (doc && doc.activeElement && ['INPUT', 'TEXTAREA'].includes(doc.activeElement.tagName)) {
+                    currentActiveInput = doc.activeElement;
+                    return currentActiveInput;
+                }
+                const first = doc ? doc.querySelector('input:not([type="hidden"]):not([readonly])') : null;
+                if (first) {
+                    currentActiveInput = first;
+                    return currentActiveInput;
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        function insertText(text) {
+            const input = getTargetInput();
+            if (!input) return;
+
+            let char = text;
+            if (isShiftActive && char.length === 1 && /[a-zA-Z]/.test(char)) {
+                char = char.toUpperCase();
+                isShiftActive = false;
+                updateShiftState();
+            }
+
+            const val = input.value || '';
+            const start = (input.selectionStart !== null && input.selectionStart !== undefined) ? input.selectionStart : val.length;
+            const end = (input.selectionEnd !== null && input.selectionEnd !== undefined) ? input.selectionEnd : val.length;
+
+            input.value = val.substring(0, start) + char + val.substring(end);
+            const newPos = start + char.length;
+            try { input.setSelectionRange(newPos, newPos); } catch(e) {}
+
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function handleBackspace() {
+            const input = getTargetInput();
+            if (!input) return;
+
+            const val = input.value || '';
+            const start = (input.selectionStart !== null && input.selectionStart !== undefined) ? input.selectionStart : val.length;
+            const end = (input.selectionEnd !== null && input.selectionEnd !== undefined) ? input.selectionEnd : val.length;
+
+            if (start === end) {
+                if (start > 0) {
+                    input.value = val.substring(0, start - 1) + val.substring(end);
+                    try { input.setSelectionRange(start - 1, start - 1); } catch(e) {}
+                }
+            } else {
+                input.value = val.substring(0, start) + val.substring(end);
+                try { input.setSelectionRange(start, start); } catch(e) {}
+            }
+
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function handleClear() {
+            const input = getTargetInput();
+            if (!input) return;
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function navigateInput(direction) {
+            try {
+                const doc = appIframe.contentDocument;
+                if (!doc) return;
+                const list = Array.from(doc.querySelectorAll('input:not([type="hidden"]):not([readonly]):not([disabled]), textarea:not([disabled])'))
+                    .filter(el => el.offsetParent !== null);
+                if (list.length === 0) return;
+
+                let idx = list.indexOf(currentActiveInput);
+                let nextIdx = idx + direction;
+                if (nextIdx < 0) nextIdx = list.length - 1;
+                if (nextIdx >= list.length) nextIdx = 0;
+
+                list[nextIdx].focus();
+                openKeyboard(list[nextIdx]);
+            } catch(e) {}
+        }
+
+        function triggerCalculate() {
+            try {
+                const doc = appIframe.contentDocument;
+                if (!doc) return;
+                const btn = doc.getElementById('btnCalculate');
+                if (btn) btn.click();
+            } catch(e) {}
+        }
+
+        simKeyboard.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const action = btn.getAttribute('data-action');
+            const key = btn.getAttribute('data-key');
+
+            if (action === 'done') {
+                closeKeyboard();
+                return;
+            }
+            if (action === 'switch-mode' || action === 'switch-num') {
+                toggleKeyboardMode();
+                return;
+            }
+            if (action === 'shift') {
+                isShiftActive = !isShiftActive;
+                updateShiftState();
+                return;
+            }
+            if (action === 'backspace') {
+                handleBackspace();
+                return;
+            }
+            if (action === 'clear') {
+                handleClear();
+                return;
+            }
+            if (action === 'next') {
+                navigateInput(1);
+                return;
+            }
+            if (action === 'prev') {
+                navigateInput(-1);
+                return;
+            }
+            if (action === 'calculate') {
+                triggerCalculate();
+                return;
+            }
+
+            if (key !== null && key !== undefined) {
+                insertText(key);
+            }
+        });
+
+        function attachIframeListeners() {
+            try {
+                const doc = appIframe.contentDocument;
+                if (!doc) return;
+
+                doc.addEventListener('focusin', (e) => {
+                    const el = e.target;
+                    if (el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) {
+                        openKeyboard(el);
+                    }
+                });
+
+                doc.addEventListener('focusout', (e) => {
+                    setTimeout(() => {
+                        if (isInteractingKeyboard) {
+                            isInteractingKeyboard = false;
+                            return;
+                        }
+                        const active = doc.activeElement;
+                        if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+                            closeKeyboard();
+                        }
+                    }, 120);
+                });
+            } catch(e) {}
+        }
+
         appIframe.addEventListener('load', () => {
             injectSafeArea();
+            attachIframeListeners();
             try {
                 if (appIframe.contentWindow) {
                     appIframe.contentWindow.scrollTo(0, 0);
