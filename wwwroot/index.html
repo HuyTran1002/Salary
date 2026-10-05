@@ -607,25 +607,19 @@
 
     </div>
 
-    <!-- Gear Config Modal -->
-    <div id="gearConfigModal"
-        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;">
-        <div class="glass-card 3d-hover"
-            style="max-width: 520px; width: 92%; padding: 22px 26px; border-radius: 16px; background: rgba(20, 27, 44, 0.95); border: 1px solid rgba(255,255,255,0.12);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h3 class="glow-text" id="gearModalTitle" style="font-size: 1.2rem; margin: 0; color: var(--primary);">
-                    Cấu Hình ⚙️</h3>
-                <button id="btnCloseGearModal" class="modal-close-btn"
-                    style="background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+    <!-- Gear Config Modal (Cấu hình Thưởng hiệu suất & Tiền cơm OT) -->
+    <div id="gearConfigModal" class="gear-config-overlay">
+        <div class="glass-card gear-config-box">
+            <div class="gear-modal-header">
+                <h3 class="glow-text" id="gearModalTitle">Cấu Hình ⚙️</h3>
+                <button id="btnCloseGearModal" class="modal-close-btn" title="Đóng">&times;</button>
             </div>
-            <div id="gearModalBody" style="display: flex; flex-direction: column; gap: 14px;">
+            <div id="gearModalBody" class="gear-modal-body">
                 <!-- Inputs injected via JS -->
             </div>
-            <div class="btn-row" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button id="btnCancelGear" class="btn-3d btn-ghost"
-                    style="width: auto; padding: 7px 20px; font-size: 0.88rem;">Hủy</button>
-                <button id="btnSaveGear" class="btn-3d btn-primary"
-                    style="width: auto; padding: 7px 24px; font-size: 0.88rem;">Lưu Thay Đổi</button>
+            <div class="gear-modal-actions">
+                <button id="btnCancelGear" class="btn-3d btn-ghost">Hủy</button>
+                <button id="btnSaveGear" class="btn-3d btn-primary">Lưu Thay Đổi</button>
             </div>
         </div>
     </div>

@@ -1040,7 +1040,6 @@ function showGearModal({ title, fields, onSave }) {
     fields.forEach(f => {
         const group = document.createElement('div');
         group.className = 'input-group';
-        group.style.marginBottom = '6px';
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -1057,9 +1056,7 @@ function showGearModal({ title, fields, onSave }) {
 
         if (f.note) {
             const note = document.createElement('p');
-            note.style.fontSize = '0.78rem';
-            note.style.color = 'var(--text-muted)';
-            note.style.margin = '2px 0 0 0';
+            note.className = 'gear-field-note';
             note.textContent = f.note;
             group.appendChild(note);
         }
@@ -1072,9 +1069,14 @@ function showGearModal({ title, fields, onSave }) {
     initNonNegativeInputs();
 
     modal.style.display = 'flex';
+    modal.scrollTop = 0;
 
     const closeModal = () => {
         modal.style.display = 'none';
+        modal.scrollTop = 0;
+        if (document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            document.activeElement.blur();
+        }
     };
 
     btnClose.onclick = closeModal;
@@ -1867,7 +1869,7 @@ function fitMobileViewport() {
     if (midMonthSalaryModal && midMonthSalaryModal.style.display === 'flex') return; // Không can thiệp khi đang mở modal 2 mức lương
     
     // Nếu có bất kỳ modal nào đang mở, không can thiệp cuộn của modal
-    const anyModal = document.querySelector('#historyDetailModal, #companyModal, #cloudSyncModal, #customGearModal');
+    const anyModal = document.querySelector('#historyDetailModal, #companyModal, #cloudSyncModal, #gearConfigModal');
     if (anyModal && anyModal.style.display === 'flex') return;
 
     if (window.scrollY !== 0 || window.scrollX !== 0) {
@@ -1949,9 +1951,9 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         // Nếu người dùng đang vuốt tay cuộn trang, không ngắt quãng cử chỉ của họ
         if (isUserSwiping) return;
 
-        // Xử lý ô nhập trong modal 2 mức lương
-        const midMonthOverlay = el.closest('#midMonthSalaryModal');
-        if (midMonthOverlay) {
+        // Xử lý ô nhập trong modal 2 mức lương hoặc modal cấu hình gear
+        const modalScrollContainer = el.closest('#midMonthSalaryModal, #gearConfigModal, #companyModal, #cloudSyncModal');
+        if (modalScrollContainer) {
             focusTimer = setTimeout(() => {
                 if (isUserSwiping) return;
                 try {
