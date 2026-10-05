@@ -2003,19 +2003,20 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
         }
     });
 
-    // Chạm vào vùng trống hoặc khung kết quả bên phải để hạ bàn phím an toàn mà không bấm nhầm nút
+    // Chạm vào vùng trống ngoài ô nhập liệu để hạ bàn phím an toàn mà không bấm nhầm nút
     document.addEventListener('pointerdown', (e) => {
         if (!document.body.classList.contains('keyboard-open')) return;
 
-        // Nếu chạm vào khung kết quả bên phải hoặc bất kỳ vị trí không phải ô nhập liệu -> lập tức hạ bàn phím
-        const isRightPanel = e.target.closest('#stickyResultCard, .results-panel');
-        const isInputField = e.target.closest('input, select, textarea, button, a, label, .switch-toggle');
+        // Nếu chạm vào nút bấm (như nút Tính Lương, nút đóng, nút gạt, tab...) hoặc ô nhập -> để trình duyệt kích hoạt bình thường
+        const isInteractive = e.target.closest('button, input, select, textarea, a, .switch-toggle, .tab-btn');
+        if (isInteractive) {
+            return;
+        }
 
-        if (isRightPanel || !isInputField) {
-            const active = document.activeElement;
-            if (active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
-                active.blur();
-            }
+        // Chạm vào bất kỳ vùng trống nào (kể cả nền card kết quả, tiêu đề, khoảng trắng) -> lập tức hạ bàn phím
+        const active = document.activeElement;
+        if (active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+            active.blur();
         }
     }, { passive: true });
 })();
