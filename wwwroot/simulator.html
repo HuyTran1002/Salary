@@ -655,6 +655,7 @@
         <div class="controls-group">
             <!-- Device Preset Selector -->
             <select id="deviceSelect" class="ctrl-select" title="Chọn loại thiết bị điện thoại">
+                <option value="412,1040,Galaxy A/S (20:9 Wide)">📱 Samsung Galaxy (412 × 1040 Wide)</option>
                 <option value="393,852,iPhone 15 Pro">📱 iPhone 15 Pro (393 × 852)</option>
                 <option value="412,915,Galaxy S24 Ultra">📱 Samsung Galaxy S24 (412 × 915)</option>
                 <option value="412,892,Pixel 8 Pro">📱 Google Pixel 8 (412 × 892)</option>
@@ -1215,9 +1216,23 @@
                 const doc = appIframe.contentDocument;
                 if (!doc) return;
 
+                function isEditableInput(el) {
+                    if (!el) return false;
+                    const tag = el.tagName;
+                    if (tag === 'TEXTAREA') return !el.readOnly && !el.disabled;
+                    if (tag === 'INPUT') {
+                        if (el.readOnly || el.disabled) return false;
+                        const nonTextTypes = ['checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'range', 'color', 'hidden', 'image'];
+                        const type = (el.type || '').toLowerCase();
+                        if (nonTextTypes.includes(type)) return false;
+                        return true;
+                    }
+                    return false;
+                }
+
                 doc.addEventListener('focusin', (e) => {
                     const el = e.target;
-                    if (el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) {
+                    if (isEditableInput(el)) {
                         openKeyboard(el);
                     }
                 });
@@ -1229,7 +1244,7 @@
                             return;
                         }
                         const active = doc.activeElement;
-                        if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+                        if (!isEditableInput(active)) {
                             closeKeyboard();
                         }
                     }, 120);

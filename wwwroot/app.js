@@ -1864,7 +1864,7 @@ window.switchCalcSubtab = function(groupId) {
 // Auto Viewport Fitting for Mobile: Tự động vừa khít mọi kích thước màn hình
 // =========================================================
 function fitMobileViewport() {
-    if (window.innerWidth > 900) return; // Tuyệt đối không can thiệp giao diện PC
+    if (window.innerWidth > 1400 && !window.Capacitor) return; // Tuyệt đối không can thiệp giao diện PC
     if (document.body.classList.contains('keyboard-open')) return; // Không can thiệp vị trí cuộn khi đang mở bàn phím
     if (midMonthSalaryModal && midMonthSalaryModal.style.display === 'flex') return; // Không can thiệp khi đang mở modal 2 mức lương
     
@@ -1920,6 +1920,30 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
     let isUserSwiping = false;
     let swipeTimer = null;
 
+    // Helper: Chỉ nhận các ô nhập liệu văn bản/số thực sự kích hoạt bàn phím ảo
+    // (BỎ QUA checkbox, radio, button, select, và ô readonly như ô Công chuẩn khi bật AUTO)
+    function isEditableKeyboardInput(el) {
+        if (!el) return false;
+        const tag = el.tagName;
+        if (tag === 'TEXTAREA') return !el.readOnly && !el.disabled;
+        if (tag === 'INPUT') {
+            if (el.readOnly || el.disabled) return false;
+            const nonTextTypes = ['checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'range', 'color', 'hidden', 'image'];
+            const type = (el.type || '').toLowerCase();
+            if (nonTextTypes.includes(type)) return false;
+            return true;
+        }
+        return false;
+    }
+
+    // Helper: Kiểm tra thiết bị cảm ứng / màn hình chạm / mobile app
+    function isMobileOrTouch() {
+        return Boolean(window.Capacitor) ||
+               (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ||
+               ('ontouchstart' in window) ||
+               (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+    }
+
     // Khi người dùng đang chạm/vuốt màn hình: TUYỆT ĐỐI không cho bất kỳ mã JS nào can thiệp cuộn!
     window.addEventListener('touchstart', () => {
         isUserSwiping = true;
@@ -1942,8 +1966,12 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
 
     document.addEventListener('focusin', (e) => {
         const el = e.target;
-        if (!el || !['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return;
-        if (window.innerWidth > 1024) return;
+        // 1. Chỉ kích hoạt cho ô có bàn phím ảo thực sự
+        if (!isEditableKeyboardInput(el)) return;
+        // 2. Chỉ kích hoạt trên di động / thiết bị chạm, không áp dụng cho PC bàn phím cơ
+        if (!isMobileOrTouch()) return;
+        // 3. Hỗ trợ điện thoại màn hình dài xoay ngang (20:9, 21:9 có chiều rộng 1039px - 1280px)
+        if (window.innerWidth > 1400 && !window.Capacitor) return;
 
         document.body.classList.add('keyboard-open');
         clearTimeout(focusTimer);
@@ -1981,25 +2009,22 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
 
     function exitKeyboardMode() {
         document.body.classList.remove('keyboard-open');
-        // TUYỆT ĐỐI KHÔNG reset scrollTop = 0 ở đây để tránh giật màn hình khi người dùng chuyển ô hoặc kéo vuốt
     }
 
     document.addEventListener('focusout', (e) => {
         clearTimeout(focusTimer);
         focusTimer = setTimeout(() => {
             const active = document.activeElement;
-            if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+            if (!isEditableKeyboardInput(active)) {
                 exitKeyboardMode();
             }
-        }, 200);
+        }, 150);
     });
 
     window.addEventListener('resize', () => {
-        if (window.innerWidth <= 1024 && window.innerHeight >= 300) {
-            const active = document.activeElement;
-            if (!active || !['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
-                exitKeyboardMode();
-            }
+        const active = document.activeElement;
+        if (!isEditableKeyboardInput(active)) {
+            exitKeyboardMode();
         }
     });
 
@@ -2015,7 +2040,7 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
 
         // Chạm vào bất kỳ vùng trống nào (kể cả nền card kết quả, tiêu đề, khoảng trắng) -> lập tức hạ bàn phím
         const active = document.activeElement;
-        if (active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+        if (isEditableKeyboardInput(active)) {
             active.blur();
         }
     }, { passive: true });

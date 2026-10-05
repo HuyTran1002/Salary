@@ -6049,7 +6049,7 @@ body.no-scroll {
 /* =========================================================
    Mobile Keyboard Active: Khi mở bàn phím trên điện thoại
    ========================================================= */
-@media (max-width: 1024px) {
+@media (max-width: 1400px), (max-height: 550px) {
     body.keyboard-open .modal-overlay,
     body.keyboard-open .history-detail-overlay,
     body.keyboard-open .company-modal-overlay,
@@ -6076,8 +6076,10 @@ body.no-scroll {
     }
 }
 
-/* Tối ưu riêng khi mở bàn phím trên điện thoại xoay ngang (Landscape Keyboard Mode) */
-@media (max-width: 1024px) and (orientation: landscape) {
+/* Tối ưu riêng khi mở bàn phím trên điện thoại xoay ngang (Landscape Keyboard Mode)
+   Hỗ trợ toàn bộ màn hình điện thoại từ 600px đến 1400px (tỷ lệ 19.5:9, 20:9, 21:9) */
+@media (max-width: 1400px) and (orientation: landscape),
+       (orientation: landscape) and (max-height: 550px) {
     /* Khung ngoài và trang cố định tuyệt đối, không trôi, không dịch chuyển */
     body.keyboard-open html,
     body.keyboard-open body,
@@ -6142,8 +6144,8 @@ body.no-scroll {
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        padding: 4px 6px !important;
-        gap: 3px !important;
+        padding: 3px 5px !important;
+        gap: 2px !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
     }
@@ -6164,7 +6166,7 @@ body.no-scroll {
         display: none !important;
     }
 
-    /* 3 dòng kết quả xếp dọc độc lập, cố định 21px/dòng - hiển thị đầy đủ, không bị đè che */
+    /* 3 dòng kết quả xếp dọc độc lập, cố định 18px/dòng - hiển thị đầy đủ, không bị đè che */
     body.keyboard-open #tab-calc .result-box.vertical-compact {
         display: flex !important;
         flex-direction: column !important;
@@ -6175,28 +6177,28 @@ body.no-scroll {
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item {
-        flex: 0 0 21px !important;
-        height: 21px !important;
-        min-height: 21px !important;
+        flex: 0 0 18px !important;
+        height: 18px !important;
+        min-height: 18px !important;
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 0 8px !important;
-        border-radius: 6px !important;
+        padding: 0 6px !important;
+        border-radius: 5px !important;
         text-align: left !important;
         box-sizing: border-box !important;
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item span {
-        font-size: 0.58rem !important;
+        font-size: 0.54rem !important;
         line-height: 1 !important;
         margin: 0 !important;
         white-space: nowrap !important;
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item strong {
-        font-size: 0.76rem !important;
+        font-size: 0.72rem !important;
         line-height: 1 !important;
         white-space: nowrap !important;
     }
@@ -6210,16 +6212,16 @@ body.no-scroll {
         flex: 0 0 auto !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 3px !important;
+        gap: 2px !important;
         margin: 0 !important;
         width: 100% !important;
     }
 
     body.keyboard-open #tab-calc .net-main-item {
-        height: 28px !important;
-        min-height: 28px !important;
-        padding: 0 8px !important;
-        border-radius: 7px !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        padding: 0 6px !important;
+        border-radius: 6px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
@@ -6227,29 +6229,29 @@ body.no-scroll {
     }
 
     body.keyboard-open #tab-calc .net-main-item span {
-        font-size: 0.56rem !important;
+        font-size: 0.52rem !important;
         line-height: 1 !important;
     }
 
     body.keyboard-open #tab-calc .net-main-item strong {
-        font-size: 0.92rem !important;
+        font-size: 0.84rem !important;
         line-height: 1.1 !important;
     }
 
     /* Nút Tính Lương hiển thị cố định ở đáy, rõ ràng, không bị dồn */
     body.keyboard-open #tab-calc .calc-btn-wrap {
         display: flex !important;
-        flex: 0 0 28px !important;
-        height: 28px !important;
+        flex: 0 0 24px !important;
+        height: 24px !important;
         margin: 0 !important;
     }
 
     body.keyboard-open #tab-calc #btnCalculate {
-        height: 28px !important;
-        min-height: 28px !important;
-        font-size: 0.80rem !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        font-size: 0.76rem !important;
         font-weight: 700 !important;
-        border-radius: 7px !important;
+        border-radius: 6px !important;
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
