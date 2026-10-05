@@ -6090,6 +6090,11 @@ body.no-scroll {
         overscroll-behavior: none !important;
     }
 
+    /* Ẩn header khi mở bàn phím xoay ngang để trả lại 45px không gian quý giá, chống chật chội và dính chùm */
+    body.keyboard-open #mainScreen .glass-header.compact-header {
+        display: none !important;
+    }
+
     /* 1. Chỉ cuộn riêng biệt vùng nhập liệu bên trái khi bàn phím mở */
     body.keyboard-open #tab-calc .inputs-panel-stacked {
         overflow-y: auto !important;
@@ -6137,8 +6142,8 @@ body.no-scroll {
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        padding: 6px 8px !important;
-        gap: 4px !important;
+        padding: 5px 8px !important;
+        gap: 3px !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
     }
@@ -6148,38 +6153,42 @@ body.no-scroll {
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
         margin: 0 !important;
+        gap: 2px !important;
     }
 
     body.keyboard-open #tab-calc #stickyResultCard .section-title {
-        font-size: 0.70rem !important;
+        font-size: 0.68rem !important;
         margin: 0 0 2px 0 !important;
         line-height: 1.1 !important;
         text-align: center !important;
+        flex: 0 0 auto !important;
     }
 
-    /* Giữ nguyên các hàng dọc độc lập, lấp đầy chiều cao cân đối - KHÔNG xếp 3 cột ngang để không bị lẹm số và trống trải */
+    /* Giữ nguyên các hàng dọc độc lập, cố định chiều cao 23px - TUYỆT ĐỐI không flex-shrink để không bị dính chùm hay đè chữ */
     body.keyboard-open #tab-calc .result-box.vertical-compact {
-        flex: 1 1 auto !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: space-evenly !important;
         gap: 3px !important;
         width: 100% !important;
         margin: 0 !important;
+        flex: 0 0 auto !important;
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item {
-        flex: 1 1 0 !important;
-        min-height: 20px !important;
-        max-height: 26px !important;
+        flex: 0 0 23px !important;
+        height: 23px !important;
+        min-height: 23px !important;
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 1px 8px !important;
+        padding: 0 8px !important;
         border-radius: 6px !important;
         text-align: left !important;
+        box-sizing: border-box !important;
     }
 
     body.keyboard-open #tab-calc .result-box.vertical-compact .result-item span {
@@ -6195,27 +6204,24 @@ body.no-scroll {
         white-space: nowrap !important;
     }
 
+    /* Ẩn bớt hộp T7/CN khi mở bàn phím để dành không gian cho kết quả chính */
     body.keyboard-open #tab-calc #weekendInfoBox {
-        flex: 0 0 auto !important;
-        margin: 0 !important;
-        padding: 2px 5px !important;
-        font-size: 0.56rem !important;
-        line-height: 1.1 !important;
+        display: none !important;
     }
 
     body.keyboard-open #tab-calc .result-action-bar {
         flex: 0 0 auto !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 4px !important;
+        gap: 3px !important;
         margin: 0 !important;
         width: 100% !important;
     }
 
     body.keyboard-open #tab-calc .net-main-item {
-        height: 32px !important;
+        height: 30px !important;
         min-height: 30px !important;
-        padding: 2px 8px !important;
+        padding: 1px 8px !important;
         border-radius: 7px !important;
         display: flex !important;
         align-items: center !important;
@@ -6229,11 +6235,11 @@ body.no-scroll {
     }
 
     body.keyboard-open #tab-calc .net-main-item strong {
-        font-size: 0.96rem !important;
+        font-size: 0.95rem !important;
         line-height: 1.1 !important;
     }
 
-    /* Nút Tính Lương hiển thị cố định, rõ ràng, không bị dồn */
+    /* Nút Tính Lương hiển thị cố định ở đáy, rõ ràng, không bị dồn */
     body.keyboard-open #tab-calc .calc-btn-wrap {
         display: flex !important;
         flex: 0 0 30px !important;
