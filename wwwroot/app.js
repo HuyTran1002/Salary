@@ -2002,4 +2002,20 @@ document.addEventListener('deviceready', lockLandscapeOnMobile, false);
             }
         }
     });
+
+    // Chạm vào vùng trống hoặc khung kết quả bên phải để hạ bàn phím an toàn mà không bấm nhầm nút
+    document.addEventListener('pointerdown', (e) => {
+        if (!document.body.classList.contains('keyboard-open')) return;
+
+        // Nếu chạm vào khung kết quả bên phải hoặc bất kỳ vị trí không phải ô nhập liệu -> lập tức hạ bàn phím
+        const isRightPanel = e.target.closest('#stickyResultCard, .results-panel');
+        const isInputField = e.target.closest('input, select, textarea, button, a, label, .switch-toggle');
+
+        if (isRightPanel || !isInputField) {
+            const active = document.activeElement;
+            if (active && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName)) {
+                active.blur();
+            }
+        }
+    }, { passive: true });
 })();

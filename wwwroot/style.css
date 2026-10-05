@@ -6078,6 +6078,10 @@ body.no-scroll {
     body.keyboard-open .main-screen-container {
         padding-bottom: 260px !important;
     }
+
+    body.keyboard-open #tab-calc .calc-btn-wrap {
+        display: none !important;
+    }
 }
 
 /* Tối ưu riêng khi mở bàn phím trên điện thoại xoay ngang (Landscape Keyboard Mode) */
@@ -6103,7 +6107,38 @@ body.no-scroll {
         min-height: auto !important;
     }
 
-    /* 3. Bảng điền số 2 mức lương: Đồng nhất layout hoàn toàn, không đổi cấu trúc hay padding khi mở/đóng bàn phím */
+    /* 3. Tối ưu cột kết quả bên phải: Ẩn nút Tính Lương để nhường không gian và chống bấm nhầm khi mở bàn phím */
+    body.keyboard-open #tab-calc .calc-btn-wrap {
+        display: none !important;
+    }
+
+    body.keyboard-open #tab-calc #stickyResultCard {
+        cursor: pointer;
+        justify-content: center !important;
+        gap: 3px !important;
+        padding: 4px 8px !important;
+    }
+
+    body.keyboard-open #tab-calc .result-box.vertical-compact {
+        gap: 2px !important;
+    }
+
+    body.keyboard-open #tab-calc .result-box.vertical-compact .result-item {
+        min-height: 18px !important;
+        max-height: 20px !important;
+        padding: 0 6px !important;
+    }
+
+    body.keyboard-open #tab-calc .net-main-item {
+        height: 28px !important;
+        padding: 2px 6px !important;
+    }
+
+    body.keyboard-open #tab-calc .net-main-item strong {
+        font-size: 0.88rem !important;
+    }
+
+    /* 4. Bảng điền số 2 mức lương: Đồng nhất layout hoàn toàn, không đổi cấu trúc hay padding khi mở/đóng bàn phím */
     body.keyboard-open .mid-month-overlay {
         padding: 6px 6px 180px 6px !important;
         align-items: center !important;
